@@ -1,0 +1,6 @@
+export(
+adjust.time, cdf.to.ftr, EIC.plot, EIC.plot.learn, feature.align, load.lcms, plot.cdf.2d, plot.txt.2d, present.cdf.3d, proc.cdf, proc.txt, prof.to.features, recover.weaker
+, semi.sup, semi.sup.learn, find.tol, find.turn.point, make.known.table, target.search, two.step.hybrid)
+
+import(
+MASS, rgl, mzR , splines, doParallel, foreach, iterators, snow, e1071, ROCR, ROCS, gbm, randomForest, Rcpp)
