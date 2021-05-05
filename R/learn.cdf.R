@@ -17,7 +17,7 @@ function(filename, tol=2e-5, min.run=4, min.pres=0.3, baseline.correct=0, ridge.
         }
     }else{
         this<-load.lcms(filename)
-        raw.prof<-adaptive.bin.2(this, tol=tol, ridge.smoother.window=ridge.smoother.window, baseline.correct=baseline.correct, weighted=intensity.weighted)
+        raw.prof<-adaptive.bin.2(this, tol=tol, ridge.smoother.window=ridge.smoother.window, baseline.correct=baseline.correct)
         save(raw.prof, file=this.name)
     }
     
