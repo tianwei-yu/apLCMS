@@ -11,4 +11,6 @@ biocViews: Technology, MassSpectrometry
 License: GPL(>=2)
 LazyLoad: yes
 NeedsCompilation: no
-Packaged: 2020-05-05 00:31:58 UTC; tyu8
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

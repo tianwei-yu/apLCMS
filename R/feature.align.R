@@ -1,11 +1,13 @@
 feature.align <-
-function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01)     # returns a list of aligned features and original peak times
+function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)     # returns a list of aligned features and original peak times
 {
-    par(mfrow=c(3,2))
-    plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
-    text(x=0,y=0,"Feature alignment",cex=2)
-    plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
-    
+    if (do.plot) {
+        par(mfrow=c(3,2))
+        plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
+        text(x=0,y=0,"Feature alignment",cex=2)
+        plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
+    }
+
     to.attach<-function(this.pick, num.exp, use="sum")
     {
         this.strengths<-rep(0, num.exp)
@@ -14,7 +16,7 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
             this.strengths[this.pick[6]]<-this.pick[5]
             return(c(this.pick[1], this.pick[2], this.pick[1],this.pick[1],this.strengths))
         }else{
-            for(m in 1:length(this.strengths))
+            for(m in seq_along(this.strengths))
             {
                 if(use == "sum") this.strengths[m]<-sum(this.pick[this.pick[,6]==m,5])
                 if(use == "median") this.strengths[m]<-median(this.pick[this.pick[,6]==m,5])
@@ -48,24 +50,24 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
         
         if(is.na(mz.tol))
         {
-            mz.tol<-find.tol(masses,uppermost=find.tol.max.d)
+            mz.tol<-find.tol(masses,uppermost=find.tol.max.d, do.plot=do.plot)
             if(length(mz.tol)==0)
             {
                 mz.tol<-1e-5
                 warning("Automatic tolerance finding failed, 10 ppm was assigned. May need to manually assign alignment mz tolerance level.")
             }
-        }else{
+        } else if (do.plot) {
             plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="alignment m/z tolerance level given",axes=FALSE)
             text(x=0,y=0,mz.tol,cex=1.2)
         }
         
-        if(!is.na(chr.tol))
+        if(!is.na(chr.tol) && do.plot)
         {
             plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="retention time \n tolerance level given",axes=FALSE)
             text(x=0,y=0,chr.tol,cex=1.2)
         }
         
-        all.ft<-find.tol.time(masses, chr, lab, num.exp=num.exp, mz.tol=mz.tol, chr.tol=chr.tol, max.mz.diff=max.align.mz.diff)
+        all.ft<-find.tol.time(masses, chr, lab, num.exp=num.exp, mz.tol=mz.tol, chr.tol=chr.tol, max.mz.diff=max.align.mz.diff, do.plot=do.plot)
         chr.tol<-all.ft$chr.tol
         
         message("**** performing feature alignment ****")
@@ -102,7 +104,7 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
         
         sel.labels<-as.numeric(names(ttt)[ttt>=min.exp])
         
-        aligned.ftrs<-foreach(i=1:length(sel.labels), .combine=rbind) %dopar%
+        aligned.ftrs<-foreach(i= seq_along(sel.labels), .combine=rbind) %dopar%
         {
             if(i %% 100 == 0) gc()
             this.return<-NULL
@@ -119,7 +121,7 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
                     turns<-find.turn.point(this.den$y)
                     pks<-this.den$x[turns$pks]
                     vlys<-this.den$x[turns$vlys]
-                    for(j in 1:length(pks))
+                    for(j in seq_along(pks))
                     {
                         this.lower<-max(vlys[vlys < pks[j]])
                         this.upper<-min(vlys[vlys > pks[j]])
@@ -133,7 +135,7 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
                                 that.turns<-find.turn.point(that.den$y)
                                 that.pks<-that.den$x[that.turns$pks]
                                 that.vlys<-that.den$x[that.turns$vlys]
-                                for(k in 1:length(that.pks))
+                                for(k in seq_along(that.pks))
                                 {
                                     that.lower<-max(that.vlys[that.vlys < that.pks[k]])
                                     that.upper<-min(that.vlys[that.vlys > that.pks[k]])
@@ -147,10 +149,10 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
                                         }
                                     }
                                 }
-                            }else{}
+                            }
                         }
                     }
-                }else{}
+                }
             }else{
                 if(min.exp==1)
                 {
@@ -165,18 +167,19 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
         mz.sd.rec<-aligned.ftrs[,ncol(aligned.ftrs)]
         aligned.ftrs<-aligned.ftrs[,1:(4+num.exp)]
         
-        colnames(aligned.ftrs)<-c("mz","chr","min.mz","max.mz",paste("exp",1:num.exp))
-        colnames(pk.times)<-c("mz","chr","min.mz","max.mz",paste("exp",1:num.exp))
+        colnames(aligned.ftrs) <- colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:num.exp))
         
         rec<-new("list")
         rec$aligned.ftrs<-aligned.ftrs
         rec$pk.times<-pk.times
         rec$mz.tol<-mz.tol
         rec$chr.tol<-chr.tol
-        
-        hist(mz.sd.rec,xlab="m/z SD", ylab="Frequency",main="m/z SD distribution")
-        hist(apply(pk.times[,-1:-4],1,sd,na.rm=TRUE), xlab="Retention time SD", ylab="Frequency", main="Retention time SD distribution")
-        
+
+        if (do.plot) {
+            hist(mz.sd.rec,xlab="m/z SD", ylab="Frequency",main="m/z SD distribution")
+            hist(apply(pk.times[,-1:-4],1,sd,na.rm=TRUE), xlab="Retention time SD", ylab="Frequency", main="Retention time SD distribution")
+        }
+
         return(rec)
     }else{
         message("There is but one experiment.  What are you trying to align?")

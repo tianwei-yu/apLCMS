@@ -4,7 +4,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
     
     
     library(mzR)
-    library(doparallel)
+    library(doParallel)
     setwd(folder)
     
     files<-dir(pattern=file.pattern, ignore.case = TRUE)
