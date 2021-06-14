@@ -14,8 +14,9 @@ as_feature_sample_table <- function(rt_crosstab, int_crosstab) {
     rt = rt_crosstab[, 2]
   )
 
-  rt_crosstab <- as.table(rt_crosstab[, -(1:4)])
-  int_crosstab <- as.table(int_crosstab[, -(1:4)])
+  # series of conversions to produce a table type from data.frame
+  rt_crosstab <- as.table(as.matrix(rt_crosstab[, -(1:4)]))
+  int_crosstab <- as.table(as.matrix(int_crosstab[, -(1:4)]))
 
   crosstab_axes <- list(feature = feature_names, sample = sample_names)
   dimnames(rt_crosstab) <- dimnames(int_crosstab) <- crosstab_axes
