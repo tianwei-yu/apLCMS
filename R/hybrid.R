@@ -177,9 +177,6 @@ hybrid <- function(
   doParallel::registerDoParallel(cluster)
 
   check_files(filenames)
-  # further processing requires sorted file list according to the acquisition
-  # order (assumes that the filenames contain acquisition number)
-  filenames <- sort(unlist(filenames))
   sample_names <- get_sample_name(filenames)
 
   message("**** feature extraction ****")
