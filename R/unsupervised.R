@@ -160,6 +160,8 @@ recover_weaker_signals <- function(
   sample_names <- colnames(aligned_rt_crosstab[, -(1:4)])
 
   list(
+    extracted_features = lapply(recovered, function(x) x$this.f1),
+    corrected_features = lapply(recovered, function(x) x$this.f2),
     rt_crosstab = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
     int_crosstab = as_feature_crosstab(feature_names, sample_names, int_crosstab)
   )
@@ -278,8 +280,8 @@ unsupervised <- function(
   )
 
   list(
-    extracted_peaks = recovered$extracted_features,
-    corrected_peaks = recovered$corrected_features,
+    extracted_features = recovered$extracted_features,
+    corrected_features = recovered$corrected_features,
     aligned_peak_sample_table = aligned_peak_sample_table,
     recovered_peak_sample_table = recovered_peak_sample_table,
     aligned_mz_toletance = as.numeric(aligned$mz_tolerance),
