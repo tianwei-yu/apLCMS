@@ -1,151 +1,179 @@
-.check_tasks <- function(message, tasks, results) {
-  errors <- vapply(results, function (x) inherits(x, "try-error"), logical(1))
-  
-  if (any(errors)) {
-    stop(
-      message,
-      ":\n",
-      paste("\t", tasks[errors], ":", results[errors], collapse = "\n")
-    )
-  }
-  
-  return(results)
+as_feature_crosstab <- function(feature_names, sample_names, data) {
+  colnames(data) <- c('mz', 'rt', 'mz_min', 'mz_max', sample_names)
+  rownames(data) <- feature_names
+  as.data.frame(data)
 }
 
-.check_files <- function(files) {
-  if (any(missing <- !file.exists(files))) {
-    stop(
-      "Cannot find the following files:\n",
-      paste0("\t", files[missing], collapse = "\n")
-    )
+as_feature_sample_table <- function(rt_crosstab, int_crosstab) {
+  feature_names <- rownames(rt_crosstab)
+  sample_names <- colnames(rt_crosstab)[-(1:4)]
+
+  feature_table <- data.frame(
+    feature = feature_names,
+    mz = rt_crosstab[, 1],
+    rt = rt_crosstab[, 2]
+  )
+
+  rt_crosstab <- as.table(rt_crosstab[, -(1:4)])
+  int_crosstab <- as.table(int_crosstab[, -(1:4)])
+
+  crosstab_axes <- list(feature = feature_names, sample = sample_names)
+  dimnames(rt_crosstab) <- dimnames(int_crosstab) <- crosstab_axes
+
+  x <- as.data.frame(rt_crosstab, responseName = 'sample_rt')
+  y <- as.data.frame(int_crosstab, responseName = 'sample_intensity')
+
+  data <- merge(x, y, by = c('feature', 'sample'))
+  data <- merge(feature_table, data, by = 'feature')
+  data
+}
+
+check_files <- function(filenames) {
+  missing <- !file.exists(filenames)
+  missing_filenames <- paste0('\t', filenames[missing], collapse = '\n')
+
+  if (any(missing)) {
+    stop("Cannot find the following files:\n", missing_filenames)
   }
+}
+
+get_sample_name <- function(filename) {
+  tools::file_path_sans_ext(basename(filename))
 }
 
 extract_features <- function(
-  files,
+  cluster,
+  filenames,
   min_pres,
   min_run,
   mz_tol,
-  baseline_correct_noise_percentile,
-  shape_model,
-  BIC_factor,
   baseline_correct,
-  peak_estim_method,
+  baseline_correct_noise_percentile,
+  intensity_weighted,
   min_bandwidth,
   max_bandwidth,
   sd_cut,
   sigma_ratio_lim,
+  shape_model,
+  peak_estim_method,
   component_eliminate,
   moment_power,
-  intensity_weighted,
-  cluster = NULL
+  BIC_factor
 ) {
-  .check_files(files)
+  clusterExport(cluster, list(
+    'proc.cdf',
+    'prof.to.features',
+    'load.lcms',
+    'adaptive.bin',
+    'find.turn.point',
+    'merge.seq.3',
+    'cont.index',
+    'interpol.area'
+  ))
 
-  if (is.null(cluster)) {
-    cluster <- parallel::makeCluster(parallel::detectCores())
-    on.exit(parallel::stopCluster(cluster))
-  }
-
-  features <- parallel::parLapply(cluster, files, function(file) {
-    try({
-      prof <- proc.cdf(
-        filename = file,
-        min.pres = min_pres,
-        min.run = min_run,
-        tol = mz_tol,
-        baseline.correct = baseline_correct,
-        baseline.correct.noise.percentile = baseline_correct_noise_percentile,
-        do.plot = FALSE,
-        intensity.weighted = intensity_weighted,
-        cache = FALSE
-      )
-      feat <- prof.to.features(
-        a = prof,
-        min.bw = min_bandwidth,
-        max.bw = max_bandwidth,
-        sd.cut = sd_cut,
-        sigma.ratio.lim = sigma_ratio_lim,
-        shape.model = shape_model,
-        estim.method = peak_estim_method,
-        do.plot = FALSE,
-        component.eliminate = component_eliminate,
-        power = moment_power,
-        BIC.factor = BIC_factor
-      )
-    })
+  parLapply(cluster, filenames, function(filename) {
+    profile <- proc.cdf(
+      filename = filename,
+      min.pres = min_pres,
+      min.run = min_run,
+      tol = mz_tol,
+      baseline.correct = baseline_correct,
+      baseline.correct.noise.percentile = baseline_correct_noise_percentile,
+      intensity.weighted = intensity_weighted,
+      do.plot = FALSE,
+      cache = FALSE
+    )
+    features <- prof.to.features(
+      a = profile,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      sd.cut = sd_cut,
+      sigma.ratio.lim = sigma_ratio_lim,
+      shape.model = shape_model,
+      estim.method = peak_estim_method,
+      component.eliminate = component_eliminate,
+      power = moment_power,
+      BIC.factor = BIC_factor,
+      do.plot = FALSE
+    )
   })
+}
 
-  .check_tasks("Feature extraction was unsuccesfull", files, features)
+align_features <- function(sample_names, ...) {
+  aligned <- feature.align(...)
+  feature_names <- seq_len(nrow(aligned$pk.times))
+
+  list(
+    mz_tolerance = numeric(aligned$mz.tol),
+    rt_tolerance = numeric(aligned$chr.tol),
+    rt_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$pk.times),
+    int_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$aligned.ftrs)
+  )
 }
 
 recover_weaker_signals <- function(
-  files,
-  features,
+  cluster,
+  filenames,
+  extracted_features,
   corrected_features,
-  aligned_features,
-  pk_times,
-  aligned_mz_tol,
-  aligned_chr_tol,
+  aligned_rt_crosstab,
+  aligned_int_crosstab,
+  original_mz_tolerance,
+  aligned_mz_tolerance,
+  aligned_rt_tolerance,
   mz_range,
-  chr_range,
+  rt_range,
   use_observed_range,
-  orig_tol,
   min_bandwidth,
   max_bandwidth,
-  recover_min_count,
-  cluster = NULL
+  recover_min_count
 ) {
-  .check_files(files)
+  clusterExport(cluster, 'recover.weaker')
 
-  if (is.null(cluster)) {
-    cluster <- parallel::makeCluster(parallel::detectCores())
-    on.exit(parallel::stopCluster(cluster))
-  }
-
-  recovered <- parallel::parLapply(cluster, seq_along(files), function(i) {
-    try({
-      recover.weaker(
-        filename = files[[i]],
-        loc = i,
-        aligned.ftrs = aligned_features,
-        pk.times = pk_times,
-        align.mz.tol = aligned_mz_tol,
-        align.chr.tol = aligned_chr_tol,
-        this.f1 = features[[i]],
-        this.f2 = corrected_features[[i]],
-        mz.range = mz_range,
-        chr.range = chr_range,
-        use.observed.range = use_observed_range,
-        orig_tol,
-        min.bw = min_bandwidth,
-        max.bw = max_bandwidth,
-        bandwidth = 0.5,
-        recover.min.count = recover_min_count
-      )
-    })
+  recovered <- parLapply(cluster, seq_along(filenames), function(i) {
+    recover.weaker(
+      loc = i,
+      filename = filenames[[i]],
+      this.f1 = extracted_features[[i]],
+      this.f2 = corrected_features[[i]],
+      pk.times = aligned_rt_crosstab,
+      aligned.ftrs = aligned_int_crosstab,
+      orig.tol = original_mz_tolerance,
+      align.mz.tol = aligned_mz_tolerance,
+      align.chr.tol = aligned_rt_tolerance,
+      mz.range = mz_range,
+      chr.range = rt_range,
+      use.observed.range = use_observed_range,
+      bandwidth = 0.5,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      recover.min.count = recover_min_count
+    )
   })
 
-  .check_tasks("Signal recovery was unsuccesfull", files, recovered)
+  feature_table <- aligned_rt_crosstab[, 1:4]
+  rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
+  int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
+
+  feature_names <- rownames(feature_table)
+  sample_names <- colnames(aligned_rt_crosstab[, -(1:4)])
 
   list(
-    f1 = lapply(recovered, function(x) x$this.f1),
-    f2 = lapply(recovered, function(x) x$this.f2),
-    times = simplify2array(lapply(recovered, function(x) x$this.times)),
-    features = simplify2array(lapply(recovered, function(x) x$this.ftrs))
+    rt_crosstab = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
+    int_crosstab = as_feature_crosstab(feature_names, sample_names, int_crosstab)
   )
 }
 
 unsupervised <- function(
-  files,
+  filenames,
   min_exp = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
+  baseline_correct = 0,
   baseline_correct_noise_percentile = 0.05,
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
-  baseline_correct = 0,
   peak_estim_method = "moment",
   min_bandwidth = NA,
   max_bandwidth = NA,
@@ -161,24 +189,26 @@ unsupervised <- function(
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
-  cluster = parallel::detectCores()
+  cluster = detectCores()
 ) {
-  if (is.numeric(cluster)) {
-    cluster <- parallel::makeCluster(cluster)
+  if (!is(cluster, 'cluster')) {
+    cluster <- makeCluster(cluster)
     on.exit(parallel::stopCluster(cluster))
-  } else if (!is(cluster, "cluster")) {
-    stop("unsupported value for `cluster` parameter: ", cluster)
   }
 
   # NOTE: side effect (doParallel has no functionality to clean up)
   doParallel::registerDoParallel(cluster)
 
-  # further processing requires sorted file list
-  files <- sort(unlist(files))
+  check_files(filenames)
+  # further processing requires sorted file list according to the acquisition
+  # order (assumes that the filenames contain acquisition number)
+  filenames <- sort(unlist(filenames))
+  sample_names <- get_sample_name(filenames)
 
   message("**** feature extraction ****")
-  features <- extract_features(
-    files = files,
+  extracted <- extract_features(
+    cluster = cluster,
+    filenames = filenames,
     min_pres = min_pres,
     min_run = min_run,
     mz_tol = mz_tol,
@@ -193,13 +223,12 @@ unsupervised <- function(
     peak_estim_method = peak_estim_method,
     component_eliminate = component_eliminate,
     moment_power = moment_power,
-    BIC_factor = BIC_factor,
-    cluster = cluster
+    BIC_factor = BIC_factor
   )
 
   message("**** time correction ****")
   corrected <- adjust.time(
-    features = features,
+    features = extracted,
     mz.tol = align_mz_tol,
     chr.tol = align_chr_tol,
     find.tol.max.d = 10 * mz_tol,
@@ -208,7 +237,8 @@ unsupervised <- function(
   )
 
   message("**** feature alignemnt ****")
-  aligned <- feature.align(
+  aligned <- align_features(
+    sample_names = sample_names,
     features = corrected,
     min.exp = min_exp,
     mz.tol = align_mz_tol,
@@ -220,45 +250,38 @@ unsupervised <- function(
 
   message("**** weaker signal recovery ****")
   recovered <- recover_weaker_signals(
-    files = files,
-    features = features,
+    cluster = cluster,
+    filenames = filenames,
+    extracted_features = extracted,
     corrected_features = corrected,
-    aligned_features = aligned$aligned.ftrs,
-    pk_times = aligned$pk.times,
-    aligned_mz_tol = aligned$mz.tol,
-    aligned_chr_tol = aligned$chr.tol,
+    aligned_rt_crosstab = aligned$rt_crosstab,
+    aligned_int_crosstab = aligned$int_crosstab,
+    original_mz_tolerance = mz_tol,
+    aligned_mz_tolerance = aligned$mz_tolerance,
+    aligned_rt_tolerance = aligned$rt_tolerance,
     mz_range = recover_mz_range,
-    chr_range = recover_chr_range,
+    rt_range = recover_chr_range,
     use_observed_range = use_observed_range,
-    orig_tol = mz_tol,
     min_bandwidth = min_bandwidth,
     max_bandwidth = max_bandwidth,
-    recover_min_count = recover_min_count,
-    cluster = cluster
+    recover_min_count = recover_min_count
   )
 
-  recovered_times <- cbind(aligned$pk.times[, 1:4], recovered$times)
-  recovered_features <- cbind(aligned$aligned.ftrs[, 1:4], recovered$features)
-
-  colnames(recovered_times) <-
-    colnames(aligned$pk.times) <-
-      c("mz", "rt", "mz_min", "mz_max", paste0("time.", basename(files)))
-  colnames(aligned$aligned.ftrs) <-
-    colnames(recovered_features) <-
-      c("mz", "rt", "mz_min", "mz_max", paste0("intensity.", basename(files)))
-
-  aligned_times <- subset(aligned$pk.times, select = -c(mz_min, mz_max))
-  recovered_times <- subset(recovered_times, select = -c(mz_min, mz_max))
-
-  final_peaks <- merge(recovered_features, recovered_times, by = c("mz", "rt"))
-  aligned_peaks <- merge(aligned$aligned.ftrs, aligned_times, by = c("mz", "rt"))
+  aligned_peak_sample_table <- as_feature_sample_table(
+    rt_crosstab = aligned$rt_crosstab,
+    int_crosstab = aligned$int_crosstab
+  )
+  recovered_peak_sample_table <- as_feature_sample_table(
+    rt_crosstab = recovered$rt_crosstab,
+    int_crosstab = recovered$int_crosstab
+  )
 
   list(
-    final_peaks = as.data.frame(final_peaks),
-    aligned_peaks = as.data.frame(aligned_peaks),
-    aligned_mz_tolerance = as.numeric(aligned$mz.tol),
-    aligned_rt_tolerance = as.numeric(aligned$chr.tol),
-    extracted_features = as.data.frame(do.call(rbind, recovered$f1)),
-    corrected_features = as.data.frame(do.call(rbind, recovered$f2))
+    extracted_peaks = recovered$extracted_features,
+    corrected_peaks = recovered$corrected_features,
+    aligned_peak_sample_table = aligned_peak_sample_table,
+    recovered_peak_sample_table = recovered_peak_sample_table,
+    aligned_mz_toletance = as.numeric(aligned$mz_tolerance),
+    aligned_rt_tolerance = as.numeric(aligned$rt_tolerance)
   )
 }
