@@ -105,8 +105,8 @@ align_features <- function(sample_names, ...) {
   feature_names <- seq_len(nrow(aligned$pk.times))
 
   list(
-    mz_tolerance = numeric(aligned$mz.tol),
-    rt_tolerance = numeric(aligned$chr.tol),
+    mz_tolerance = as.numeric(aligned$mz.tol),
+    rt_tolerance = as.numeric(aligned$chr.tol),
     rt_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$pk.times),
     int_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$aligned.ftrs)
   )
