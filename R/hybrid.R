@@ -281,11 +281,11 @@ hybrid <- function(
     new_feature_min_count = new_feature_min_count
   )
 
-  aligned_peak_sample_table <- as_feature_sample_table(
+  aligned_feature_sample_table <- as_feature_sample_table(
     rt_crosstab = aligned$rt_crosstab,
     int_crosstab = aligned$int_crosstab
   )
-  recovered_peak_sample_table <- as_feature_sample_table(
+  recovered_feature_sample_table <- as_feature_sample_table(
     rt_crosstab = recovered_aligned$rt_crosstab,
     int_crosstab = recovered_aligned$int_crosstab
   )
@@ -293,8 +293,8 @@ hybrid <- function(
   list(
     extracted_features = recovered$extracted_features,
     corrected_features = recovered_corrected,
-    aligned_peak_sample_table = aligned_peak_sample_table,
-    recovered_peak_sample_table = recovered_peak_sample_table,
+    aligned_feature_sample_table = aligned_feature_sample_table,
+    recovered_feature_sample_table = recovered_feature_sample_table,
     aligned_mz_toletance = as.numeric(recovered_aligned$mz_tolerance),
     aligned_rt_tolerance = as.numeric(recovered_aligned$rt_tolerance),
     updated_known_table = as.data.frame(augmented$known_table),

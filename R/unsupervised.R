@@ -270,11 +270,11 @@ unsupervised <- function(
     recover_min_count = recover_min_count
   )
 
-  aligned_peak_sample_table <- as_feature_sample_table(
+  aligned_feature_sample_table <- as_feature_sample_table(
     rt_crosstab = aligned$rt_crosstab,
     int_crosstab = aligned$int_crosstab
   )
-  recovered_peak_sample_table <- as_feature_sample_table(
+  recovered_feature_sample_table <- as_feature_sample_table(
     rt_crosstab = recovered$rt_crosstab,
     int_crosstab = recovered$int_crosstab
   )
@@ -282,8 +282,8 @@ unsupervised <- function(
   list(
     extracted_features = recovered$extracted_features,
     corrected_features = recovered$corrected_features,
-    aligned_peak_sample_table = aligned_peak_sample_table,
-    recovered_peak_sample_table = recovered_peak_sample_table,
+    aligned_feature_sample_table = aligned_feature_sample_table,
+    recovered_feature_sample_table = recovered_feature_sample_table,
     aligned_mz_toletance = as.numeric(aligned$mz_tolerance),
     aligned_rt_tolerance = as.numeric(aligned$rt_tolerance)
   )
