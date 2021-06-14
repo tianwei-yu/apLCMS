@@ -1,9 +1,9 @@
 .merge_peaks <- function(aligned, known_table, match_tol_ppm) {
   if (is.na(match_tol_ppm)) {
-    match_tol_ppm <- aligned$mz.tol * 1e+06
+    match_tol_ppm <- aligned$mz_tolerance * 1e+06
   }
 
-  features <- aligned$aligned.ftrs
+  features <- aligned$int_crosstab
   known_mz <- known_table[, 6]
   known_rt <- known_table[, 11]
 
@@ -59,8 +59,8 @@
       mass_matched <- mass_matched/median(known_mz[sel_known])
       time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
 
-      time_matched[is.na(time_matched)] <- aligned$chr.tol/2
-      both_matched <- find.match(time_matched, aligned$chr.tol/2)
+      time_matched[is.na(time_matched)] <- aligned$rt_tolerance / 2
+      both_matched <- find.match(time_matched, aligned$rt_tolerance / 2)
 
       for (m in seq_along(sel_new)) {
         k <- which(both_matched[, m] == 1)
@@ -80,10 +80,13 @@
 augment_with_known_features <- function(aligned, known_table, match_tol_ppm) {
   pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
 
-  features <- aligned$aligned.ftrs
+  features <- aligned$int_crosstab
   n_entries <- nrow(known_table) - nrow(pairing)
   to_add_ftrs <- matrix(0, ncol = ncol(features), nrow = n_entries)
   to_add_times <- matrix(NA, ncol = ncol(features), nrow = n_entries)
+
+  colnames(to_add_ftrs) <- colnames(aligned$int_crosstab)
+  colnames(to_add_times) <- colnames(aligned$rt_crosstab)
 
   sel <- seq_len(nrow(known_table))
   if (nrow(pairing) > 0) {
@@ -96,8 +99,8 @@ augment_with_known_features <- function(aligned, known_table, match_tol_ppm) {
   to_add_ftrs[, 4] <- to_add_times[, 4] <- known_table[sel, 10]
 
   list(
-    aligned_ftrs = rbind(features, to_add_ftrs),
-    pk_times = rbind(aligned$pk.times, to_add_times)
+    rt_crosstab = rbind(aligned$rt_crosstab, to_add_times),
+    int_crosstab = rbind(features, to_add_ftrs)
   )
 }
 
@@ -108,23 +111,25 @@ augment_known_table <- function(
   new_feature_min_count
 ) {
   pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
-  features <- aligned$aligned.ftrs
-  pk_times <- aligned$pk.times
+  rt_crosstab <- aligned$rt_crosstab
+  int_crosstab <- aligned$int_crosstab
 
   for (i in seq_len(nrow(pairing))) {
     known_table[pairing[i, 2], ] <- peak.characterize(
       existing.row = known_table[pairing[i, 2], ],
-      ftrs.row = features[pairing[i, 1], ],
-      chr.row = pk_times[pairing[i, 1], ])
+      ftrs.row = as.matrix(int_crosstab[pairing[i, 1], ]),
+      chr.row = as.matrix(rt_crosstab[pairing[i, 1], ]))
   }
 
-  newly_found_ftrs <- which(!(seq_len(nrow(features)) %in% pairing[, 1]))
-  num_exp_found <- apply(features != 0, 1, sum)
+  newly_found_ftrs <- which(!(seq_len(nrow(int_crosstab)) %in% pairing[, 1]))
+  num_exp_found <- apply(int_crosstab != 0, 1, sum)
 
   for (i in newly_found_ftrs) {
     if (num_exp_found[i] >= new_feature_min_count) {
-      row <- peak.characterize(existing.row = NA, ftrs.row = features[i, ],
-        chr.row = pk_times[i, ])
+      row <- peak.characterize(
+        existing.row = NA,
+        ftrs.row = as.matrix(int_crosstab[i, ]),
+        chr.row = as.matrix(rt_crosstab[i, ]))
       known_table <- rbind(known_table, row)
       pairing <- rbind(pairing, c(i, nrow(known_table)))
     }
@@ -134,16 +139,16 @@ augment_known_table <- function(
 }
 
 hybrid <- function(
-  files,
+  filenames,
   known_table,
   min_exp = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
+  baseline_correct = 0,
   baseline_correct_noise_percentile = 0.05,
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
-  baseline_correct = 0,
   peak_estim_method = "moment",
   min_bandwidth = NA,
   max_bandwidth = NA,
@@ -161,24 +166,26 @@ hybrid <- function(
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
-  cluster = parallel::detectCores()
+  cluster = detectCores()
 ) {
-  if (is.numeric(cluster)) {
-    cluster <- parallel::makeCluster(cluster)
+  if (!is(cluster, 'cluster')) {
+    cluster <- makeCluster(cluster)
     on.exit(parallel::stopCluster(cluster))
-  } else if (!is(cluster, "cluster")) {
-    stop("unsupported value for `cluster` parameter: ", cluster)
   }
 
   # NOTE: side effect (doParallel has no functionality to clean up)
   doParallel::registerDoParallel(cluster)
 
-  # further processing requires sorted file list
-  files <- sort(unlist(files))
+  check_files(filenames)
+  # further processing requires sorted file list according to the acquisition
+  # order (assumes that the filenames contain acquisition number)
+  filenames <- sort(unlist(filenames))
+  sample_names <- get_sample_name(filenames)
 
   message("**** feature extraction ****")
-  features <- extract_features(
-    files = files,
+  extracted <- extract_features(
+    cluster = cluster,
+    filenames = filenames,
     min_pres = min_pres,
     min_run = min_run,
     mz_tol = mz_tol,
@@ -193,13 +200,12 @@ hybrid <- function(
     peak_estim_method = peak_estim_method,
     component_eliminate = component_eliminate,
     moment_power = moment_power,
-    BIC_factor = BIC_factor,
-    cluster = cluster
+    BIC_factor = BIC_factor
   )
 
   message("**** time correction ****")
-  corrected <- apLCMS::adjust.time(
-    features = features,
+  corrected <- adjust.time(
+    features = extracted,
     mz.tol = align_mz_tol,
     chr.tol = align_chr_tol,
     find.tol.max.d = 10 * mz_tol,
@@ -207,8 +213,9 @@ hybrid <- function(
     do.plot = FALSE
   )
 
-  message("**** feature alignment ****")
-  aligned <- apLCMS::feature.align(
+  message("**** feature alignemnt ****")
+  aligned <- align_features(
+    sample_names = sample_names,
     features = corrected,
     min.exp = min_exp,
     mz.tol = align_mz_tol,
@@ -227,26 +234,26 @@ hybrid <- function(
 
   message("**** weaker signal recovery ****")
   recovered <- recover_weaker_signals(
-    files = files,
-    features = features,
+    cluster = cluster,
+    filenames = filenames,
+    extracted_features = extracted,
     corrected_features = corrected,
-    aligned_features = merged$aligned_ftrs,
-    pk_times = merged$pk_times,
-    aligned_mz_tol = aligned$mz.tol,
-    aligned_chr_tol = aligned$chr.tol,
+    aligned_rt_crosstab = merged$rt_crosstab,
+    aligned_int_crosstab = merged$int_crosstab,
+    original_mz_tolerance = mz_tol,
+    aligned_mz_tolerance = aligned$mz_tolerance,
+    aligned_rt_tolerance = aligned$rt_tolerance,
     mz_range = recover_mz_range,
-    chr_range = recover_chr_range,
+    rt_range = recover_chr_range,
     use_observed_range = use_observed_range,
-    orig_tol = mz_tol,
     min_bandwidth = min_bandwidth,
     max_bandwidth = max_bandwidth,
-    recover_min_count = recover_min_count,
-    cluster = cluster
+    recover_min_count = recover_min_count
   )
 
   message("**** second round time correction ****")
-  recovered_f2 <- adjust.time(
-    features = recovered$f1,
+  recovered_corrected <- adjust.time(
+    features = recovered$extracted_features,
     mz.tol = align_mz_tol,
     chr.tol = align_chr_tol,
     find.tol.max.d = 10 * mz_tol,
@@ -255,8 +262,9 @@ hybrid <- function(
   )
 
   message("**** second round feature alignment ****")
-  recovered_aligned <- feature.align(
-    features = recovered_f2,
+  recovered_aligned <- align_features(
+    sample_names = sample_names,
+    features = recovered_corrected,
     min.exp = min_exp,
     mz.tol = align_mz_tol,
     chr.tol = align_chr_tol,
@@ -273,26 +281,22 @@ hybrid <- function(
     new_feature_min_count = new_feature_min_count
   )
 
-  colnames(aligned$pk.times) <-
-    colnames(recovered_aligned$pk.times) <-
-      c("mz", "rt", "mz_min", "mz_max", paste0("time.", basename(files)))
-  colnames(aligned$aligned.ftrs) <-
-    colnames(recovered_aligned$aligned.ftrs) <-
-      c("mz", "rt", "mz_min", "mz_max", paste0("intensity.", basename(files)))
-
-  aligned_times <- subset(aligned$pk.times, select = -c(mz_min, mz_max))
-  recovered_times <- subset(recovered_aligned$pk.times, select = -c(mz_min, mz_max))
-
-  final_peaks <- merge(recovered_aligned$aligned.ftrs, recovered_times, by = c("mz", "rt"))
-  aligned_peaks <- merge(aligned$aligned.ftrs, aligned_times, by = c("mz", "rt"))
+  aligned_peak_sample_table <- as_feature_sample_table(
+    rt_crosstab = aligned$rt_crosstab,
+    int_crosstab = aligned$int_crosstab
+  )
+  recovered_peak_sample_table <- as_feature_sample_table(
+    rt_crosstab = recovered_aligned$rt_crosstab,
+    int_crosstab = recovered_aligned$int_crosstab
+  )
 
   list(
-    final_peaks = as.data.frame(final_peaks),
-    aligned_peaks = as.data.frame(aligned_peaks),
-    aligned_mz_tolerance = as.numeric(recovered_aligned$mz.tol),
-    aligned_rt_tolerance = as.numeric(recovered_aligned$chr.tol),
-    extracted_features = as.data.frame(do.call(rbind, recovered$f1)),
-    corrected_features = as.data.frame(do.call(rbind, recovered_f2)),
+    extracted_features = recovered$extracted_features,
+    corrected_features = recovered_corrected,
+    aligned_peak_sample_table = aligned_peak_sample_table,
+    recovered_peak_sample_table = recovered_peak_sample_table,
+    aligned_mz_toletance = as.numeric(recovered_aligned$mz_tolerance),
+    aligned_rt_tolerance = as.numeric(recovered_aligned$rt_tolerance),
     updated_known_table = as.data.frame(augmented$known_table),
     features_known_table_pairing = as.data.frame(augmented$pairing)
   )
