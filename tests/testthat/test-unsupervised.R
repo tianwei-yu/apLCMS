@@ -3,9 +3,9 @@ test_that("basic unsupervised test", {
                   '../testdata/mbr_test1.mzml',
                   '../testdata/mbr_test2.mzml')
 
-  invisible(capture.output({
+  capture.output({
     test_result <- unsupervised(test_files)
-  }))
+  }, type = 'message')
 
   expect_type(test_result, 'list')
 })
