@@ -1,0 +1,24 @@
+name: recetox-aplcms
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base >= 3.5
+  - r-devtools
+  - r-biocmanager
+  - r-mass
+  - r-rgl
+  - bioconductor-mzR
+  - r-splines2
+  - r-doparallel
+  - r-foreach
+  - r-iterators
+  - r-snow
+  - r-gbm
+  - r-e1071
+  - r-randomForest
+  - r-rocr
+  - r-rocs
+  - r-rcpp
+  - r-arrow

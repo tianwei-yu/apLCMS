@@ -1,0 +1,25 @@
+name: recetox-aplcms-build
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - anaconda-client
+  - conda-build
+  - conda-verify
+  - r-base >=3.5
+  - r-mass
+  - r-rgl
+  - bioconductor-mzR
+  - r-splines2
+  - r-doparallel
+  - r-foreach
+  - r-iterators
+  - r-snow
+  - r-gbm
+  - r-e1071
+  - r-randomForest
+  - r-rocr
+  - r-rocs
+  - r-rcpp
+  - r-arrow
