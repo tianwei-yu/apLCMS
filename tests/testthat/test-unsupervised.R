@@ -5,7 +5,17 @@ test_that("basic unsupervised test", {
   
   expected <- arrow::read_parquet('../testdata/unsupervised_recovered_feature_sample_table.parquet')
   
-  result <- unsupervised(test_files)
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+  
+  if (nzchar(chk) && chk == "TRUE") {
+    # use 2 cores in CRAN/Travis/AppVeyor
+    num_workers <- 2L
+  } else {
+    # use all cores in devtools::test()
+    num_workers <- parallel::detectCores()
+  }
+  
+  result <- unsupervised(test_files, cluster = num_workers)
 
   expect_equal(result$recovered_feature_sample_table, expected)
 })
