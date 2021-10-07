@@ -10,7 +10,7 @@ A two-stage hybrid feature detection and alignment procedure, for data generated
 two.step.hybrid(folder, info, min.within.batch.prop.detect=0.1, min.within.batch.prop.report=0.5, min.batch.prop=0.5, batch.align.mz.tol=1e-5, batch.align.chr.tol=50, file.pattern=".cdf", known.table=NA, n.nodes=4, min.pres=0.5, min.run=12, mz.tol=1e-5, baseline.correct.noise.percentile=0.25, shape.model="bi-Gaussian",  baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(1,60), sigma.ratio.lim=c(0.33, 3), component.eliminate=0.01, moment.power=2, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3)
 }
 \arguments{
-  \item{folder}{ The folder where all CDF files to be processed are located. For example “C:/CDF/this_experiment” }
+  \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }
   \item{info}{A table with two columns. The first column is the file names, and the second column is the batch label of each file.}
   \item{min.within.batch.prop.detect}{A feature needs to be present in at least this proportion of the files, for it to be initially detected as a feature for a batch. This parameter replaces the "min.exp" parameter in semi.sup().}
   \item{min.within.batch.prop.report}{A feature needs to be present in at least this proportion of the files, in a proportion of batches controlled by "min.batch.prop", to be included in the final feature table. This parameter replaces the "min.exp" parameter in semi.sup().}
@@ -43,7 +43,7 @@ two.step.hybrid(folder, info, min.within.batch.prop.detect=0.1, min.within.batch
   \item{min.run}{ This is a parameter of thr run filter, to be passed to the function proc.cdf(). Please see the help for proc.cdf() for details. }
   \item{mz.tol}{ The user can provide the m/z tolerance level for peak identification. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. Please see the help for proc.cdf() for details.}
   \item{baseline.correct.noise.percentile}{ The perenctile of signal strength of those EIC that don't pass the run filter, to be used as the baseline threshold of signal strength. This parameter is passed to proc.cdf() }
-  \item{shape.model}{ The mathematical model for the shape of a peak. There are two choices - “bi-Gaussian” and “Gaussian”. When the peaks are asymmetric, the bi-Gaussian is better. The default is “bi-Gaussian”.}
+  \item{shape.model}{ The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian". When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".}
   \item{baseline.correct}{This is a parameter in peak detection. After grouping the observations, the highest observation in each group is found. If the highest is lower than this value, the entire group will be deleted. The default value is NA, which allows the program to search for the cutoff level. Please see the help for proc.cdf() for details.}
   \item{peak.estim.method}{the bi-Gaussian peak parameter estimation method, to be passed to subroutine prof.to.features. Two possible values: moment and EM.}
   \item{min.bw}{The minimum bandwidth in the smoother in prof.to.features(). Please see the help file for prof.to.features() for details.}
@@ -52,8 +52,8 @@ two.step.hybrid(folder, info, min.within.batch.prop.detect=0.1, min.within.batch
   \item{sigma.ratio.lim}{A parameter for the prof.to.features() function. A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation and the righ-standard deviation of the bi-Gaussian fuction used to fit the data.}
   \item{component.eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a proportion of intensities less than this value, the component will be ignored.}
   \item{moment.power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
-  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program’s selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
-  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program’s selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
+  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program's selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
+  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program's selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
     \item{max.align.mz.diff}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{pre.process}{ Logical. If true, the program will not perform time correction and alignment. It will only generate peak tables for each spectra and save the files. It allows manually dividing the task to multiple machines. }
   \item{recover.mz.range}{A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used. }
@@ -71,11 +71,6 @@ A list is returned.
   \item{batchwise.results}{A list. Each item in the list is the product of semi.sup() from a single batch.}
   \item{final.ftrs}{Feature table. This is the end product of the function.}
 }
-\references{
-}
 \author{ Tianwei Yu < tianwei.yu@emory.edu> }
-\note{}
 \seealso{ semi.sup, cdf.to.ftrs, proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
-\examples{
-}
 \keyword{ models }

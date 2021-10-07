@@ -41,7 +41,6 @@ A data frame containing the known metabolite ions. It contains 18 columns:
 Yu T, Park Y, Li S, Jones DP (2013) Hybrid feature detection and information accumulation using high-resolution LC-MS metabolomics data. J. Proteome Res. 12(3):1419-27.
 }
 \author{Tianwei Yu <tyu8@emory.edu>}
-\note{}
 \seealso{metabolite.table, adduct.table, semi.sup}
 \examples{
 data(metabolite.table)

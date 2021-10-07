@@ -12,9 +12,7 @@ List of 4, each item is in turn a list of 4.
 	$this.f1		: A matrix with m/z, retention time, retention time spread, and peak area
 	this.f2			: A matrix with m/z, retention time, retention time spread, peak area, file identifier, and feature identifier
 }
-\details{}
 \source{Dean Jones lab. Emory University, School of Medicine.}
-\references{}
 \examples{
 data(recovered.learn)
 }

@@ -9,12 +9,8 @@
 \format{
 A list object. Each component of the list is a matrix.
 }
-\details{
-}
 \source{
 Raw data from Dean Jones lab, Emory School of Medicine.}
-\references{
-}
 \examples{
 data(features2.learn)
 }

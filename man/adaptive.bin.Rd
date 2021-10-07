@@ -30,7 +30,4 @@ Bioinformatics. 25(15):1930-36.
 BMC Bioinformatics. 11:559.
 }
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

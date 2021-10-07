@@ -24,10 +24,7 @@ There is no return value from this function.
 }
 \references{ http://rgl.neoscientists.org/about.shtml }
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
 \examples{
 data(prof)
 present.cdf.3d(prof[[2]],time.lim=c(250,400), mz.lim=c(400,500))
 }
-\keyword{}

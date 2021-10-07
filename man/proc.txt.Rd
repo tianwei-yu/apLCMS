@@ -23,9 +23,5 @@ proc.txt(filename, min.pres=0.5, min.run=12,tol=NA, find.tol.maxd=1e-4, baseline
 \value{
 A matrix with four columns: m/z value, retention time, intensity, and group number. 
 }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

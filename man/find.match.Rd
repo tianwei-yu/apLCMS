@@ -9,11 +9,6 @@ find.match(a, unacceptable = 4)
   \item{a}{ A matrix of distances. }
   \item{unacceptable}{ A distance larger than which cannot be accepted as pairs. }
 }
-\details{}
 \value{ A matrix the same dimension as the input matrix, with matched position taking value 1, and all other positions taking value 0. }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

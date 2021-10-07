@@ -10,7 +10,7 @@
 cdf.to.ftr(folder, file.pattern=".cdf", n.nodes=4, min.exp=2, min.pres=0.5, min.run=12, mz.tol=1e-5, baseline.correct.noise.percentile=0.25, shape.model="bi-Gaussian", BIC.factor=2, baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(0.01,500), sigma.ratio.lim=c(0.01, 100), component.eliminate=0.01, moment.power=1, subs=NULL, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE,recover.min.count=3, intensity.weighted=FALSE)
 }
 \arguments{
-  \item{folder}{ The folder where all CDF files to be processed are located. For example ?C:/CDF/this_experiment? }
+  \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }
   \item{file.pattern}{The pattern in the names of the files to be processed. The default is ".cdf". Other formats supported by mzR package can also be used, e.g. "mzML" etc.}
   \item{n.nodes}{ The number of CPU cores to be used through doSNOW. }
   \item{min.exp}{ If a feature is to be included in the final feature table, it must be present in at least this number of spectra. }
@@ -55,10 +55,6 @@ cdf.to.ftr(folder, file.pattern=".cdf", n.nodes=4, min.exp=2, min.pres=0.5, min.
   \item{align.mz.tol}{The m/z tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.}
   \item{align.chr.tol}{The retention time tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.}
 }
-\references{}
 \author{ Tianwei Yu <tyu8@sph.emory.edu> }
-\note{}
 \seealso{ proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
-\examples{
-}
 \keyword{ models }

@@ -13,7 +13,4 @@ eic.disect(raw.prof, smoother.window = c(1, 5, 10))
 \value{ A matrix. Every row corresponds to an EIC. Every column corresponds to a data feature. }
 \references{Bioinformatics. 30(20):  2941-2948.}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

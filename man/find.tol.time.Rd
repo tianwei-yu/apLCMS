@@ -33,9 +33,5 @@ find.tol.time(mz, chr, lab, num.exp, mz.tol = 2e-05, chr.tol = NA,
   \item{chr.tol}{ The elution time tolerance level.}
   \item{comp2 }{A matrix with six columns. Every row corrsponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength, spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered by the elution time.}
 }
-\references{}
 \author{Tianwei Yu <tyu8@emory.edu>}
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

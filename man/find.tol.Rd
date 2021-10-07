@@ -22,10 +22,7 @@ find.tol(a, uppermost=1e-4, aver.bin.size=4000, min.bins=50, max.bins=200)
 \value{
   The tolerance level is returned.
 }
-\references{}
 \author{Tianwei Yu <tyu8@emory.edu>}
-\note{}
-\seealso{}
 \examples{
 data(prof)
 find.tol(prof[[1]][,1])

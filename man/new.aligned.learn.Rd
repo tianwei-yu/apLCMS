@@ -14,12 +14,8 @@ List of 4
  $ mz.tol      : num 1.14e-05 (the m/z tolerance level in alignment)
  $ chr.tol     : num 79.21 (the elution time tolerance level in alignment)
 }
-\details{
-}
 \source{
 Dean Jones lab. Emory University, School of Medicine.}
-\references{
-}
 \examples{
 data(new.aligned.learn)
 }

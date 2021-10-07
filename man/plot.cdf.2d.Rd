@@ -12,14 +12,10 @@ draw.cfd.2d(rawname, f, mzlim, timelim, lwd = 1)
   \item{timelim}{ The retention time range to plot. }
   \item{lwd}{ Line width parameter, to be passed on to the function line(). }
 }
-\details{}
 \value{ There is no return value. }
 \references{
 Bioinformatics. 25(15):1930-36. 
 BMC Bioinformatics. 11:559.
 }
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

@@ -27,14 +27,10 @@ learn.cdf(filename, tol = 2e-05, min.run = 4, min.pres = 0.3, baseline.correct =
 }
 \details{
   The subroutine takes CDF, mxml etc LC/MS profile.   
-  First the profile is sliced into EICs using adaptive binning. Then data features are extracted from each EIC. The EICs are classified into two groups: those that have m/z values that match to known m/z values, and those that don’t. Classification models are built to separate the two classes, and each EIC is given a score by the classification model. Those with better scores are selected to enter the feature quantification step. 
+  First the profile is sliced into EICs using adaptive binning. Then data features are extracted from each EIC. The EICs are classified into two groups: those that have m/z values that match to known m/z values, and those that don't. Classification models are built to separate the two classes, and each EIC is given a score by the classification model. Those with better scores are selected to enter the feature quantification step. 
 }
 \value{
 A matrix with four columns: m/z value, retention time, intensity, and group number. 
 }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

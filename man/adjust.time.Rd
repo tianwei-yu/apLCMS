@@ -25,9 +25,7 @@ adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, find.tol.max.d=1e-4,
 \value{
 A list object with the exact same structure as the input object features, i.e. one matrix per profile being processed. The only difference this output object has with the input object is that the retention time column in each of the matrices is changed to new adjusted values.
 }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
 \seealso{ feature.align }
 \examples{
 data(features)

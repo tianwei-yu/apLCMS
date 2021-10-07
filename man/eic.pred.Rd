@@ -36,6 +36,5 @@ A list item is returned.
 }
 \references{Bioinformatics. 30(20):  2941-2948.}
 \author{Tianwei Yu <tianwei.yu@emory.edu>}
-\note{}
 \seealso{semi.sup.learn, eic.qual, eic.disect}
 \keyword{ models }

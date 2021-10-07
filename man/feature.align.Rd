@@ -27,9 +27,7 @@ feature.align(features, min.exp = 2, mz.tol = NA, chr.tol = NA,find.tol.max.d=1e
   \item{mz.tol}{The m/z tolerance used in the alignment.}
   \item{chr.tol}{The elution time tolerance in the alignment.}
 }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
 \seealso{ proc.to.feature }
 \examples{
 data(features)

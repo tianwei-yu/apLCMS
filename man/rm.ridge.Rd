@@ -10,14 +10,10 @@ rm.ridge(x, y2, bw)
   \item{y2}{ Intensity vector. }
   \item{bw}{ Bandwidth for the kernel smoother. A very wide one is used here. }
 }
-\details{}
 \value{ A vector of intensity value is returned. }
 \references{
 Bioinformatics. 25(15):1930-36. 
 BMC Bioinformatics. 11:559.
 }
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

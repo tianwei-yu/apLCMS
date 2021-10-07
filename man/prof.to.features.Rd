@@ -32,9 +32,7 @@ prof.to.features(a, bandwidth=0.5, min.bw=NA, max.bw=NA, sd.cut=c(1,60), sigma.r
 \value{
 A matrix is returned. The columns are: m/z value, retention time, spread (standard deviation of the estimated normal curve), and estimated total signal strength (total area of the estimated normal curve).
 }
-\references{}
 \author{ Tianwei Yu <tyu8@sph.emory.edu> }
-\note{}
 \seealso{ proc.cdf }
 \examples{
 data(prof)

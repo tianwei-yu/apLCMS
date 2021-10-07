@@ -45,10 +45,5 @@ recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol,
   \item{mz.tol}{The m/z tolerance in the aligned object.}
   \item{chr.tol}{The elution time tolerance in the aligned object.}
 }
-\references{}
 \author{ Tianwei Yu <tyu8@sph.emory.edu> }
-\note{}
-\seealso{}
-\examples{}
-\keyword{}
 

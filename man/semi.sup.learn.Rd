@@ -8,7 +8,7 @@ The semi-supervised procedure utilizes a database of known metabolites and previ
 semi.sup.learn(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.pres=0.3, min.run=4, mz.tol=1e-5, shape.model="bi-Gaussian",  baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(0.01,500),  component.eliminate=0.01, moment.power=1, sigma.ratio.lim=c(0.01, 100), subs=NULL, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=5, new.feature.min.count=2, recover.min.count=3, use.learn=TRUE, ridge.smoother.window=50, smoother.window=c(1, 5, 10),pos.confidence=0.99, neg.confidence=0.99, max.ftrs.to.use=10, do.grp.reduce=TRUE, remove.bottom.ftrs=0, max.fpr=0.5, min.tpr=0.9, intensity.weighted=FALSE)
 }
 \arguments{
-  \item{folder}{ The folder where all CDF files to be processed are located. For example “C:/CDF/this_experiment” }
+  \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }
   \item{file.pattern}{The pattern in the names of the files to be processed. The default is ".cdf". Other formats supported by mzR package can also be used, e.g. "mzML" etc.}
   \item{known.table}{ A data frame containing the known metabolite ions and previously found features. It contains 18 columns: 
 	"chemical_formula": the chemical formula if knonw; 
@@ -35,7 +35,7 @@ semi.sup.learn(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2
   \item{min.pres}{ This is a parameter of thr run filter, to be passed to the function proc.cdf(). Please see the help for proc.cdf() for details. }
   \item{min.run}{ This is a parameter of thr run filter, to be passed to the function proc.cdf(). Please see the help for proc.cdf() for details. }
   \item{mz.tol}{ The user can provide the m/z tolerance level for peak identification. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. Please see the help for proc.cdf() for details.}
-  \item{shape.model}{ The mathematical model for the shape of a peak. There are two choices - “bi-Gaussian” and “Gaussian”. When the peaks are asymmetric, the bi-Gaussian is better. The default is “bi-Gaussian”.}
+  \item{shape.model}{ The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian". When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".}
   \item{baseline.correct}{This is a parameter in peak detection. After grouping the observations, the highest observation in each group is found. If the highest is lower than this value, the entire group will be deleted. The default value is NA, which allows the program to search for the cutoff level. Please see the help for proc.cdf() for details.}
   \item{peak.estim.method}{the bi-Gaussian peak parameter estimation method, to be passed to subroutine prof.to.features. Two possible values: moment and EM.}
   \item{min.bw}{The minimum bandwidth in the smoother in prof.to.features(). Please see the help file for prof.to.features() for details.}
@@ -45,8 +45,8 @@ semi.sup.learn(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2
   \item{subs}{ If not all the CDF files in the folder are to be processed, the user can define a subset using this parameter. For example, subs=15:30, or subs=c(2,4,6,8) }
   \item{component.eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a proportion of intensities less than this value, the component will be ignored.}
   \item{moment.power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
-  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program’s selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
-  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program’s selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
+  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program's selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
+  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program's selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
     \item{max.align.mz.diff}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{pre.process}{ Logical. If true, the program will not perform time correction and alignment. It will only generate peak tables for each spectra and save the files. It allows manually dividing the task to multiple machines. }
   \item{recover.mz.range}{A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used. }
@@ -84,10 +84,6 @@ A list is returned.
   \item{updated.known.table}{ The known table updated using the newly processed data. It should be used for future datasets generated using the same machine and LC column. }
   \item{ftrs.known.table.pairing}{ The paring information between the feature table of the current dataset and the known feature tabel. }
 }
-\references{}
 \author{ Tianwei Yu < tianwei.yu@emory.edu> }
-\note{}
 \seealso{ cdf.to.ftrs, semi.sup, learn.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
-\examples{
-}
 \keyword{ models }
