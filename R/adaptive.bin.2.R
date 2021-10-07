@@ -81,7 +81,7 @@ function(x, tol, ridge.smoother.window=50, baseline.correct)
                 mz.range.before.merge<-abs(diff(range(that.masses)))/that.masses.mean
                 mz.sd.before.merge<-sqrt(weighted.mean((that.masses-that.masses.mean)^2, that.intensi))/that.masses.mean
                 
-                that.merged<-merge.seq.3(that.labels, that.masses, that.intensi)
+                that.merged<-combine.seq.3(that.labels, that.masses, that.intensi)
                 if(nrow(that.merged)==1)
                 {
                     new.merged<-that.merged

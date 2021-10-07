@@ -1,9 +1,9 @@
-\name{plot.cdf.2d}
-\alias{plot.cdf.2d}
+\name{draw.cfd.2d}
+\alias{draw.cfd.2d}
 \title{ Plot the data in the m/z and retention time plane. }
 \description{ This is a diagnostic function. It takes the original CDF file, as well as the detected feature table, and plots the data in the m/z - retention time plane, using a user-defined range. The entire data is too big to plot, thus the main purpose is to focus on small subregions of the data and check the peak detection results. }
 \usage{
-plot.cdf.2d(rawname, f, mzlim, timelim, lwd = 1)
+draw.cfd.2d(rawname, f, mzlim, timelim, lwd = 1)
 }
 \arguments{
   \item{rawname}{ The CDF file name. }

@@ -90,7 +90,7 @@ function(x, min.run, min.pres, tol, baseline.correct, weighted=FALSE)
                     that.masses<-this.masses[mass.sel]
                     that.intensi<-this.intensi[mass.sel]
                     
-                    that.merged<-merge.seq.3(that.labels, that.masses, that.intensi)
+                    that.merged<-combine.seq.3(that.labels, that.masses, that.intensi)
                     if(nrow(that.merged)==1)
                     {
                         new.merged<-that.merged
@@ -131,7 +131,7 @@ function(x, min.run, min.pres, tol, baseline.correct, weighted=FALSE)
                 this.labels<-this.labels[curr.order]
                 
                 
-                that.merged<-merge.seq.3(this.labels, this.masses, this.intensi)
+                that.merged<-combine.seq.3(this.labels, this.masses, this.intensi)
                 that.n<-nrow(that.merged)
                 newprof[prof.pointer:(prof.pointer+that.n-1),]<-cbind(that.merged, rep(curr.label, that.n))
                 prof.pointer<-prof.pointer+that.n

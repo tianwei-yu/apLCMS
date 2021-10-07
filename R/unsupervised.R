@@ -73,7 +73,7 @@ extract_features <- function(
     'load.lcms',
     'adaptive.bin',
     'find.turn.point',
-    'merge.seq.3',
+    'combine.seq.3',
     'cont.index',
     'interpol.area'
   ))

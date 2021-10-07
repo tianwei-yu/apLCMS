@@ -140,7 +140,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
                                 that.masses<-that.masses[that.order]
                                 that.intensi<-that.intensi[that.order]
                                 
-                                that.prof<-merge.seq.3(that.labels, that.masses, that.intensi)
+                                that.prof<-combine.seq.3(that.labels, that.masses, that.intensi)
                                 
                                 that.mass<-sum(that.prof[,1]*that.prof[,3])/sum(that.prof[,3])
                                 curr.rec<-c(that.mass, NA,NA)

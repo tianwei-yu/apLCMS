@@ -1,4 +1,4 @@
-plot.cdf.2d <-
+draw.cfd.2d <-
 function(rawname, f, mzlim,timelim, lwd=1)
 ### rawname is the cdf file name
 ### f is the output object of prof.to.features()
