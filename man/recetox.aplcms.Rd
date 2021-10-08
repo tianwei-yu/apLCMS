@@ -1,6 +1,6 @@
-\name{apLCMS-package}
-\alias{apLCMS-package}
-\alias{apLCMS}
+\name{recetox.aplcms}
+\alias{recetox.aplcms-package}
+\alias{recetox.aplcms}
 \docType{package}
 \title{
 Adaptive processing of LC/MS data
