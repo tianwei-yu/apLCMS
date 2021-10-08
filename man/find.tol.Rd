@@ -6,7 +6,7 @@
   The function finds the tolerance level in m/z from a given vector of observed m/z values.
 }
 \usage{
-find.tol(a, uppermost=1e-4, aver.bin.size=4000, min.bins=50, max.bins=200)
+find.tol(a, uppermost=1e-4, aver.bin.size=4000, min.bins=50, max.bins=200, do.plot=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

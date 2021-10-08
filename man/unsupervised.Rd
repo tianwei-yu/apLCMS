@@ -3,7 +3,32 @@
 \title{Runs features extraction in unsupervised mode.}
 \description{TBA}
 \usage{
-unsupervised(cdf_files)
+unsupervised(filenames,
+  min_exp = 2,
+  min_pres = 0.5,
+  min_run = 12,
+  mz_tol = 1e-05,
+  baseline_correct = 0,
+  baseline_correct_noise_percentile = 0.05,
+  shape_model = "bi-Gaussian",
+  BIC_factor = 2,
+  peak_estim_method = "moment",
+  min_bandwidth = NA,
+  max_bandwidth = NA,
+  sd_cut = c(0.01, 500),
+  sigma_ratio_lim = c(0.01, 100),
+  component_eliminate = 0.01,
+  moment_power = 1,
+  align_mz_tol = NA,
+  align_chr_tol = NA,
+  max_align_mz_diff = 0.01,
+  recover_mz_range = NA,
+  recover_chr_range = NA,
+  use_observed_range = TRUE,
+  recover_min_count = 3,
+  intensity_weighted = FALSE,
+  cluster = 4
+)
 }
 \arguments{
   \item{filenames}{The CDF file names.}

@@ -6,7 +6,7 @@
   Identifies which of the peaks from the profiles correspond to the same feature.
 }
 \usage{
-feature.align(features, min.exp = 2, mz.tol = NA, chr.tol = NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01)
+feature.align(features, min.exp = 2, mz.tol = NA, chr.tol = NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)
 }
 \arguments{
   \item{features}{ A list object. Each component is a matrix which is the output from proc.to.feature(). }

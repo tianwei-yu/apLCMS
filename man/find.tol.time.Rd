@@ -9,7 +9,7 @@
 \usage{
 find.tol.time(mz, chr, lab, num.exp, mz.tol = 2e-05, chr.tol = NA,
                  aver.bin.size = 200, min.bins = 50, max.bins = 100,
-                 max.mz.diff = 0.01, max.num.segments = 10000)
+                 max.mz.diff = 0.01, max.num.segments = 10000, do.plot=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

@@ -198,7 +198,7 @@ unsupervised <- function(
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
-  cluster = parallel::detectCores()
+  cluster = 4
 ) {
   if (!is(cluster, 'cluster')) {
     cluster <- parallel::makeCluster(cluster)
