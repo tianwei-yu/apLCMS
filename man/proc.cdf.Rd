@@ -1,11 +1,11 @@
-\name{proc.txt}
-\alias{proc.txt}
+\name{proc.cdf}
+\alias{proc.cdf}
 \title{ Filter noise and detect peaks from LC/MS data in CDF format }
 \description{
   This function applies the run filter to remove noise. Data points are grouped into EICs in this step.  
 }
 \usage{
-proc.txt(filename, min.pres=0.5, min.run=12,tol=NA, find.tol.maxd=1e-4, baseline.correct.noise.percentile=0, baseline.correct=NA)
+proc.cdf(filename, min.pres=0.5, min.run=12,tol=NA, find.tol.maxd=1e-4, baseline.correct.noise.percentile=0, baseline.correct=NA)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
