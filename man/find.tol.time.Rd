@@ -24,6 +24,7 @@ find.tol.time(mz, chr, lab, num.exp, mz.tol = 2e-05, chr.tol = NA,
   \item{max.mz.diff}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{max.bins}{the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.}
   \item{max.num.segments}{ the maximum number of segments. }
+  \item{do.plot}{Indicates whether plot should be drawn.}
 }
 \details{
   The peaks are first ordered by m/z, and split into groups by the m/z tolerance. Then within every peak group, the pairwise elution time difference is calculated. All the pairwise elution time differences within groups are merged into a single vector. A mixture model (unknown distribution for distance between peaks from the same feature, and a triangle-shaped distribution for distance between peaks from different features) is fit to find the elution time tolerance level. The elution times within each peak group are then ordered. If a gap between consecutive retention times is larger than the elution time tolerance level, the group is further split at the gap. Grouping information is returned, as well as the elution time tolerance level. 

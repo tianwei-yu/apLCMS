@@ -7,7 +7,7 @@
   Each LC/MS profile is first processed by the function proc.cdf() to remove noise and reduce data size. A matrix containing m/z value, retention time, intensity, and group number is output from proc.cdf(). This matrix is then fed to the function prof.to.features() to generate a feature list. Every detected feature is summarized into a single row in the output matrix from this function. 
 }
 \usage{
-prof.to.features(a, bandwidth=0.5, min.bw=NA, max.bw=NA, sd.cut=c(1,60), sigma.ratio.lim=c(0.2, 5), shape.model="bi-Gaussian", estim.method="moment",do.plot=TRUE, power=2, component.eliminate=0.01, BIC.factor=2)
+prof.to.features(a, bandwidth=0.5, min.bw=NA, max.bw=NA, sd.cut=c(0.1,100), sigma.ratio.lim=c(0.1, 10), shape.model="bi-Gaussian", estim.method="moment",do.plot=TRUE, power=1, component.eliminate=0.01, BIC.factor=2)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

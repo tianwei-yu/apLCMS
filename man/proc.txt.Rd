@@ -5,7 +5,7 @@
   This function applies the run filter to remove noise. Data points are grouped into EICs in this step.  
 }
 \usage{
-proc.txt(filename, min.pres=0.5, min.run=12,tol=NA, find.tol.maxd=1e-4, baseline.correct.noise.percentile=0, baseline.correct=NA)
+proc.txt(filename, min.pres=0.5, min.run=12,tol=NA, find.tol.maxd=1e-4, baseline.correct.noise.percentile=0.25, baseline.correct=0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

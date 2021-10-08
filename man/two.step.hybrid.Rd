@@ -7,7 +7,7 @@ Two step hybrid feature detection.
 A two-stage hybrid feature detection and alignment procedure, for data generated in multiple batches. 
 }
 \usage{
-two.step.hybrid(folder, info, min.within.batch.prop.detect=0.1, min.within.batch.prop.report=0.5, min.batch.prop=0.5, batch.align.mz.tol=1e-5, batch.align.chr.tol=50, file.pattern=".cdf", known.table=NA, n.nodes=4, min.pres=0.5, min.run=12, mz.tol=1e-5, baseline.correct.noise.percentile=0.25, shape.model="bi-Gaussian",  baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(1,60), sigma.ratio.lim=c(0.33, 3), component.eliminate=0.01, moment.power=2, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3)
+two.step.hybrid(folder, info, min.within.batch.prop.detect=0.1, min.within.batch.prop.report=0.5, min.batch.prop=0.5, batch.align.mz.tol=1e-5, batch.align.chr.tol=50, file.pattern=".cdf", known.table=NA, n.nodes=4, min.pres=0.5, min.run=12, mz.tol=1e-5, baseline.correct.noise.percentile=0.05, shape.model="bi-Gaussian",  baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(0.1,100), sigma.ratio.lim=c(0.05, 20), component.eliminate=0.01, moment.power=2, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3)
 }
 \arguments{
   \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }

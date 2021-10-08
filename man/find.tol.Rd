@@ -15,6 +15,7 @@ find.tol(a, uppermost=1e-4, aver.bin.size=4000, min.bins=50, max.bins=200)
   \item{aver.bin.size}{The average bin size to determine the number of equally spaced points in the kernel density estimation.}
   \item{min.bins}{the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.}
   \item{max.bins}{the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.}
+  \item{do.plot}{Indicates whether plot should be drawn.}
 }
 \details{
   The method assumes a mixture model: an unknown distribution of m/z variations in the same peak, and an exponential distribution of between-peak diffs. The parameter of the exponential distribution is estimated by the upper 75% of the sorted data, and the cutoff is selected where the density of the empirical distribution is >1.5 times the density of the exponential distribution. 
