@@ -21,7 +21,6 @@ function(prof, fill.holes=TRUE, transform="none", time.lim=NA, mz.lim=NA, box = 
         return(newb)
     }
     
-    library(rgl)
     r3dDefaults$windowRect <- c(0,50, 700, 700)
     a<-prof
     

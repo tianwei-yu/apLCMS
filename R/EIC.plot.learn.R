@@ -8,7 +8,6 @@ function(aligned, rows=NA, colors=NA, transform="none", subset=NA, tol=2.5e-5, r
     }
     if(!is.na(rows[1]))
     {
-        library(splines)
         num.exp<-nrow(summary(aligned$features))
         if(is.na(subset[1])) subset<-1:num.exp
         if(is.na(colors[1])) colors<-c("red","blue","dark blue","orange","green","yellow","cyan","pink","violet","bisque","azure","brown","chocolate",rep("grey",length(subset)))

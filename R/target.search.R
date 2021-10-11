@@ -27,8 +27,6 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
             new.table
         }
         
-        library(splines)
-        library(mzR)
         if(is.na(mz.range)) mz.range<-1.5*align.mz.tol
         if(is.na(chr.range)) chr.range<-align.chr.tol/2
         
@@ -285,8 +283,6 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         return(to.return)
     }
     
-    library(mzR)
-    library(doParallel)
     setwd(folder)
     
     files<-dir(pattern=file.pattern, ignore.case = TRUE)

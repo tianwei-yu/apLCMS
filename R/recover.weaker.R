@@ -24,8 +24,6 @@ recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, al
         new.table
     }
     
-    library(splines)
-    library(mzR)
     if(is.na(mz.range)) mz.range<-1.5*align.mz.tol
     if(is.na(chr.range)) chr.range<-align.chr.tol/2
     

@@ -1,12 +1,6 @@
 eic.pred <-
 function(eic.rec, known.mz, mass.matched=NA, to.use=10, do.plot=FALSE, match.tol.ppm=5, do.grp.reduce=TRUE, remove.bottom=5, max.fpr=0.3, min.tpr=0.8)
 {
-    library(randomForest)
-    library(e1071)
-    library(ROCS)
-    library(gbm)
-    library(ROCR)
-    
     if(do.grp.reduce)
     {
         q<-eic.qual(eic.rec, known.mz, match.tol.ppm=match.tol.ppm)

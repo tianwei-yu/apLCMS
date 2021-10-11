@@ -15,5 +15,5 @@ License: GPL(>=2)
 LazyLoad: yes
 NeedsCompilation: no
 Suggests: 
-    testthat (>= 3.0.0)
+    arrow, testthat (>= 3.0.0)
 Config/testthat/edition: 3
