@@ -4,7 +4,6 @@ function(aligned, rows=NA, colors=NA, transform="none", subset=NA, tol=2.5e-5, r
     if(!(transform %in% c("none","log","sqrt","cuberoot")))
     {
         message("Invalid transformation. It has to be from: none, log, sqrt, and cuberoot")
-        break;
     }
     if(!is.na(rows[1]))
     {
