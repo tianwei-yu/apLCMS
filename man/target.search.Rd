@@ -7,7 +7,13 @@ Targeted search of metabolites with given m/z and (optional) retention time
 The function conducts targeted search only. The search is based on m/z and (optionally) retention time. If there are sufficient number of peaks (>=100) in each profile, the function will conduct retention time correction and peak alignment, in order to reduce potential redundancies. 
 }
 \usage{
-target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, min.exp = 2, min.bw = NA, max.bw = NA, subs = NULL, align.mz.tol = 2e-05, align.chr.tol = 150, max.align.mz.diff = 0.01, recover.mz.range = NA, recover.chr.range = NA, use.observed.range = TRUE, match.tol.ppm = 5, new.feature.min.count = 2, recover.min.count = 3)
+target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, 
+              min.exp = 2, min.bw = NA, max.bw = NA, subs = NULL, 
+              align.mz.tol = 2e-05, align.chr.tol = 150, 
+              max.align.mz.diff = 0.01, recover.mz.range = NA,
+              recover.chr.range = NA, use.observed.range = TRUE, 
+              match.tol.ppm = 5, new.feature.min.count = 2, 
+              recover.min.count = 3)
 }
 \arguments{
   \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }

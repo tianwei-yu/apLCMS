@@ -5,7 +5,8 @@
   This function takes the matrix output from proc.cdf() and generates a 3D plot of the data. It relies on the rgl library. 
 }
 \usage{
-present.cdf.3d(prof, fill.holes = TRUE, transform = "none", time.lim = NA, mz.lim = NA, box = TRUE, axes = TRUE)
+present.cdf.3d(prof, fill.holes = TRUE, transform = "none", time.lim = NA, 
+               mz.lim = NA, box = TRUE, axes = TRUE)
 }
 \arguments{
   \item{prof}{ The matrix output from the proc.cdf() function. }

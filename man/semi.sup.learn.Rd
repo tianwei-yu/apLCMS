@@ -5,7 +5,20 @@
 The semi-supervised procedure utilizes a database of known metabolites and previously detected features to identify features in a new dataset. It is recommended ONLY for experienced users. The user may need to construct the known feature database that strictly follows the format described below. 
 }
 \usage{
-semi.sup.learn(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.pres=0.3, min.run=4, mz.tol=1e-5, shape.model="bi-Gaussian",  baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(0.01,500),  component.eliminate=0.01, moment.power=1, sigma.ratio.lim=c(0.01, 100), subs=NULL, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=5, new.feature.min.count=2, recover.min.count=3, use.learn=TRUE, ridge.smoother.window=50, smoother.window=c(1, 5, 10),pos.confidence=0.99, neg.confidence=0.99, max.ftrs.to.use=10, do.grp.reduce=TRUE, remove.bottom.ftrs=0, max.fpr=0.5, min.tpr=0.9, intensity.weighted=FALSE)
+semi.sup.learn(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, 
+               min.exp=2, min.pres=0.3, min.run=4, mz.tol=1e-5, 
+               shape.model="bi-Gaussian",  baseline.correct=0, 
+               peak.estim.method="moment", min.bw=NA, max.bw=NA, 
+               sd.cut=c(0.01,500),  component.eliminate=0.01, moment.power=1, 
+               sigma.ratio.lim=c(0.01, 100), subs=NULL, align.mz.tol=NA, 
+               align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, 
+               recover.mz.range=NA, recover.chr.range=NA, 
+               use.observed.range=TRUE, match.tol.ppm=5, 
+               new.feature.min.count=2, recover.min.count=3, use.learn=TRUE, 
+               ridge.smoother.window=50, smoother.window=c(1, 5, 10),
+               pos.confidence=0.99, neg.confidence=0.99, max.ftrs.to.use=10, 
+               do.grp.reduce=TRUE, remove.bottom.ftrs=0, max.fpr=0.5, 
+               min.tpr=0.9, intensity.weighted=FALSE)
 }
 \arguments{
   \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }

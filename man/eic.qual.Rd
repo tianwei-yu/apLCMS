@@ -7,7 +7,8 @@
 For each column of an EIC data feature matrix, find its predictive power on the m/z match to known metabolites. 
 }
 \usage{
-eic.qual(eic.rec, known.mz, mass.matched = NA, match.tol.ppm = 5, do.plot = FALSE, pos.confidence = 0.99, neg.confidence = 0.99)
+eic.qual(eic.rec, known.mz, mass.matched = NA, match.tol.ppm = 5, 
+         do.plot = FALSE, pos.confidence = 0.99, neg.confidence = 0.99)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

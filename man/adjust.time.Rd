@@ -7,7 +7,8 @@
   This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement. 
 }
 \usage{
-adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)
+adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, 
+            find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)
 }
 \arguments{
   \item{features}{ A list object. Each component is a matrix which is the output from proc.to.feature(). }

@@ -5,7 +5,16 @@
 The semi-supervised procedure utilizes a database of known metabolites and previously detected features to identify features in a new dataset. It is recommended ONLY for experienced users. The user may need to construct the known feature database that strictly follows the format described below. 
 }
 \usage{
-semi.sup(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.pres=0.5, min.run=12, mz.tol=1e-5, baseline.correct.noise.percentile=0.05, shape.model="bi-Gaussian",  BIC.factor=2, baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(0.01,500), sigma.ratio.lim=c(0.01, 100), component.eliminate=0.01, moment.power=1, subs=NULL, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3, intensity.weighted=FALSE)
+semi.sup(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, 
+         min.pres=0.5, min.run=12, mz.tol=1e-5, 
+         baseline.correct.noise.percentile=0.05, shape.model="bi-Gaussian", 
+         BIC.factor=2, baseline.correct=0, peak.estim.method="moment", 
+         min.bw=NA, max.bw=NA, sd.cut=c(0.01,500), sigma.ratio.lim=c(0.01, 100),
+         component.eliminate=0.01, moment.power=1, subs=NULL, align.mz.tol=NA, 
+         align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE,
+         recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, 
+         match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3,
+         intensity.weighted=FALSE)
 }
 \arguments{
   \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }
