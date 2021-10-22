@@ -6,6 +6,8 @@ test_that("basic hybrid test", {
   expected <- arrow::read_parquet('../testdata/hybrid_recovered_feature_sample_table.parquet')
   known_table <- arrow::read_parquet('../testdata/known_table.parquet')
   
+  # CRAN limits the number of cores available to packages to 2
+  # source https://stackoverflow.com/questions/50571325/r-cran-check-fail-when-using-parallel-functions#50571533
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
   
   if (nzchar(chk) && chk == "TRUE") {
