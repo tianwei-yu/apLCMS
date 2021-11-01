@@ -1,0 +1,14 @@
+Package: apLCMS
+Title: Adaptive processing of LC-MS data
+Version: 6.6.9
+Date: 2021-11-1
+Author: Tianwei Yu <tianwei.Yu@emory.edu>
+Maintainer: Tianwei Yu <tianwei.Yu@emory.edu>
+Description: Adaptive processing of LC/MS metabolomics data.
+Depends: R (>= 2.10), MASS, rgl, mzR, splines, doParallel, foreach,
+        iterators, snow, gbm, e1071, randomForest, ROCR, ROCS, Rcpp
+biocViews: Technology, MassSpectrometry
+License: GPL(>=2)
+LazyLoad: yes
+NeedsCompilation: no
+Packaged: 2020-05-05 00:31:58 UTC; tyu8
