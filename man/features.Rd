@@ -9,12 +9,8 @@
 \format{
   List object containing multiple matrices. One matrix from each spectrum.
 }
-\details{
-}
 \source{
 Data from Dean Jones lab, Emory University School of Medicine.
-}
-\references{
 }
 \examples{
 data(features)

@@ -29,10 +29,8 @@ A data frame containing the known metabolite ions and previously found features.
 	"int_min.log.": the minimum log intensity observed for this feature;
 	"int_max.log.": the maximum log intensity observed for this feature;
 }
-\details{}
 \source{
 Wishart, D. S., et al. (2009). HMDB: a knowledgebase for the human metabolome. Nucleic Acids Res 37, D603-10.}
-\references{}
 \examples{
 data(known.table.common.pos)
 }

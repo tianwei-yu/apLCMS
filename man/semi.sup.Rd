@@ -5,10 +5,19 @@
 The semi-supervised procedure utilizes a database of known metabolites and previously detected features to identify features in a new dataset. It is recommended ONLY for experienced users. The user may need to construct the known feature database that strictly follows the format described below. 
 }
 \usage{
-semi.sup(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.pres=0.5, min.run=12, mz.tol=1e-5, baseline.correct.noise.percentile=0.25, shape.model="bi-Gaussian",  BIC.factor=2, baseline.correct=0, peak.estim.method="moment", min.bw=NA, max.bw=NA, sd.cut=c(0.01,500), sigma.ratio.lim=c(0.01, 100), component.eliminate=0.01, moment.power=1, subs=NULL, align.mz.tol=NA, align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE, recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3, intensity.weighted=FALSE)
+semi.sup(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, 
+         min.pres=0.5, min.run=12, mz.tol=1e-5, 
+         baseline.correct.noise.percentile=0.05, shape.model="bi-Gaussian", 
+         BIC.factor=2, baseline.correct=0, peak.estim.method="moment", 
+         min.bw=NA, max.bw=NA, sd.cut=c(0.01,500), sigma.ratio.lim=c(0.01, 100),
+         component.eliminate=0.01, moment.power=1, subs=NULL, align.mz.tol=NA, 
+         align.chr.tol=NA, max.align.mz.diff=0.01, pre.process=FALSE,
+         recover.mz.range=NA, recover.chr.range=NA, use.observed.range=TRUE, 
+         match.tol.ppm=NA, new.feature.min.count=2, recover.min.count=3,
+         intensity.weighted=FALSE)
 }
 \arguments{
-  \item{folder}{ The folder where all CDF files to be processed are located. For example “C:/CDF/this_experiment” }
+  \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }
   \item{file.pattern}{The pattern in the names of the files to be processed. The default is ".cdf". Other formats supported by mzR package can also be used, e.g. "mzML" etc.}
   \item{known.table}{ A data frame containing the known metabolite ions and previously found features. It contains 18 columns: 
 	"chemical_formula": the chemical formula if knonw; 
@@ -47,8 +56,8 @@ semi.sup(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
   \item{sigma.ratio.lim}{A parameter for the prof.to.features() function. A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation and the righ-standard deviation of the bi-Gaussian fuction used to fit the data.}
   \item{component.eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a proportion of intensities less than this value, the component will be ignored.}
   \item{moment.power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
-  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program’s selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
-  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program’s selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
+  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program's selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
+  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program's selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
     \item{max.align.mz.diff}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{pre.process}{ Logical. If true, the program will not perform time correction and alignment. It will only generate peak tables for each spectra and save the files. It allows manually dividing the task to multiple machines. }
   \item{recover.mz.range}{A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used. }
@@ -57,6 +66,7 @@ semi.sup(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
   \item{match.tol.ppm}{ The ppm tolerance to match identified features to known metabolites/features. }
   \item{new.feature.min.count}{ The number of profiles a new feature must be present for it to be added to the database. }
   \item{recover.min.count}{ The minimum time point count for a series of point in the EIC for it to be considered a true feature. }
+  \item{intensity.weighted}{TBA}
 }
 \details{
 The function first conducts a unsupervised feature detection in the new dataset. It then matches the newly identified features to the database. Then merging unfound features in the database and the newly found features, a weak signal recovery is performed. The final feature table is used to update the database. 
@@ -76,10 +86,6 @@ A list is returned.
   \item{ftrs.known.table.pairing}{ The paring information between the feature table of the current dataset and the known feature tabel. }
   \item{intensity.weighted}{Whether to weight the local density by signal intensities in the initial peak detection stage.}
 }
-\references{}
 \author{ Tianwei Yu < tianwei.yu@emory.edu> }
-\note{}
 \seealso{ cdf.to.ftrs, proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
-\examples{
-}
 \keyword{ models }

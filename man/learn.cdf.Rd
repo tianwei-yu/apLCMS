@@ -3,7 +3,13 @@
 \title{ Peak detection using the machine learning approach. }
 \description{ The procedure uses information of known metabolites, and constructs prediction models to differentiate EICs. }
 \usage{
-learn.cdf(filename, tol = 2e-05, min.run = 4, min.pres = 0.3, baseline.correct = 0, ridge.smoother.window = 50, smoother.window = c(1, 5, 10), known.mz, match.tol.ppm = 5, do.plot = FALSE, pos.confidence = 0.99, neg.confidence = 0.99, max.ftrs.to.use = 10, do.grp.reduce = TRUE, remove.bottom.ftrs = 0, max.fpr = seq(0, 0.6, by = 0.1), min.tpr = seq(0.8, 1, by = 0.1), intensity.weighted=FALSE)
+learn.cdf(filename, tol = 2e-05, min.run = 4, min.pres = 0.3, 
+          baseline.correct = 0, ridge.smoother.window = 50, 
+          smoother.window = c(1, 5, 10), known.mz, match.tol.ppm = 5, 
+          do.plot = FALSE, pos.confidence = 0.99, neg.confidence = 0.99, 
+          max.ftrs.to.use = 10, do.grp.reduce = TRUE, remove.bottom.ftrs = 0, 
+          max.fpr = seq(0, 0.6, by = 0.1), min.tpr = seq(0.8, 1, by = 0.1), 
+          intensity.weighted=FALSE)
 }
 \arguments{
   \item{filename}{ The cdf file name. If the file is not in the working directory, the path needs to be given. }
@@ -27,14 +33,10 @@ learn.cdf(filename, tol = 2e-05, min.run = 4, min.pres = 0.3, baseline.correct =
 }
 \details{
   The subroutine takes CDF, mxml etc LC/MS profile.   
-  First the profile is sliced into EICs using adaptive binning. Then data features are extracted from each EIC. The EICs are classified into two groups: those that have m/z values that match to known m/z values, and those that don’t. Classification models are built to separate the two classes, and each EIC is given a score by the classification model. Those with better scores are selected to enter the feature quantification step. 
+  First the profile is sliced into EICs using adaptive binning. Then data features are extracted from each EIC. The EICs are classified into two groups: those that have m/z values that match to known m/z values, and those that don't. Classification models are built to separate the two classes, and each EIC is given a score by the classification model. Those with better scores are selected to enter the feature quantification step. 
 }
 \value{
 A matrix with four columns: m/z value, retention time, intensity, and group number. 
 }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

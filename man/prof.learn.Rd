@@ -9,9 +9,7 @@
 \format{
 Each matrix contains 4 columns: m/z, retention time, intensity, and group number. 
 }
-\details{}
 \source{Data from Dean Jones lab, Emory University School of Medicine.}
-\references{}
 \examples{
 data(prof.learn)
 this.feature<-prof.to.features(prof.learn[[1]][[1]])

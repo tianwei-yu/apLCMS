@@ -3,7 +3,9 @@
 \title{ Internal function: calculate the score for each EIC based on prediction of match status. }
 \description{ This function uses predictive models to evaluate the data features, and give scores to every EIC, which serves as the basis for EIC selection. }
 \usage{
-eic.pred(eic.rec, known.mz, mass.matched = NA, to.use = 10, do.plot = FALSE, match.tol.ppm = 5, do.grp.reduce = TRUE, remove.bottom = 5, max.fpr = 0.3, min.tpr = 0.8)
+eic.pred(eic.rec, known.mz, mass.matched = NA, to.use = 10, do.plot = FALSE, 
+         match.tol.ppm = 5, do.grp.reduce = TRUE, remove.bottom = 5, 
+         max.fpr = 0.3, min.tpr = 0.8)
 }
 \arguments{
   \item{eic.rec}{ The matrix of data features from every EIC. Each row is an EIC. Each column is a data feature value. }
@@ -36,6 +38,5 @@ A list item is returned.
 }
 \references{Bioinformatics. 30(20):  2941-2948.}
 \author{Tianwei Yu <tianwei.yu@emory.edu>}
-\note{}
 \seealso{semi.sup.learn, eic.qual, eic.disect}
 \keyword{ models }

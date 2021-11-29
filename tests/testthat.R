@@ -1,4 +1,4 @@
 library(testthat)
-library(apLCMS)
+library(recetox.aplcms)
 
-test_check("apLCMS")
+test_check("recetox.aplcms")

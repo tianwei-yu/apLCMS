@@ -7,10 +7,16 @@ Targeted search of metabolites with given m/z and (optional) retention time
 The function conducts targeted search only. The search is based on m/z and (optionally) retention time. If there are sufficient number of peaks (>=100) in each profile, the function will conduct retention time correction and peak alignment, in order to reduce potential redundancies. 
 }
 \usage{
-target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, min.exp = 2, min.bw = NA, max.bw = NA, subs = NULL, align.mz.tol = 2e-05, align.chr.tol = 150, max.align.mz.diff = 0.01, recover.mz.range = NA, recover.chr.range = NA, use.observed.range = TRUE, match.tol.ppm = 5, new.feature.min.count = 2, recover.min.count = 3)
+target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, 
+              min.exp = 2, min.bw = NA, max.bw = NA, subs = NULL, 
+              align.mz.tol = 2e-05, align.chr.tol = 150, 
+              max.align.mz.diff = 0.01, recover.mz.range = NA,
+              recover.chr.range = NA, use.observed.range = TRUE, 
+              match.tol.ppm = 5, new.feature.min.count = 2, 
+              recover.min.count = 3)
 }
 \arguments{
-  \item{folder}{ The folder where all CDF files to be processed are located. For example “C:/CDF/this_experiment” }
+  \item{folder}{ The folder where all CDF files to be processed are located. For example "C:/CDF/this_experiment" }
   \item{file.pattern}{The pattern in the names of the files to be processed. The default is ".cdf". Other formats supported by mzR package can also be used, e.g. "mzML" etc.}
   \item{known.table}{ A data frame containing the known metabolite ions and previously found features. It contains 18 columns: 
 	"chemical_formula": the chemical formula if knonw; 
@@ -37,8 +43,8 @@ target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, min.
   \item{min.bw}{The minimum bandwidth in the smoother in prof.to.features(). Please see the help file for prof.to.features() for details.}
   \item{max.bw}{The maximum bandwidth in the smoother in prof.to.features(). Please see the help file for prof.to.features() for details.}
   \item{subs}{ If not all the CDF files in the folder are to be processed, the user can define a subset using this parameter. For example, subs=15:30, or subs=c(2,4,6,8) }
-  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program’s selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
-  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program’s selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
+  \item{align.chr.tol}{ The user can provide the elution time tolerance level to override the program's selection. This value is in the same unit as the elution time, normaly seconds. Please see the help for match.time() for details.}
+  \item{align.mz.tol}{ The user can provide the m/z tolerance level for peak alignment to override the program's selection.  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.Please see the help for feature.align() for details.}
     \item{max.align.mz.diff}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{recover.mz.range}{A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used. }
   \item{recover.chr.range}{A parameter of the recover.weaker() function. The retention time around the feature retention time to search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.}
@@ -47,8 +53,6 @@ target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, min.
   \item{new.feature.min.count}{ The number of profiles a new feature must be present for it to be added to the database. }
   \item{recover.min.count}{ The minimum time point count for a series of point in the EIC for it to be considered a true feature. }
 }
-\details{
-}
 \value{
  \item{features}{ A list object, each component of which being the peak table from a single spectrum.}
  \item{filled.ftrs}{The target features are filled one by one. Notice this table may contain duplicates if some target features are too close. }
@@ -56,11 +60,6 @@ target.search(folder, file.pattern = ".cdf", known.table = NA, n.nodes = 4, min.
  \item{filled.times}{The target features are filled one by one. This is the retention time table. Notice this table may contain duplicates if some target features are too close. }
   \item{reduced.times}{If the number of target features are big enough (>=100 detected in each profile), retention time correction and peak alignments are conducted to generate this feature table without redundancy. This is the retention time table of the aligned features. }
  }
-\references{
-}
 \author{ Tianwei Yu < tianwei.yu@emory.edu> }
-\note{}
 \seealso{ cdf.to.ftrs, proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
-\examples{
-}
 \keyword{ models }

@@ -7,7 +7,8 @@
   This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement. 
 }
 \usage{
-adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, find.tol.max.d=1e-4, max.align.mz.diff=0.01)
+adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, 
+            find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)
 }
 \arguments{
   \item{features}{ A list object. Each component is a matrix which is the output from proc.to.feature(). }
@@ -16,6 +17,7 @@ adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, find.tol.max.d=1e-4,
   \item{colors}{ The vector of colors to be used for the line plots of time adjustments. The default is NA, in which case the program uses a set of default color set. }
   \item{find.tol.max.d}{Argument passed to find.tol(). Consider only m/z diffs smaller than this value. This is only used when the mz.tol is NA. }
   \item{max.align.mz.diff}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
+  \item{do.plot}{Indicates whether plot should be drawn.}
 }
 \details{
   The function first searches for the m/z tolerance level using a mixture model. After the mz.tol is obtained, the peaks are grouped based on it. The function then searches for the retention time tolerance level. Because the peaks are grouped using m/z, only metabolites that share m/z require this parameter. A rather lenient retention time tolerance level is found using a mixture model. 
@@ -25,9 +27,7 @@ adjust.time(features, mz.tol = NA, chr.tol = NA, colors=NA, find.tol.max.d=1e-4,
 \value{
 A list object with the exact same structure as the input object features, i.e. one matrix per profile being processed. The only difference this output object has with the input object is that the retention time column in each of the matrices is changed to new adjusted values.
 }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
 \seealso{ feature.align }
 \examples{
 data(features)

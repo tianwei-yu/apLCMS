@@ -24,8 +24,6 @@ recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, al
         new.table
     }
     
-    library(splines)
-    library(mzR)
     if(is.na(mz.range)) mz.range<-1.5*align.mz.tol
     if(is.na(chr.range)) chr.range<-align.chr.tol/2
     
@@ -160,7 +158,7 @@ recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, al
                             that.masses<-that.masses[that.order]
                             that.intensi<-that.intensi[that.order]
                             
-                            that.prof<-merge.seq.3(that.labels, that.masses, that.intensi)
+                            that.prof<-combine.seq.3(that.labels, that.masses, that.intensi)
                             
                             that.mass<-sum(that.prof[,1]*that.prof[,3])/sum(that.prof[,3])
                             curr.rec<-c(that.mass, NA,NA)

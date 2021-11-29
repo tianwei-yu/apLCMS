@@ -1,4 +1,4 @@
-plot.txt.2d <-
+draw.txt.2d <-
 function(rawname, f, mzlim,timelim, lwd=1)
 ### rawname is the text file name
 ### f is the output object of prof.to.features()

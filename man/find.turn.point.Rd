@@ -11,8 +11,6 @@ find.turn.point(y)
 \arguments{
   \item{y}{ The y values of a curve in x-y plane. }
 }
-\details{
-}
 \value{
 A list object:
   \item{pks}{The peak positions.}
@@ -23,7 +21,4 @@ Bioinformatics. 25(15):1930-36.
 BMC Bioinformatics. 11:559.
 }
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

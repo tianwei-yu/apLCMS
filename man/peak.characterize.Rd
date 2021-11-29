@@ -13,9 +13,5 @@ peak.characterize(existing.row = NA, ftrs.row, chr.row)
 }
 \details{The function calculates and updates the mean intensity, variation of intensity, mean retention time etc. }
 \value{A vector, the updated row for the known feature table. }
-\references{}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

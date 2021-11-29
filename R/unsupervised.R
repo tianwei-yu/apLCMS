@@ -73,7 +73,7 @@ extract_features <- function(
     'load.lcms',
     'adaptive.bin',
     'find.turn.point',
-    'merge.seq.3',
+    'combine.seq.3',
     'cont.index',
     'interpol.area'
   ))
@@ -135,7 +135,8 @@ recover_weaker_signals <- function(
   max_bandwidth,
   recover_min_count
 ) {
-  clusterExport(cluster, 'recover.weaker')
+  clusterExport(cluster, c('recover.weaker'))
+  clusterEvalQ(cluster, library("splines"))
 
   recovered <- parLapply(cluster, seq_along(filenames), function(i) {
     recover.weaker(
@@ -198,7 +199,7 @@ unsupervised <- function(
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
-  cluster = parallel::detectCores()
+  cluster = 4
 ) {
   if (!is(cluster, 'cluster')) {
     cluster <- parallel::makeCluster(cluster)

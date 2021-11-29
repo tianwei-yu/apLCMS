@@ -7,7 +7,8 @@
 For each column of an EIC data feature matrix, find its predictive power on the m/z match to known metabolites. 
 }
 \usage{
-eic.qual(eic.rec, known.mz, mass.matched = NA, match.tol.ppm = 5, do.plot = FALSE, pos.confidence = 0.99, neg.confidence = 0.99)
+eic.qual(eic.rec, known.mz, mass.matched = NA, match.tol.ppm = 5, 
+         do.plot = FALSE, pos.confidence = 0.99, neg.confidence = 0.99)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -19,13 +20,9 @@ eic.qual(eic.rec, known.mz, mass.matched = NA, match.tol.ppm = 5, do.plot = FALS
   \item{pos.confidence}{The confidence level for the features matched to the known feature list. }
   \item{neg.confidence}{The confidence level for the features not matching to the known feature list. }
 }
-\details{}
 \value{
 A matrix of four columns. The first two columns are the VUS and AUC without uncertainty. The next two columns are the VUS and AUC with uncertainty. 
 }
 \references{Bioinformatics. 30(20):  2941-2948.}
 \author{ Tianwei Yu <tyu8@emory.edu> }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

@@ -1,6 +1,6 @@
 Package: recetox.aplcms
 Title: Adaptive processing of LC-MS data
-Version: 0.9.3
+Version: 0.9.4
 Date: 2020-06-16
 Authors@R: c(
     person("Tianwei", "Yu", email = "tianwei.Yu@emory.edu", role = "aut"),
@@ -8,12 +8,12 @@ Authors@R: c(
 Description: This is a customized fork of the original work from Tianwei Yu.
         It takes the adaptive processing of LC/MS metabolomics data further
         with focus on high resolution MS for both LC and GC applications.
-Depends: R, MASS, rgl, mzR, splines, doParallel, foreach,
+Depends: R (>= 2.10), MASS, rgl, mzR, splines, doParallel, foreach,
         iterators, snow, gbm, e1071, randomForest, ROCR, ROCS, Rcpp
 biocViews: Technology, MassSpectrometry
-License: GPL(>=2)
+License: GPL(>=2) + file LICENSE
 LazyLoad: yes
 NeedsCompilation: no
 Suggests: 
-    testthat (>= 3.0.0)
+    arrow, testthat (>= 3.0.0)
 Config/testthat/edition: 3

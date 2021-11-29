@@ -27,8 +27,6 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
             new.table
         }
         
-        library(splines)
-        library(mzR)
         if(is.na(mz.range)) mz.range<-1.5*align.mz.tol
         if(is.na(chr.range)) chr.range<-align.chr.tol/2
         
@@ -140,7 +138,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
                                 that.masses<-that.masses[that.order]
                                 that.intensi<-that.intensi[that.order]
                                 
-                                that.prof<-merge.seq.3(that.labels, that.masses, that.intensi)
+                                that.prof<-combine.seq.3(that.labels, that.masses, that.intensi)
                                 
                                 that.mass<-sum(that.prof[,1]*that.prof[,3])/sum(that.prof[,3])
                                 curr.rec<-c(that.mass, NA,NA)
@@ -285,8 +283,6 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         return(to.return)
     }
     
-    library(mzR)
-    library(doParallel)
     setwd(folder)
     
     files<-dir(pattern=file.pattern, ignore.case = TRUE)

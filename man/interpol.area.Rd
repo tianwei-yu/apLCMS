@@ -23,12 +23,7 @@ interpol.area(x, y, all.x, all.w)
 \value{
 	The area is returned.
 }
-\references{
-}
 \author{
 	Tianwei Yu <tyu8@emory.edu>
 }
-\note{}
-\seealso{}
-\examples{}
 \keyword{ models }

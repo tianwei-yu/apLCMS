@@ -14,12 +14,11 @@ The data is based on the Metabolomics FieHn Lab's Mass Spectrometry Adduct Calcu
     \item{charge}{The charge state of the ion form.}
   }
 }
-\details{}
 \source{
 http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
 }
 \references{
-Huang N.; Siegel M.M.1; Kruppa G.H.; Laukien F.H. Automation of a Fourier transform ion cyclotron resonance mass spectrometer for acquisition, analysis, and e-mailing of high-resolution exact-mass electrospray ionization mass spectral data. J Am Soc Mass Spectrom 1999, 10, 1166–1173.
+Huang N.; Siegel M.M.1; Kruppa G.H.; Laukien F.H. Automation of a Fourier transform ion cyclotron resonance mass spectrometer for acquisition, analysis, and e-mailing of high-resolution exact-mass electrospray ionization mass spectral data. J Am Soc Mass Spectrom 1999, 10, 1166-1173.
 }
 \examples{
 data(metabolite.table)

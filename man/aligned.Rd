@@ -14,9 +14,7 @@ List of 4
  $ mz.tol      : the m/z tolerance level in alignment
  $ chr.tol     : the retention time tolerance level in alignment
 }
-\details{}
 \source{Dean Jones lab. Emory University, School of Medicine.}
-\references{}
 \examples{
 data(aligned)
 }

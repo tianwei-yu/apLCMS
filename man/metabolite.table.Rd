@@ -18,7 +18,6 @@ A data frame containing the known metabolites. It contains 4 columns:
 \details{It is to be used in combination with the object "adduct.table", to create feature table with ion forms of the user's choice. Which ion form to choose should be based on the LC/MS system.}
 \source{
 Wishart, D. S., et al. (2009). HMDB: a knowledgebase for the human metabolome. Nucleic Acids Res 37, D603-10.}
-\references{}
 \examples{
 data(metabolite.table)
 data(adduct.table)
