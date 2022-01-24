@@ -1,14 +1,16 @@
 adjust.time <-
-function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01)  # features is a list project, each sub-object is a matrix as identified by prof.to.features
+function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)  # features is a list project, each sub-object is a matrix as identified by prof.to.features
 {
     
     num.exp<-nrow(summary(features))
     if(num.exp>1)
     {
-        par(mfrow=c(2,2))
-        plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
-        text(x=0,y=0,"Retention time \n adjustment",cex=2)
-        
+        if (do.plot) {
+            par(mfrow=c(2,2))
+            plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
+            text(x=0,y=0,"Retention time \n adjustment",cex=2)
+        }
+
         a<-summary(features)
         sizes<-as.numeric(a[,1])/ncol(features[[1]])
         sizes<-cumsum(sizes)
@@ -27,19 +29,19 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
         
         if(is.na(mz.tol))
         {
-            mz.tol<-find.tol(mz,uppermost=find.tol.max.d)
-        }else{
+            mz.tol<-find.tol(mz,uppermost=find.tol.max.d, do.plot=do.plot)
+        } else if(do.plot) {
             plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="m/z tolerance level given",axes=FALSE)
             text(x=0,y=0,mz.tol,cex=1.2)
         }
         
-        if(!is.na(chr.tol))
+        if(!is.na(chr.tol) && do.plot)
         {
             plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="retention time \n tolerance level given",axes=FALSE)
             text(x=0,y=0,chr.tol,cex=1.2)
         }
         
-        all.ft<-find.tol.time(mz, chr, lab, num.exp=num.exp, mz.tol=mz.tol, chr.tol=chr.tol, max.mz.diff=max.align.mz.diff)
+        all.ft<-find.tol.time(mz, chr, lab, num.exp=num.exp, mz.tol=mz.tol, chr.tol=chr.tol, max.mz.diff=max.align.mz.diff, do.plot=do.plot)
         chr.tol<-all.ft$chr.tol
         
         message("**** performing time correction ****")
@@ -122,18 +124,20 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
                     this.s<-which(this.d==min(this.d))[1]
                     this.feature[i,2]<-orig.feature[i,2]+this.feature[this.s,2]-orig.feature[this.s,2]
                 }
-            }            
+            }
             this.feature
         }
     }else{
         message("Only one sample.  No need to correct for time.")
     }
-    
-    plot(range(features[[1]][,2]), c(-chr.tol, chr.tol),type="n", ylab="Retention time deviation", xlab="Original Retention time")
-    for(i in 1:num.exp)
-    {
-        features[[i]]<-features[[i]][order(features[[i]][,1], features[[i]][,2]),]
-        points(features[[i]][,2], features.2[[i]][,2]-features[[i]][,2],col=colors[i], cex=.2)
+
+    if (do.plot) {
+        plot(range(features[[1]][,2]), c(-chr.tol, chr.tol),type="n", ylab="Retention time deviation", xlab="Original Retention time")
+        for(i in 1:num.exp) {
+            features[[i]]<-features[[i]][order(features[[i]][,1], features[[i]][,2]),]
+            points(features[[i]][,2], features.2[[i]][,2]-features[[i]][,2],col=colors[i], cex=.2)
+        }
     }
+
     return(features.2)
 }

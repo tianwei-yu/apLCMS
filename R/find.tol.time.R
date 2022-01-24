@@ -1,5 +1,5 @@
 find.tol.time <-
-function(mz, chr, lab, num.exp, mz.tol=2e-5, chr.tol=NA, aver.bin.size=200, min.bins=50, max.bins=100, max.mz.diff=0.01, max.num.segments=10000)
+function(mz, chr, lab, num.exp, mz.tol=2e-5, chr.tol=NA, aver.bin.size=200, min.bins=50, max.bins=100, max.mz.diff=0.01, max.num.segments=10000, do.plot=TRUE)
 {
     o<-order(mz)
     mz<-mz[o]
@@ -53,20 +53,22 @@ function(mz, chr, lab, num.exp, mz.tol=2e-5, chr.tol=NA, aver.bin.size=200, min.
         this.l<-lm(y[x>uppermost/4]~x[x>uppermost/4])
         
         exp.y<-this.l$coef[1]+this.l$coef[2]*x
-        
-        plot(x,y,main="find retention time tolerance", xlab="Delta", ylab="Density",cex=0.25)
-        lines(x,exp.y,col="red")
+
         y2<-y[1:(length(y)-1)]
         y3<-y[2:(length(y))]
         y2[which(y2<y3)]<-y3[which(y2<y3)]
         y[1:(length(y)-1)]<-y2
         
         yy<-cumsum(y>1.5*exp.y)
-        yi<-1:length(yy)
+        yi<- seq_along(yy)
         sel<-min(which(yy<yi))-1
-        
-        abline(v=x[sel],col="blue")
         chr.tol<-x[sel]
+
+        if (do.plot) {
+            plot(x,y,main="find retention time tolerance", xlab="Delta", ylab="Density",cex=0.25)
+            lines(x,exp.y,col="red")
+            abline(v=x[sel],col="blue")
+        }
     }
     
     da<-chr[2:l]-chr[1:(l-1)]
@@ -74,12 +76,11 @@ function(mz, chr, lab, num.exp, mz.tol=2e-5, chr.tol=NA, aver.bin.size=200, min.
     all.breaks<-c(0, unique(c(breaks, breaks.2)), l)
     all.breaks<-all.breaks[order(all.breaks)]
     
-    grps<-1:length(mz)
+    grps<- seq_along(mz)
     for(i in 2:length(all.breaks))
     {
         grps[(all.breaks[i-1]+1):all.breaks[i]]<-i
     }
     
-    to.return<-list(mz=mz, chr=chr, lab=lab, grps=grps, chr.tol=chr.tol, mz.tol=mz.tol)
-    return(to.return)
+    list(mz=mz, chr=chr, lab=lab, grps=grps, chr.tol=chr.tol, mz.tol=mz.tol)
 }
