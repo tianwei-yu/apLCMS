@@ -37,7 +37,7 @@ two.step.hybrid <-function(folder, info, min.within.batch.prop.detect=0.1, min.w
     cl <- makeCluster(n.nodes)
     registerDoParallel(cl)
     #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-    clusterEvalQ(cl, library(apLCMS))
+    clusterEvalQ(cl, library(recetox.aplcms))
     
     fake2<-adjust.time(fake.features,mz.tol=batch.align.mz.tol, chr.tol=batch.align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)
     
@@ -51,7 +51,7 @@ two.step.hybrid <-function(folder, info, min.within.batch.prop.detect=0.1, min.w
     cl <- makeCluster(n.nodes)
     registerDoParallel(cl)
     #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-    clusterEvalQ(cl, library(apLCMS))
+    clusterEvalQ(cl, library(recetox.aplcms))
 
     #aligned<-foreach(batch.i=1:length(batches), .combine=cbind) %dopar%
 	for(batch.i in 1:length(batches))

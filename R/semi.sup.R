@@ -31,7 +31,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         cl <- makeCluster(n.nodes)
         registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(apLCMS))
+        clusterEvalQ(cl, library(recetox.aplcms))
 
         
         features<-foreach(i=2:length(grps)) %dopar%
@@ -100,7 +100,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         cl <- makeCluster(n.nodes)
         registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(apLCMS))
+        clusterEvalQ(cl, library(recetox.aplcms))
 
         message(c("***** correcting time, CPU time (seconds) ",as.vector(system.time(f2<-adjust.time(features,mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         
@@ -125,7 +125,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         cl <- makeCluster(n.nodes)
         registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(apLCMS))
+        clusterEvalQ(cl, library(recetox.aplcms))
 
         message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned<-feature.align(f2, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         save(aligned,file=this.name)
@@ -257,7 +257,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         cl <- makeCluster(n.nodes)
         registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(apLCMS))
+        clusterEvalQ(cl, library(recetox.aplcms))
 
         features.recov<-foreach(i=2:length(grps)) %dopar%
         {
@@ -298,7 +298,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         cl <- makeCluster(n.nodes)
         registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(apLCMS))
+        clusterEvalQ(cl, library(recetox.aplcms))
 
         message(c("***** correcting time, CPU time (seconds) ",as.vector(system.time(f2.recov<-adjust.time(features.recov, mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         save(f2.recov,file=this.name)
@@ -318,7 +318,7 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         cl <- makeCluster(n.nodes)
         registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(apLCMS))
+        clusterEvalQ(cl, library(recetox.aplcms))
 
         message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned.recov<-feature.align(f2.recov, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         save(aligned.recov,file=this.name)
