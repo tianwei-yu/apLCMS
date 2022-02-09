@@ -1,7 +1,7 @@
 test_that("basic two-step hybrid test", {
     test_folder <- "../testdata"
 
-    expected <- "..."
+    expected <- readRDS("../testdata/final_ftrs.Rda")
     known_table <- arrow::read_parquet('../testdata/known_table.parquet')
     info <- read.table("../testdata/two_step_hybrid_info.csv", sep=",")
 
@@ -18,8 +18,7 @@ test_that("basic two-step hybrid test", {
     }
 
     result <- two.step.hybrid(folder=test_folder, info=info, file.pattern="mzml", known.table=known_table)
-    saveRDS(result, "result.Rda")
 
-    expect_equal(result$recovered_feature_sample_table, expected)
+    expect_equal(result$final.ftrs, expected)
 
 })
