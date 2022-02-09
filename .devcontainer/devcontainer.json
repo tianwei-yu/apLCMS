@@ -19,7 +19,7 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": ["ikuyadeu.r"],
 
-	"onCreateCommand": "apt update && apt install locales && locale-gen en_US.UTF-8",
+	"onCreateCommand": "apt update && apt install -y locales && locale-gen en_US.UTF-8 & apt install -y vim",
 
 	"postAttachCommand": "/bin/bash"
 }
