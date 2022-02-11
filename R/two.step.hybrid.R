@@ -1,5 +1,38 @@
-
-two.step.hybrid <- function(folder, info, min.within.batch.prop.detect = 0.1, min.within.batch.prop.report = 0.5, min.batch.prop = 0.5, batch.align.mz.tol = 1e-5, batch.align.chr.tol = 50, file.pattern = ".cdf", known.table = NA, n.nodes = 4, min.pres = 0.5, min.run = 12, mz.tol = 1e-5, baseline.correct.noise.percentile = 0.05, shape.model = "bi-Gaussian", baseline.correct = 0, peak.estim.method = "moment", min.bw = NA, max.bw = NA, sd.cut = c(0.1, 100), sigma.ratio.lim = c(0.05, 20), component.eliminate = 0.01, moment.power = 2, align.mz.tol = NA, align.chr.tol = NA, max.align.mz.diff = 0.01, pre.process = FALSE, recover.mz.range = NA, recover.chr.range = NA, use.observed.range = TRUE, match.tol.ppm = NA, new.feature.min.count = 2, recover.min.count = 3) {
+two.step.hybrid <- function(
+  folder,
+  info,
+  min.within.batch.prop.detect = 0.1,
+  min.within.batch.prop.report = 0.5,
+  min.batch.prop = 0.5,
+  batch.align.mz.tol = 1e-5,
+  batch.align.chr.tol = 50,
+  file.pattern = ".cdf",
+  known.table = NA,
+  n.nodes = 4,
+  min.pres = 0.5,
+  min.run = 12,
+  mz.tol = 1e-5,
+  baseline.correct.noise.percentile = 0.05,
+  shape.model = "bi-Gaussian",
+  baseline.correct = 0,
+  peak.estim.method = "moment",
+  min.bw = NA,
+  max.bw = NA,
+  sd.cut = c(0.1, 100),
+  sigma.ratio.lim = c(0.05, 20),
+  component.eliminate = 0.01,
+  moment.power = 2,
+  align.mz.tol = NA,
+  align.chr.tol = NA,
+  max.align.mz.diff = 0.01,
+  pre.process = FALSE,
+  recover.mz.range = NA,
+  recover.chr.range = NA,
+  use.observed.range = TRUE,
+  match.tol.ppm = NA,
+  new.feature.min.count = 2,
+  recover.min.count = 3) 
+  {
   setwd(folder)
   info <- as.matrix(as.data.frame(info))
   batches <- unique(info[, 2])
@@ -9,6 +42,7 @@ two.step.hybrid <- function(folder, info, min.within.batch.prop.detect = 0.1, mi
 
   for (batch.i in 1:length(batches))
   {
+      #TODO: remove `file.pattern` parameter and supply a list of files instead
     message("working on batch number ", batch.i)
     batch <- batches[batch.i]
     files <- dir(path = ".", pattern = file.pattern, ignore.case = TRUE)
@@ -35,7 +69,6 @@ two.step.hybrid <- function(folder, info, min.within.batch.prop.detect = 0.1, mi
 
   cl <- makeCluster(n.nodes)
   registerDoParallel(cl)
-  # clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
   clusterEvalQ(cl, library(recetox.aplcms))
 
   fake2 <- adjust.time(fake.features, mz.tol = batch.align.mz.tol, chr.tol = batch.align.chr.tol, find.tol.max.d = 10 * mz.tol, max.align.mz.diff = max.align.mz.diff)
@@ -49,10 +82,8 @@ two.step.hybrid <- function(folder, info, min.within.batch.prop.detect = 0.1, mi
 
   cl <- makeCluster(n.nodes)
   registerDoParallel(cl)
-  # clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
   clusterEvalQ(cl, library(recetox.aplcms))
 
-  # aligned<-foreach(batch.i=1:length(batches), .combine=cbind) %dopar%
   for (batch.i in 1:length(batches))
   {
     this.fake <- batchwise[[batch.i]]$final.ftrs
@@ -130,8 +161,6 @@ two.step.hybrid <- function(folder, info, min.within.batch.prop.detect = 0.1, mi
     }
 
     colnames(new.this.aligned) <- colnames(this.aligned)
-
-    ####
 
     if (batch.i == 1) {
       aligned <- new.this.aligned
