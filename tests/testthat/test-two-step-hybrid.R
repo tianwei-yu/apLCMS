@@ -1,7 +1,9 @@
 test_that("basic two-step hybrid test", {
     test_folder <- "../testdata"
 
-    expected <- readRDS("../testdata/final_ftrs.Rda")
+    expected_final_ftrs <- readRDS("../testdata/final_ftrs.Rda")
+    expected_all_ftrs <- readRDS("../testdata/all.detected.ftrs.Rda")
+    expected_batchwise <- readRDS("../testdata/batchwise.results.Rda")
     known_table <- arrow::read_parquet('../testdata/known_table.parquet')
     info <- read.table("../testdata/two_step_hybrid_info.csv", sep=",")
 
@@ -19,6 +21,8 @@ test_that("basic two-step hybrid test", {
 
     result <- two.step.hybrid(folder=test_folder, info=info, file.pattern="mzml", known.table=known_table)
 
-    expect_equal(result$final.ftrs, expected)
+    expect_equal(result$final.ftrs, expected_final_ftrs)
+    expect_equal(result$all.detected.ftrs, expected_all_ftrs)
+    expect_equal(result$batchwise.results, expected_batchwise)
 
 })
