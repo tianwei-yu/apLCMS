@@ -1,14 +1,13 @@
 two.step.hybrid <- function(
-  folder,
-  info,
+  filenames,
+  metadata,
   min.within.batch.prop.detect = 0.1,
   min.within.batch.prop.report = 0.5,
   min.batch.prop = 0.5,
   batch.align.mz.tol = 1e-5,
   batch.align.chr.tol = 50,
-  file.pattern = ".cdf",
   known.table = NA,
-  n.nodes = 4,
+  cluster = 4,
   min.pres = 0.5,
   min.run = 12,
   mz.tol = 1e-5,
@@ -31,30 +30,54 @@ two.step.hybrid <- function(
   use.observed.range = TRUE,
   match.tol.ppm = NA,
   new.feature.min.count = 2,
-  recover.min.count = 3) 
+  recover.min.count = 3,
+  intensity.weighted = FALSE,
+  BIC.factor = 2) 
   {
-  setwd(folder)
-  info <- as.matrix(as.data.frame(info))
-  batches <- unique(info[, 2])
+
+  sample_names <- get_sample_name(filenames)
+  metadata <- read.table(metadata, sep=",", header=TRUE)
+  batches_idx <- unique(metadata$batch)
 
   batchwise <- new("list")
-  message("total number of batches: ", length(batches))
-
-  for (batch.i in 1:length(batches))
+  message("**** processing ", length(batches_idx), " batches separately ****")
+  for (batch in batches_idx)
   {
-      #TODO: remove `file.pattern` parameter and supply a list of files instead
-    message("working on batch number ", batch.i)
-    batch <- batches[batch.i]
-    files <- dir(path = ".", pattern = file.pattern, ignore.case = TRUE)
-    this.subs <- which(files %in% info[info[, 2] == batch, 1])
-    message("total number of files in this batch ", length(this.subs))
+    sample_names_batchwise <- sample_names[which(metadata$batch == batch)]
+    filenames_batchwise <- filenames[which(sample_names == samples_batchwise)]
+    
+    batchwise_features <- hybrid(
+      filenames = filenames_batchwise,
+      known_table = known.table,
+      min_exp = ceiling(min.within.batch.prop.detect * length(filenames_batchwise)),
+      min_pres = min.pres,
+      min_run = min.run,
+      mz_tol = mz.tol,
+      baseline_correct = baseline.correct,
+      baseline_correct_noise_percentile = baseline.correct.noise.percentile,
+      shape_model = shape.model,
+      BIC_factor = BIC.factor,
+      peak_estim_method = peak.estim.method,
+      min_bandwidth = min.bw,
+      max_bandwidth = max.bw,
+      sd_cut = sd.cut,
+      sigma_ratio_lim = sigma.ratio.lim,
+      component_eliminate = component.eliminate,
+      moment_power = moment.power,
+      align_mz_tol = align.mz.tol,
+      align_chr_tol = align.chr.tol,
+      max_align_mz_diff = max.align.mz.diff,
+      match_tol_ppm = match.tol.ppm,
+      new_feature_min_count = new.feature.min.count,
+      recover_mz_range = recover.mz.range,
+      recover_chr_range = recover.chr.range,
+      use_observed_range = use.observed.range,
+      recover_min_count = recover.min.count,
+      intensity_weighted = intensity.weighted,
+      cluster = cluster
+    )
 
-    b <- semi.sup(folder, n.nodes = n.nodes, subs = this.subs, file.pattern = file.pattern, known.table = known.table, sd.cut = sd.cut, sigma.ratio.lim = sigma.ratio.lim, component.eliminate = component.eliminate, moment.power = moment.power, min.pres = min.pres, min.run = min.run, min.exp = ceiling(min.within.batch.prop.detect * length(this.subs)), mz.tol = mz.tol, baseline.correct.noise.percentile = baseline.correct.noise.percentile, baseline.correct = baseline.correct, align.mz.tol = align.mz.tol, align.chr.tol = align.chr.tol, max.align.mz.diff = max.align.mz.diff, recover.mz.range = recover.mz.range, recover.chr.range = recover.chr.range, use.observed.range = use.observed.range, shape.model = shape.model, new.feature.min.count = new.feature.min.count, recover.min.count = recover.min.count)
-
-    b$final.ftrs <- b$final.ftrs[order(b$final.ftrs[, 1], b$final.ftrs[, 2]), ]
-    b$final.times <- b$final.times[order(b$final.times[, 1], b$final.times[, 2]), ]
-
-    batchwise[[batch.i]] <- b
+    batchwise[[batch]] <- batchwise_features
   }
 
   fake.features <- new("list")
@@ -67,7 +90,7 @@ two.step.hybrid <- function(
     fake.features[[batch.i]] <- this.fake
   }
 
-  cl <- makeCluster(n.nodes)
+  cl <- makeCluster(cluster)
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
@@ -80,7 +103,7 @@ two.step.hybrid <- function(
 
   message("Recovery across batches")
 
-  cl <- makeCluster(n.nodes)
+  cl <- makeCluster(cluster)
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
