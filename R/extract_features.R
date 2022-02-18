@@ -28,7 +28,9 @@ extract_features <- function(
     'interpol.area',
     'load_file',
     'load_data',
-    'plot_raw_profile_histogram'
+    'plot_raw_profile_histogram',
+    'compute_mass_values',
+    'compute_densities'
   ))
 
   parLapply(cluster, filenames, function(filename) {
