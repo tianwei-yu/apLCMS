@@ -8,6 +8,7 @@ load_file <- function(
 ) {
   this <- load.lcms(filename)
 
+  # this could eventually be replaced using drop_na
   na.sel <- c(which(is.na(this$masses)), which(is.na(this$labels)), which(is.na(this$intensi)))
   if (length(na.sel) > 0) {
     na.sel <- unique(na.sel)
@@ -17,6 +18,9 @@ load_file <- function(
 
     warning("there are NA values in the m/z or intensity. Check the file:", filename)
   }
+  # TODO
+  # this <- tidyr::drop_na(as.data.frame(this))
+  
   raw.prof <- adaptive.bin(this, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
 }
 
