@@ -25,7 +25,10 @@ extract_features <- function(
     'find.turn.point',
     'combine.seq.3',
     'cont.index',
-    'interpol.area'
+    'interpol.area',
+    'load_file',
+    'load_data',
+    'plot_raw_profile_histogram'
   ))
 
   parLapply(cluster, filenames, function(filename) {

@@ -1,28 +1,56 @@
-proc.cdf <- function(filename, min.pres = 0.5, min.run = 12, tol = 1e-5, baseline.correct = 0, baseline.correct.noise.percentile = 0, do.plot = TRUE, intensity.weighted = FALSE, cache = TRUE) {
+load_file <- function(
+  filename,
+  min.run,
+  min.pres,
+  tol,
+  baseline.correct,
+  intensity.weighted
+) {
+  this <- load.lcms(filename)
+
+  na.sel <- c(which(is.na(this$masses)), which(is.na(this$labels)), which(is.na(this$intensi)))
+  if (length(na.sel) > 0) {
+    na.sel <- unique(na.sel)
+    this$masses <- this$masses[-na.sel]
+    this$labels <- this$labels[-na.sel]
+    this$intensi <- this$intensi[-na.sel]
+
+    warning("there are NA values in the m/z or intensity. Check the file:", filename)
+  }
+  raw.prof <- adaptive.bin(this, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
+}
+
+load_data <- function(
+  filename,
+  cache,
+  min.run,
+  min.pres,
+  tol,
+  baseline.correct,
+  intensity.weighted
+  ) {
   rawprof_filename <- paste(strsplit(tolower(filename), "\\.")[[1]][1], "_", min.run, "_", min.pres, "_", tol, ".rawprof", sep = "")
 
   if (cache && file.exists(rawprof_filename)) {
     load(rawprof_filename)
   } else {
-    this <- load.lcms(filename)
-
-    na.sel <- c(which(is.na(this$masses)), which(is.na(this$labels)), which(is.na(this$intensi)))
-    if (length(na.sel) > 0) {
-      na.sel <- unique(na.sel)
-      this$masses <- this$masses[-na.sel]
-      this$labels <- this$labels[-na.sel]
-      this$intensi <- this$intensi[-na.sel]
-
-      warning("there are NA values in the m/z or intensity. Check the file:", filename)
-    }
-    raw.prof <- adaptive.bin(this, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
+    raw.prof <- load_file(filename, min.run, min.pres, tol, baseline.correct, intensity.weighted)
   }
 
   if (cache && !file.exists(rawprof_filename)) {
     save(raw.prof, file = rawprof_filename)
   }
 
-  newprof <- cbind(raw.prof$masses, raw.prof$labels, raw.prof$intensi, raw.prof$grps)
+  return(raw.prof)
+}
+
+plot_raw_profile_histogram <- function(
+  raw.prof,
+  min.pres,
+  baseline.correct.noise.percentile,
+  tol,
+  new.prof
+) {
   h.1 <- log10(raw.prof$height.rec[raw.prof$height.rec[, 2] <= max(2, raw.prof$min.count.run * min.pres / 2), 3])
   h.2 <- log10(raw.prof$height.rec[raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres, 3])
 
@@ -32,28 +60,51 @@ proc.cdf <- function(filename, min.pres = 0.5, min.run = 12, tol = 1e-5, baselin
   } else {
     message(c("maximal height cut is provided by user: ", baseline.correct))
   }
+  par(mfrow = c(2, 2))
 
+  plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "tolerance level loaded", axes = FALSE)
+  text(x = 0, y = 0, tol, cex = 1.2)
+
+  if (length(h.1) > 50) {
+    plot(density(h.1), xlab = "maximum height of group (log scale)", xlim = range(c(h.1, h.2)), main = "Black - noise groups \n Blue - selected groups")
+  } else {
+    plot(NA, NA, xlab = "maximum height of group (log scale)", xlim = range(c(h.1, h.2)), ylim = c(0, 1), main = "Black - noise groups \n Blue - selected groups")
+    if (length(h.1) > 0) abline(v = h.1)
+  }
+
+  abline(v = log10(baseline.correct), col = "red")
+  lines(density(log10(new.prof$height.rec)), col = "blue")
+  hist(new.prof$time.range.rec, xlab = "Range of retention time in the same group", ylab = "Density", freq = FALSE, nclass = 100, main = "Group retention time range distribution")
+  hist(new.prof$mz.pres.rec, xlab = "% signal present in the same group", ylab = "Density", freq = FALSE, nclass = 20, main = "Group % present signal distribution")
+}
+
+proc.cdf <- function(
+  filename,
+  min.pres = 0.5,
+  min.run = 12,
+  tol = 1e-5,
+  baseline.correct = 0,
+  baseline.correct.noise.percentile = 0,
+  do.plot = TRUE,
+  intensity.weighted = FALSE,
+  cache = TRUE) {
+  
+  raw.prof <- load_data(filename, cache, min.run, min.pres, tol, baseline.correct, intensity.weighted)
+
+  newprof <- cbind(raw.prof$masses, raw.prof$labels, raw.prof$intensi, raw.prof$grps)
   run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres & raw.prof$height.rec[, 3] > baseline.correct), 1]
-  newprof <- newprof[newprof[, 4] %in% run.sel,]
+  
+  newprof <- newprof[newprof[, 4] %in% run.sel, ]
   new.prof <- cont.index(newprof, min.pres = min.pres, min.run = min.run)
 
   if (do.plot) {
-    par(mfrow = c(2, 2))
-
-    plot(c(-1,1), c(-1,1), type = "n", xlab = "", ylab = "", main = "tolerance level loaded", axes = FALSE)
-    text(x = 0, y = 0, tol, cex = 1.2)
-
-    if (length(h.1) > 50) {
-      plot(density(h.1), xlab = "maximum height of group (log scale)", xlim = range(c(h.1, h.2)), main = "Black - noise groups \n Blue - selected groups")
-    } else {
-      plot(NA, NA, xlab = "maximum height of group (log scale)", xlim = range(c(h.1, h.2)), ylim = c(0, 1), main = "Black - noise groups \n Blue - selected groups")
-      if (length(h.1) > 0) abline(v = h.1)
-    }
-
-    abline(v = log10(baseline.correct), col = "red")
-    lines(density(log10(new.prof$height.rec)), col = "blue")
-    hist(new.prof$time.range.rec, xlab = "Range of retention time in the same group", ylab = "Density", freq = FALSE, nclass = 100, main = "Group retention time range distribution")
-    hist(new.prof$mz.pres.rec, xlab = "% signal present in the same group", ylab = "Density", freq = FALSE, nclass = 20, main = "Group % present signal distribution")
+    plot_raw_profile_histogram(
+      raw.prof,
+      min.pres,
+      baseline.correct.noise.percentile,
+      tol,
+      new.prof
+    )
   }
 
   return(new.prof$new.rec)
