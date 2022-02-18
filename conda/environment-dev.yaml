@@ -23,3 +23,6 @@ dependencies:
   - r-rcpp
   - r-arrow
   - r-languageserver
+  - r-jsonlite
+  - r-styler
+  - radian
