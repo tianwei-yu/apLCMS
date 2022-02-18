@@ -35,6 +35,7 @@ requirements:
     - r-rocr
     - r-rocs
     - r-rcpp
+    - r-dplyr
 
   run:
     - r-base >=3.5
@@ -55,6 +56,7 @@ requirements:
     - r-rocs
     - r-rcpp
     - r-arrow
+    - r-dplyr
 
 test:
   commands:

@@ -22,3 +22,4 @@ dependencies:
   - r-rocs
   - r-rcpp
   - r-arrow
+  - r-dplyr

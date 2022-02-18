@@ -1,3 +1,13 @@
+split_files_into_batches <- function(filenames, metadata) {
+  stopifnot(nrow(metadata) == length(filenames))
+
+  filenames <- as_tibble(filenames)
+  colnames(filenames)[1] <- "filename"
+  filenames <- mutate(filenames, sample_name = get_sample_name(filename))
+  filenames <- inner_join(filenames, metadata, on = "sample_name")
+  return (dplyr::select(filenames, -sample_name))
+}
+
 two.step.hybrid <- function(
   filenames,
   metadata,
@@ -35,17 +45,14 @@ two.step.hybrid <- function(
   BIC.factor = 2) 
   {
 
-  sample_names <- get_sample_name(filenames)
   metadata <- read.table(metadata, sep=",", header=TRUE)
+  filenames_batchwise <- split_files_into_batches(filenames, metadata)
   batches_idx <- unique(metadata$batch)
 
   batchwise <- new("list")
   message("**** processing ", length(batches_idx), " batches separately ****")
-  for (batch in batches_idx)
-  {
-    sample_names_batchwise <- sample_names[which(metadata$batch == batch)]
-    filenames_batchwise <- filenames[which(sample_names == samples_batchwise)]
-    
+  for (batch_id in batches_idx) {
+    filenames <- dplyr::filter(filenames_batchwise, batch == batch_id)$filename
     batchwise_features <- hybrid(
       filenames = filenames_batchwise,
       known_table = known.table,
