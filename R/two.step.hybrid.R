@@ -1,3 +1,16 @@
+compute_batchwise_intensity_medians <- function(
+  batchwise,
+  batches_idx) {
+  fake.features <- new("list")
+  for (batch_id in batches_idx) {
+    this.fake <- batchwise[[batch_id]]$recovered_feature_sample_table
+    this.fake <- dplyr::group_by(this.fake, feature, mz, rt) %>%
+      dplyr::summarise(median_intensity = median(sample_intensity))
+    fake.features[[batch_id]] <- dplyr::ungroup(this.fake)
+  }
+  return (fake.features)
+}
+
 split_files_into_batches <- function(filenames, metadata) {
   stopifnot(nrow(metadata) == length(filenames))
 
@@ -52,9 +65,9 @@ two.step.hybrid <- function(
   batchwise <- new("list")
   message("**** processing ", length(batches_idx), " batches separately ****")
   for (batch_id in batches_idx) {
-    filenames <- dplyr::filter(filenames_batchwise, batch == batch_id)$filename
+    filenames_batch <- dplyr::filter(filenames_batchwise, batch == batch_id)$filename
     batchwise_features <- hybrid(
-      filenames = filenames_batchwise,
+      filenames = filenames_batch,
       known_table = known.table,
       min_exp = ceiling(min.within.batch.prop.detect * length(filenames_batchwise)),
       min_pres = min.pres,
@@ -84,18 +97,10 @@ two.step.hybrid <- function(
       cluster = cluster
     )
 
-    batchwise[[batch]] <- batchwise_features
+    batchwise[[batch_id]] <- batchwise_features
   }
 
-  fake.features <- new("list")
-  for (batch.i in 1:length(batches))
-  {
-    this.fake <- batchwise[[batch.i]]$final.ftrs
-    this.fake[, 3:4] <- NA
-    this.fake[, 5] <- apply(this.fake[, -1:-4], 1, median)
-    this.fake <- this.fake[, 1:5]
-    fake.features[[batch.i]] <- this.fake
-  }
+  fake.features <- compute_batchwise_intensity_medians(batchwise, batches_idx)
 
   cl <- makeCluster(cluster)
   registerDoParallel(cl)
