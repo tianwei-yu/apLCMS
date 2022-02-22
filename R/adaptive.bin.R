@@ -69,13 +69,15 @@ adaptive.bin <- function(x,
 
   for (i in 1:(length(breaks) - 1))
   {
+    start <- breaks[i] + 1
+    end <- breaks[i + 1]
     # get number of scans in bin
-    this.labels <- labels[(breaks[i] + 1):breaks[i + 1]]
+    this.labels <- labels[start: end]
 
     if (length(unique(this.labels)) >= min.count.run * min.pres) {
       # extract mz and intensity values for bin
-      this.masses <- masses[(breaks[i] + 1):breaks[i + 1]]
-      this.intensi <- intensi[(breaks[i] + 1):breaks[i + 1]]
+      this.masses <- masses[start:end]
+      this.intensi <- intensi[start:end]
 
       # reorder in order of labels (scan number)
       curr.order <- order(this.labels)
@@ -147,8 +149,8 @@ adaptive.bin <- function(x,
       if (runif(1) < 0.05) {
 
         # reassignment
-        this.masses <- masses[(breaks[i] + 1):breaks[i + 1]]
-        this.intensi <- intensi[(breaks[i] + 1):breaks[i + 1]]
+        this.masses <- masses[start:end]
+        this.intensi <- intensi[start:end]
 
         # reordering
         curr.order <- order(this.labels)

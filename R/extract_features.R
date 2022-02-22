@@ -30,7 +30,8 @@ extract_features <- function(
     'load_data',
     'plot_raw_profile_histogram',
     'compute_mass_values',
-    'compute_densities'
+    'compute_densities',
+    'compute_breaks'
   ))
 
   parLapply(cluster, filenames, function(filename) {
