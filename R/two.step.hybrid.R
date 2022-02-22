@@ -106,10 +106,20 @@ two.step.hybrid <- function(
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
-  fake2 <- adjust.time(fake.features, mz.tol = batch.align.mz.tol, chr.tol = batch.align.chr.tol, find.tol.max.d = 10 * mz.tol, max.align.mz.diff = max.align.mz.diff)
+  message("*** aligning time ***")
+  corrected <- adjust.time(fake.features,
+    mz.tol = batch.align.mz.tol,
+    chr.tol = batch.align.chr.tol,
+    find.tol.max.d = 10 * mz.tol,
+    max.align.mz.diff = max.align.mz.diff)
 
-  message("Alignment across batches")
-  fake3 <- feature.align(fake2, min.exp = ceiling(min.batch.prop * length(batches)), mz.tol = batch.align.mz.tol, chr.tol = batch.align.chr.tol, find.tol.max.d = 10 * mz.tol, max.align.mz.diff = max.align.mz.diff)
+  message("*** aligning features ***")
+  aligned <- feature.align(corrected,
+    min.exp = ceiling(min.batch.prop * length(batches_idx)),
+    mz.tol = batch.align.mz.tol,
+    chr.tol = batch.align.chr.tol,
+    find.tol.max.d = 10 * mz.tol,
+    max.align.mz.diff = max.align.mz.diff)
 
   stopCluster(cl)
 
