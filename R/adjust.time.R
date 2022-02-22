@@ -11,8 +11,7 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
             text(x=0,y=0,"Retention time \n adjustment",cex=2)
         }
 
-        a<-summary(features)
-        sizes<-as.numeric(a[,1])/ncol(features[[1]])
+        sizes <- sapply(features, nrow)
         sizes<-cumsum(sizes)
         #		sel<-max(which(sizes<=5e6))
         sel<-length(sizes)
