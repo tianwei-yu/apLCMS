@@ -11,15 +11,10 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
             text(x=0,y=0,"Retention time \n adjustment",cex=2)
         }
 
-        mz <- c()
-        chr <- c()
-        lab <- c()
-        for (i in 1:length(features)) {
-            features_batch <- dplyr::as_tibble(features[[i]])
-            mz <- c(mz, features_batch$mz)
-            chr <- c(chr, features_batch[[rt_colname]])
-            lab <- c(lab, rep(i, nrow(features_batch)))
-        }
+        values <- get_feature_values(features, rt_colname)
+        mz <- values$mz
+        chr <- values$chr
+        lab <- values$lab
 
         if(is.na(mz.tol))
         {

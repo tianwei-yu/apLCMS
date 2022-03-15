@@ -1,5 +1,5 @@
 feature.align <-
-function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)     # returns a list of aligned features and original peak times
+function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE, rt_colname="pos")     # returns a list of aligned features and original peak times
 {
     if (do.plot) {
         par(mfrow=c(3,2))
@@ -28,20 +28,11 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
     num.exp<-nrow(summary(features))
     if(num.exp>1)
     {
-        a<-summary(features)
-        sizes<-as.numeric(a[,1])/ncol(features[[1]])
-        sizes<-cumsum(sizes)
-        sel<-length(sizes)
-        
-        masses<-chr<-lab<-rep(0, sizes[sel])
-        sizes<-c(0, sizes)
-        
-        for(i in 1:sel)
-        {
-            masses[(sizes[i]+1):sizes[i+1]]<-features[[i]][,1]
-            chr[(sizes[i]+1):sizes[i+1]]<-features[[i]][,2]
-            lab[(sizes[i]+1):sizes[i+1]]<-i
-        }
+        values <- get_feature_values(features, rt_colname)
+        masses <- values$mz
+        chr <- values$chr
+        lab <- values$lab
+
         o<-order(masses, chr)
         masses<-masses[o]
         chr<-chr[o]
@@ -81,7 +72,7 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
         
         area<-grps<-masses
         
-        
+        sizes <- c(0, cumsum(sapply(features, nrow)))
         for(i in 1:num.exp)
         {
             this<-features[[i]]
