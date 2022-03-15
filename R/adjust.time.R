@@ -65,7 +65,7 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
             this.feature<-features[[j]]
             if(j != template)
             {
-                this.comb<-rbind(cbind(candi, rep(template,nrow(candi))),cbind(this.feature[,1:2],rep(j,nrow(this.feature))))
+                this.comb<-rbind(cbind(candi, label = rep(template,nrow(candi))),cbind(this.feature[,1:2],label = rep(j,nrow(this.feature))))
                 this.comb<-this.comb[order(this.comb[,1]),]
                 l<-nrow(this.comb)
                 
