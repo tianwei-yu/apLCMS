@@ -101,6 +101,9 @@ two.step.hybrid <- function(
   }
 
   fake.features <- compute_batchwise_intensity_medians(batchwise, batches_idx)
+  for (batch_id in batches_idx) {
+    fake.features[[batch_id]] <- dplyr::select(fake.features[[batch_id]], -feature)
+  }
 
   cl <- makeCluster(cluster)
   registerDoParallel(cl)
