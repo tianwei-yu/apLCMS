@@ -1,5 +1,5 @@
 adjust.time <-
-function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)  # features is a list project, each sub-object is a matrix as identified by prof.to.features
+function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE, rt_colname="pos")  # features is a list project, each sub-object is a matrix as identified by prof.to.features
 {
     
     num.exp<-nrow(summary(features))

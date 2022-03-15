@@ -114,7 +114,8 @@ two.step.hybrid <- function(
     mz.tol = batch.align.mz.tol,
     chr.tol = batch.align.chr.tol,
     find.tol.max.d = 10 * mz.tol,
-    max.align.mz.diff = max.align.mz.diff)
+    max.align.mz.diff = max.align.mz.diff,
+    rt_colname = "rt")
 
   message("*** aligning features ***")
   aligned <- feature.align(corrected,
