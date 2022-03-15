@@ -11,21 +11,16 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
             text(x=0,y=0,"Retention time \n adjustment",cex=2)
         }
 
-        sizes <- sapply(features, nrow)
-        sizes<-cumsum(sizes)
-        #		sel<-max(which(sizes<=5e6))
-        sel<-length(sizes)
-        
-        mz<-chr<-lab<-rep(0, sizes[sel])
-        sizes<-c(0, sizes)
-        
-        for(i in 1:sel)
-        {
-            mz[(sizes[i]+1):sizes[i+1]]<-features[[i]][,1]
-            chr[(sizes[i]+1):sizes[i+1]]<-features[[i]][,2]
-            lab[(sizes[i]+1):sizes[i+1]]<-i
+        mz <- c()
+        chr <- c()
+        lab <- c()
+        for (i in 1:length(features)) {
+            features_batch <- dplyr::as_tibble(features[[i]])
+            mz <- c(mz, features_batch$mz)
+            chr <- c(chr, features_batch[[rt_colname]])
+            lab <- c(lab, rep(i, nrow(features_batch)))
         }
-        
+
         if(is.na(mz.tol))
         {
             mz.tol<-find.tol(mz,uppermost=find.tol.max.d, do.plot=do.plot)
