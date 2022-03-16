@@ -210,7 +210,7 @@ hybrid <- function(
     do.plot = FALSE
   )
 
-  message("**** feature alignemnt ****")
+  message("**** feature alignment ****")
   aligned <- align_features(
     sample_names = sample_names,
     features = corrected,
