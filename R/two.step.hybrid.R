@@ -1,14 +1,9 @@
-compute_batchwise_intensity_medians <- function(
-  batchwise,
-  batches_idx) {
-  fake.features <- new("list")
-  for (batch_id in batches_idx) {
-    this.fake <- batchwise[[batch_id]]$recovered_feature_sample_table
-    this.fake <- dplyr::group_by(this.fake, feature, mz, rt) %>%
-      dplyr::summarise(median_intensity = median(sample_intensity))
-    fake.features[[batch_id]] <- dplyr::ungroup(this.fake)
-  }
-  return (fake.features)
+compute_intensity_medians <- function(feature_table) {
+  stopifnot("sample_intensity" %in% colnames(feature_table))
+  feature_table <- dplyr::group_by(feature_table, feature, mz, rt) %>%
+    dplyr::mutate(intensity = median(sample_intensity)) %>%
+    dplyr::ungroup()
+  return(feature_table)
 }
 
 bind_batch_label_column <- function(filenames, metadata) {
@@ -99,10 +94,11 @@ two.step.hybrid <- function(
 
     batchwise[[batch_id]] <- batchwise_features
   }
-
-  fake.features <- compute_batchwise_intensity_medians(batchwise, batches_idx)
+  step_one_features <- list()
   for (batch_id in batches_idx) {
-    fake.features[[batch_id]] <- dplyr::select(fake.features[[batch_id]], -feature)
+    step_one_features[[batch_id]] <- compute_intensity_medians(
+      batchwise[[batch_id]]$recovered_feature_sample_table) %>%
+      dplyr::select(-feature)
   }
 
   cl <- makeCluster(cluster)
@@ -110,7 +106,7 @@ two.step.hybrid <- function(
   clusterEvalQ(cl, library(recetox.aplcms))
 
   message("*** aligning time ***")
-  corrected <- adjust.time(fake.features,
+  corrected <- adjust.time(step_one_features,
     mz.tol = batch.align.mz.tol,
     chr.tol = batch.align.chr.tol,
     find.tol.max.d = 10 * mz.tol,
