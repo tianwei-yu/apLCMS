@@ -11,7 +11,7 @@ compute_batchwise_intensity_medians <- function(
   return (fake.features)
 }
 
-split_files_into_batches <- function(filenames, metadata) {
+bind_batch_label_column <- function(filenames, metadata) {
   stopifnot(nrow(metadata) == length(filenames))
 
   filenames <- as_tibble(filenames)
@@ -59,7 +59,7 @@ two.step.hybrid <- function(
   {
 
   metadata <- read.table(metadata, sep=",", header=TRUE)
-  filenames_batchwise <- split_files_into_batches(filenames, metadata)
+  filenames_batchwise <- bind_batch_label_column(filenames, metadata)
   batches_idx <- unique(metadata$batch)
 
   batchwise <- new("list")
