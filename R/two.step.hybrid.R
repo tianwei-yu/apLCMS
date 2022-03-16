@@ -118,7 +118,9 @@ two.step.hybrid <- function(
     rt_colname = "rt")
 
   message("*** aligning features ***")
-  aligned <- feature.align(corrected,
+  aligned <- align_features(
+    sample_names = paste0("batch_", batches_idx),
+    features = corrected,
     min.exp = ceiling(min.batch.prop * length(batches_idx)),
     mz.tol = batch.align.mz.tol,
     chr.tol = batch.align.chr.tol,
