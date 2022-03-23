@@ -131,7 +131,7 @@ two.step.hybrid <- function(
 
   stopCluster(cl)
 
-  message("Recovery across batches")
+  message("*** recovering features across batches ***")
 
   cl <- makeCluster(cluster)
   registerDoParallel(cl)
