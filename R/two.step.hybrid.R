@@ -124,6 +124,11 @@ two.step.hybrid <- function(
     max.align.mz.diff = max.align.mz.diff,
     rt_colname = "rt")
 
+    aligned <- as_feature_sample_table(
+      rt_crosstab = aligned$rt_crosstab,
+      int_crosstab = aligned$int_crosstab
+    )
+
   stopCluster(cl)
 
   message("Recovery across batches")
@@ -142,7 +147,7 @@ two.step.hybrid <- function(
     orig.time <- this.fake[, 2]
     adjusted.time <- fake2[[batch.i]][, 2]
 
-    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(fake3$aligned.ftrs), ncol = ncol(this.fake) - 4)
+    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4)
 
     # adjusting the time (already within batch adjusted)
 
