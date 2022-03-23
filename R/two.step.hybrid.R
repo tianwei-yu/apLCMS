@@ -137,15 +137,15 @@ two.step.hybrid <- function(
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
-  for (batch.i in 1:length(batches))
+  for (batch_id in batches_idx)
   {
-    this.fake <- batchwise[[batch.i]]$final.ftrs
-    this.fake.time <- batchwise[[batch.i]]$final.times
-    this.features <- batchwise[[batch.i]]$features2
+    this.fake <- batchwise[[batch_id]]$final.ftrs
+    this.fake.time <- batchwise[[batch_id]]$final.times
+    this.features <- batchwise[[batch_id]]$features2
     this.medians <- apply(this.fake[, -1:-4], 1, median)
 
     orig.time <- this.fake[, 2]
-    adjusted.time <- fake2[[batch.i]][, 2]
+    adjusted.time <- fake2[[batch_id]][, 2]
 
     this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4)
 
@@ -163,11 +163,11 @@ two.step.hybrid <- function(
 
     for (i in 1:nrow(this.aligned))
     {
-      if (fake3$aligned[i, batch.i + 4] != 0) {
-        sel <- which(fake3$aligned[i, 3] <= this.fake[, 1] & fake3$aligned[i, 4] >= this.fake[, 1] & abs(this.medians - fake3$aligned[i, batch.i + 4]) < 1)
+      if (fake3$aligned[i, batch_id + 4] != 0) {
+        sel <- which(fake3$aligned[i, 3] <= this.fake[, 1] & fake3$aligned[i, 4] >= this.fake[, 1] & abs(this.medians - fake3$aligned[i, batch_id + 4]) < 1)
         if (length(sel) == 0) sel <- which(fake3$aligned[i, 3] <= this.fake[, 1] & fake3$aligned[i, 4] >= this.fake[, 1])
         if (length(sel) == 0) {
-          message("batch", batch.i, " row ", i, " match issue.")
+          message("batch", batch_id, " row ", i, " match issue.")
         } else {
           if (length(sel) == 1) {
             this.aligned[i, ] <- this.fake[sel, -1:-4]
@@ -208,14 +208,14 @@ two.step.hybrid <- function(
 
     # for(i in 1:ncol(this.aligned))
     new.this.aligned <- foreach(i = 1:ncol(this.aligned), .combine = cbind) %dopar% {
-      r <- recover.weaker(filename = colnames(this.aligned)[i], loc = i, aligned.ftrs = that.aligned, pk.times = that.pk.time, align.mz.tol = batch.align.mz.tol, align.chr.tol = batch.align.chr.tol, this.f1 = batchwise[[batch.i]]$features[[i]], this.f2 = batchwise[[batch.i]]$features2[[i]], mz.range = recover.mz.range, chr.range = recover.chr.range, use.observed.range = use.observed.range, orig.tol = mz.tol, min.bw = min.bw, max.bw = max.bw, bandwidth = .5, recover.min.count = recover.min.count)
+      r <- recover.weaker(filename = colnames(this.aligned)[i], loc = i, aligned.ftrs = that.aligned, pk.times = that.pk.time, align.mz.tol = batch.align.mz.tol, align.chr.tol = batch.align.chr.tol, this.f1 = batchwise[[batch_id]]$features[[i]], this.f2 = batchwise[[batch_id]]$features2[[i]], mz.range = recover.mz.range, chr.range = recover.chr.range, use.observed.range = use.observed.range, orig.tol = mz.tol, min.bw = min.bw, max.bw = max.bw, bandwidth = .5, recover.min.count = recover.min.count)
 
       r$this.ftrs
     }
 
     colnames(new.this.aligned) <- colnames(this.aligned)
 
-    if (batch.i == 1) {
+    if (batch_id == 1) {
       aligned <- new.this.aligned
     } else {
       aligned <- cbind(aligned, new.this.aligned)
@@ -225,13 +225,13 @@ two.step.hybrid <- function(
   aligned <- cbind(fake3$aligned.ftrs[, 1:4], aligned)
 
   batch.presence.mat <- matrix(0, nrow = nrow(aligned), ncol = length(batches))
-  for (batch.i in 1:length(batches))
+  for (batch_id in 1:length(batches))
   {
-    batch <- batches[batch.i]
+    batch <- batches[batch_id]
     this.mat <- aligned[, which(colnames(aligned) %in% info[info[, 2] == batch, 1])]
     this.mat <- 1 * (this.mat != 0)
     this.presence <- apply(this.mat, 1, sum) / ncol(this.mat)
-    batch.presence.mat[, batch.i] <- 1 * (this.presence >= min.within.batch.prop.report)
+    batch.presence.mat[, batch_id] <- 1 * (this.presence >= min.within.batch.prop.report)
   }
   batch.presence <- apply(batch.presence.mat, 1, sum) / ncol(batch.presence.mat)
   final.aligned <- aligned[which(batch.presence >= min.batch.prop), ]
