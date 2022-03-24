@@ -178,9 +178,6 @@ two.step.hybrid <- function(
     this.fake.time <- batchwise[[batch_id]]$final.times # rt per sample table after step one
     # this.medians <- apply(this.fake[, -1:-4], 1, median) # intensity median, commented out because already present in this.fake
 
-    orig.time <- this.fake$rt # within-batch corrected rt 
-    adjusted.time <- corrected[[batch_id]]$rt # between-batch corrected rt
-
     this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4) # zero matrix with dimensions (num_features x num_samples)
     # adjusting the time (already within batch adjusted)
     this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
