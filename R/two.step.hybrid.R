@@ -159,10 +159,10 @@ two.step.hybrid <- function(
     max.align.mz.diff = max.align.mz.diff,
     rt_colname = "rt")
 
-    aligned <- as_feature_sample_table(
-      rt_crosstab = aligned$rt_crosstab,
-      int_crosstab = aligned$int_crosstab
-    )
+  aligned <- as_feature_sample_table(
+    rt_crosstab = aligned$rt_crosstab,
+    int_crosstab = aligned$int_crosstab
+  )
 
   stopCluster(cl)
 
