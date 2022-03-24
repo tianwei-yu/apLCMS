@@ -1,3 +1,22 @@
+pivot_feature_values <- function(feature_table, variable) {
+  extended_variable <- paste0("sample_", variable)
+  values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
+  values <- tidyr::pivot_wider(values, names_from = sample, values_from = !!sym(extended_variable))
+  variable_colnames <- colnames(values)[3:ncol(values)]
+  variable_colnames <- paste0(variable_colnames, "_", variable)
+  colnames(values)[3:ncol(values)] <- variable_colnames
+  return(values)
+}
+
+long_to_wide_feature_table <- function(feature_table) {
+  sample_rts <- pivot_feature_values(feature_table, "rt")
+  sample_intensities <- pivot_feature_values(feature_table, "intensity")
+  feature_table <- dplyr::select(feature_table, mz, rt) %>%
+    dplyr::distinct(mz, rt) %>%
+    dplyr::inner_join(sample_rts, on = c("mz", "rt")) %>%
+    dplyr::inner_join(sample_intensities, on = c("mz", "rt"))
+}
+
 readjust_times <- function(within_batch, between_batch) {
   within_batch_recovered_rts <- within_batch$recovered_feature_sample_table[, "rt"]
   between_batch_rts <- between_batch$rt
