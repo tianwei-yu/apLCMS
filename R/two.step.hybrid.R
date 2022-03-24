@@ -18,12 +18,13 @@ long_to_wide_feature_table <- function(feature_table) {
 }
 
 readjust_times <- function(within_batch, between_batch) {
-  within_batch_recovered_rts <- within_batch$recovered_feature_sample_table[, "rt"]
+  within_batch_recovered <- long_to_wide_feature_table(
+    within_batch$recovered_feature_sample_table)
   between_batch_rts <- between_batch$rt
   for (j in 1:length(within_batch$corrected_features)) {
     for (i in 1:nrow(within_batch$corrected_features[[j]])) {
       diff.time <- abs(
-        within_batch_recovered_rts -
+        within_batch_recovered$rt -
         within_batch$corrected_features[[j]][i, "pos"])
       min_idx <- which(diff.time == min(diff.time))[1]
       within_batch$corrected_features[[j]][i, "pos"] <- between_batch_rts[min_idx]
@@ -175,14 +176,12 @@ two.step.hybrid <- function(
   {
     this.fake <- step_one_features[[batch_id]] # intensity per sample table after step one
     this.fake.time <- batchwise[[batch_id]]$final.times # rt per sample table after step one
-    this.features <- batchwise[[batch_id]]$corrected_features # step one second-round time correction
     # this.medians <- apply(this.fake[, -1:-4], 1, median) # intensity median, commented out because already present in this.fake
 
     orig.time <- this.fake$rt # within-batch corrected rt 
     adjusted.time <- corrected[[batch_id]]$rt # between-batch corrected rt
 
     this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4) # zero matrix with dimensions (num_features x num_samples)
-    browser()
     # adjusting the time (already within batch adjusted)
     this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
 
