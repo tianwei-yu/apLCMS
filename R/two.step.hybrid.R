@@ -139,25 +139,24 @@ two.step.hybrid <- function(
 
   for (batch_id in batches_idx)
   {
-    this.fake <- batchwise[[batch_id]]$final.ftrs
-    this.fake.time <- batchwise[[batch_id]]$final.times
-    this.features <- batchwise[[batch_id]]$features2
-    this.medians <- apply(this.fake[, -1:-4], 1, median)
+    this.fake <- step_one_features[[batch_id]] # intensity per sample table after step one
+    this.fake.time <- batchwise[[batch_id]]$final.times # rt per sample table after step one
+    this.features <- batchwise[[batch_id]]$corrected_features # step one second-round time correction
+    # this.medians <- apply(this.fake[, -1:-4], 1, median) # intensity median, commented out because already present in this.fake
 
-    orig.time <- this.fake[, 2]
-    adjusted.time <- fake2[[batch_id]][, 2]
+    orig.time <- this.fake$rt # within-batch corrected rt 
+    adjusted.time <- corrected[[batch_id]]$rt # between-batch corrected rt
 
-    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4)
+    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4) # zero matrix with dimensions (num_features x num_samples)
 
     # adjusting the time (already within batch adjusted)
-
-    for (j in 1:length(this.features))
+    for (j in 1:length(this.features)) # for each sample
     {
-      for (i in 1:nrow(this.features[[j]]))
+      for (i in 1:nrow(this.features[[j]])) # for each feature
       {
-        diff.time <- abs(orig.time - this.features[[j]][i, 2])
-        sel <- which(diff.time == min(diff.time))[1]
-        this.features[[j]][i, 2] <- adjusted.time[sel]
+        diff.time <- abs(orig.time - this.features[[j]][i, "rt"]) # find rt difference between within batch corrected rt and given rt
+        sel <- which(diff.time == min(diff.time))[1] # find minimum rt difference
+        this.features[[j]][i, "rt"] <- adjusted.time[sel] # replace given within-batch rt with between-batch rt
       }
     }
 
