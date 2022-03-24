@@ -1,3 +1,18 @@
+readjust_times <- function(within_batch, between_batch) {
+  within_batch_recovered_rts <- within_batch$recovered_feature_sample_table[, "rt"]
+  between_batch_rts <- between_batch$rt
+  for (j in 1:length(within_batch$corrected_features)) {
+    for (i in 1:nrow(within_batch$corrected_features[[j]])) {
+      diff.time <- abs(
+        within_batch_recovered_rts -
+        within_batch$corrected_features[[j]][i, "pos"])
+      min_idx <- which(diff.time == min(diff.time))[1]
+      within_batch$corrected_features[[j]][i, "pos"] <- between_batch_rts[min_idx]
+    }
+  }
+  return(within_batch$corrected_features)
+}
+
 compute_intensity_medians <- function(feature_table) {
   stopifnot("sample_intensity" %in% colnames(feature_table))
   feature_table <- dplyr::group_by(feature_table, feature, mz, rt) %>%
@@ -148,17 +163,9 @@ two.step.hybrid <- function(
     adjusted.time <- corrected[[batch_id]]$rt # between-batch corrected rt
 
     this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4) # zero matrix with dimensions (num_features x num_samples)
-
+    browser()
     # adjusting the time (already within batch adjusted)
-    for (j in 1:length(this.features)) # for each sample
-    {
-      for (i in 1:nrow(this.features[[j]])) # for each feature
-      {
-        diff.time <- abs(orig.time - this.features[[j]][i, "rt"]) # find rt difference between within batch corrected rt and given rt
-        sel <- which(diff.time == min(diff.time))[1] # find minimum rt difference
-        this.features[[j]][i, "rt"] <- adjusted.time[sel] # replace given within-batch rt with between-batch rt
-      }
-    }
+    this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
 
     for (i in 1:nrow(this.aligned))
     {
