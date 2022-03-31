@@ -171,7 +171,6 @@ two.step.hybrid <- function(
     rt_colname = "rt")
 
   aligned <- as_wide_aligned_table(aligned)
-  browser()
 
   stopCluster(cl)
 
@@ -183,29 +182,32 @@ two.step.hybrid <- function(
 
   for (batch_id in batches_idx)
   {
-    this.fake <- step_one_features[[batch_id]] # intensity per sample table after step one
-    this.fake.time <- batchwise[[batch_id]]$final.times # rt per sample table after step one
-    # this.medians <- apply(this.fake[, -1:-4], 1, median) # intensity median, commented out because already present in this.fake
+    this.fake <- step_one_features[[batch_id]]
+    this.fake.medians <- distinct(this.fake, mz, rt, intensity)$intensity
+    this.fake <- long_to_wide_feature_table(this.fake)
 
-    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(this.fake) - 4) # zero matrix with dimensions (num_features x num_samples)
+
     # adjusting the time (already within batch adjusted)
     this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
 
-    for (i in 1:nrow(this.aligned))
-    {
-      if (fake3$aligned[i, batch_id + 4] != 0) {
-        sel <- which(fake3$aligned[i, 3] <= this.fake[, 1] & fake3$aligned[i, 4] >= this.fake[, 1] & abs(this.medians - fake3$aligned[i, batch_id + 4]) < 1)
-        if (length(sel) == 0) sel <- which(fake3$aligned[i, 3] <= this.fake[, 1] & fake3$aligned[i, 4] >= this.fake[, 1])
-        if (length(sel) == 0) {
-          message("batch", batch_id, " row ", i, " match issue.")
+    aligned_intensities <- dplyr::select(aligned, contains("_intensity"))
+    batchwise_intensities <- dplyr::select(this.fake, contains("_intensity"))
+
+    this.fake.time <- dplyr::select(this.fake, contains("_rt"))
+    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(batchwise_intensities))
+
+    for (sample in 1:nrow(aligned)) {
+      if (aligned_intensities[sample, batch_id] != 0) {
+        idx <- which(between(this.fake$mz, aligned[sample, "min_mz"], aligned[sample, "max_mz"]) 
+          & abs(this.fake.medians - aligned_intensities[sample, batch_id]) < 1)
+        if (length(idx) < 1) {
+          idx <- which(between(this.fake$mz, aligned[sample, "min_mz"], aligned[sample, "max_mz"]))
+        }
+        if (length(idx) < 1) {
+          message("Warning: batch ", batch_id, " sample ", sample, " has matching issue.")
         } else {
-          if (length(sel) == 1) {
-            this.aligned[i, ] <- this.fake[sel, -1:-4]
-            this.pk.time[i, ] <- this.fake.time[sel, -1:-4]
-          } else {
-            this.aligned[i, ] <- apply(this.fake[sel, -1:-4], 2, sum)
-            this.pk.time[i, ] <- apply(this.fake.time[sel, -1:-4], 2, median)
-          }
+          this.aligned[i, ] <- apply(batchwise_intensities[idx, ], 2, sum)
+          this.pk.time[i, ] <- apply(this.fake.time[idx, ], 2, median)
         }
       } else {
         ### go into individual feature tables to find a match
