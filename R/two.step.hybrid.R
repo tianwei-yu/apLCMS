@@ -198,10 +198,10 @@ two.step.hybrid <- function(
 
     for (sample in 1:nrow(aligned)) {
       if (aligned_intensities[sample, batch_id] != 0) {
-        idx <- which(between(this.fake$mz, aligned[sample, "min_mz"], aligned[sample, "max_mz"]) 
+        idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]) 
           & abs(this.fake.medians - aligned_intensities[sample, batch_id]) < 1)
         if (length(idx) < 1) {
-          idx <- which(between(this.fake$mz, aligned[sample, "min_mz"], aligned[sample, "max_mz"]))
+          idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]))
         }
         if (length(idx) < 1) {
           message("Warning: batch ", batch_id, " sample ", sample, " has matching issue.")
