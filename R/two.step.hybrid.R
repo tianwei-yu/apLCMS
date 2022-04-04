@@ -215,9 +215,9 @@ two.step.hybrid <- function(
         recaptured.time <- rep(NA, ncol(this.aligned))
 
         for (j in 1:length(this.features)) {
-          diff.mz <- abs(this.features[[j]]$mz - aligned[i, "mz"])
-          diff.time <- abs(this.features[[j]]$time - aligned[i, "rt"])
-          idx <- which(diff.mz < aligned[i, "mz"] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
+          diff.mz <- abs(this.features[[j]][, "mz"] - aligned[sample, "mz"])
+          diff.time <- abs(this.features[[j]][, "pos"] - aligned[sample, "rt"])
+          idx <- which(diff.mz < aligned[sample, "mz"] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
           
           if (length(idx) > 0) {
             idx <- idx[which(diff.time[idx] == min(diff.time[idx]))[1]]
