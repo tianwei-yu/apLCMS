@@ -213,13 +213,15 @@ two.step.hybrid <- function(
         ### go into individual feature tables to find a match
         recaptured <- rep(0, ncol(this.aligned))
         recaptured.time <- rep(NA, ncol(this.aligned))
-        for (j in 1:length(this.features))
-        {
+        
+        for (j in 1:length(this.features)) {
           diff.mz <- abs(this.features[[j]][, 1] - fake3$aligned[i, 1])
           diff.time <- abs(this.features[[j]][, 2] - fake3$aligned[i, 2])
           sel <- which(diff.mz < fake3$aligned[i, 1] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
-          if (length(sel) > 1) sel <- sel[which(diff.time[sel] == min(diff.time[sel]))[1]]
-
+          
+          if (length(sel) > 1) {
+            sel <- sel[which(diff.time[sel] == min(diff.time[sel]))[1]]
+          }
           if (length(sel) == 1) {
             recaptured[j] <- this.features[[j]][sel, 5]
             recaptured.time[j] <- this.features[[j]][sel, 2]
