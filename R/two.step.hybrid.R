@@ -206,29 +206,27 @@ two.step.hybrid <- function(
         if (length(idx) < 1) {
           message("Warning: batch ", batch_id, " sample ", sample, " has matching issue.")
         } else {
-          this.aligned[i, ] <- apply(batchwise_intensities[idx, ], 2, sum)
-          this.pk.time[i, ] <- apply(this.fake.time[idx, ], 2, median)
+          this.aligned[sample, ] <- apply(batchwise_intensities[idx, ], 2, sum)
+          this.pk.time[sample, ] <- apply(this.fake.time[idx, ], 2, median)
         }
       } else {
         ### go into individual feature tables to find a match
         recaptured <- rep(0, ncol(this.aligned))
         recaptured.time <- rep(NA, ncol(this.aligned))
-        
+
         for (j in 1:length(this.features)) {
-          diff.mz <- abs(this.features[[j]][, 1] - fake3$aligned[i, 1])
-          diff.time <- abs(this.features[[j]][, 2] - fake3$aligned[i, 2])
-          sel <- which(diff.mz < fake3$aligned[i, 1] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
+          diff.mz <- abs(this.features[[j]]$mz - aligned[i, "mz"])
+          diff.time <- abs(this.features[[j]]$time - aligned[i, "rt"])
+          idx <- which(diff.mz < aligned[i, "mz"] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
           
-          if (length(sel) > 1) {
-            sel <- sel[which(diff.time[sel] == min(diff.time[sel]))[1]]
-          }
-          if (length(sel) == 1) {
-            recaptured[j] <- this.features[[j]][sel, 5]
-            recaptured.time[j] <- this.features[[j]][sel, 2]
+          if (length(idx) > 0) {
+            idx <- idx[which(diff.time[idx] == min(diff.time[idx]))[1]]
+            recaptured[j] <- this.features[[j]][idx, "area"]
+            recaptured.time[j] <- this.features[[j]][idx, "rt"]
           }
         }
-        this.aligned[i, ] <- recaptured
-        this.pk.time[i, ] <- recaptured.time
+        this.aligned[sample, ] <- recaptured
+        this.pk.time[sample, ] <- recaptured.time
       }
     }
 
