@@ -231,30 +231,43 @@ two.step.hybrid <- function(
     }
 
     colnames(this.aligned) <- extract_pattern_colnames(this.fake, "_intensity")
+    colnames(this.aligned) <- stringr::str_remove_all(colnames(this.aligned), "_intensity")
     colnames(this.pk.time) <- extract_pattern_colnames(this.fake, "_rt")
+    colnames(this.pk.time) <- stringr::str_remove_all(colnames(this.pk.time), "_rt")
 
 
-    aligned_features <- dplyr::select(aligned, mz, rt)   
-    that.aligned <- dplyr::bind_cols(aligned_features, this.aligned)
-    that.pk.time <- dplyr::bind_cols(aligned_features, this.pk.time)
+    aligned_features <- dplyr::select(aligned, mz, rt, mz_min, mz_max)   
+    aligned_int_crosstab <- dplyr::bind_cols(aligned_features, this.aligned)
+    aligned_rt_crosstab <- dplyr::bind_cols(aligned_features, this.pk.time)
+    recovered <- recover_weaker_signals(
+      cluster = cl,
+      filenames = filter(filenames_batchwise, batch == batch_id)$filename,
+      extracted_features = batchwise[[batch_id]]$extracted_features,
+      corrected_features = batchwise[[batch_id]]$corrected_features,
+      aligned_rt_crosstab = aligned_rt_crosstab,
+      aligned_int_crosstab = aligned_int_crosstab,
+      original_mz_tolerance = mz.tol,
+      aligned_mz_tolerance = batch.align.mz.tol,
+      aligned_rt_tolerance = batch.align.chr.tol,
+      mz_range = recover.mz.range,
+      rt_range = recover.chr.range,
+      use_observed_range = use.observed.range,
+      min_bandwidth = min.bw,
+      max_bandwidth = max.bw,
+      recover_min_count = recover.min.count
+    )
 
-    # for(i in 1:ncol(this.aligned))
-    new.this.aligned <- foreach(i = 1:ncol(this.aligned), .combine = cbind) %dopar% {
-      r <- recover.weaker(filename = colnames(this.aligned)[i], loc = i, aligned.ftrs = that.aligned, pk.times = that.pk.time, align.mz.tol = batch.align.mz.tol, align.chr.tol = batch.align.chr.tol, this.f1 = batchwise[[batch_id]]$features[[i]], this.f2 = batchwise[[batch_id]]$features2[[i]], mz.range = recover.mz.range, chr.range = recover.chr.range, use.observed.range = use.observed.range, orig.tol = mz.tol, min.bw = min.bw, max.bw = max.bw, bandwidth = .5, recover.min.count = recover.min.count)
-
-      r$this.ftrs
-    }
-
-    colnames(new.this.aligned) <- colnames(this.aligned)
+    recovered <- as_wide_aligned_table(recovered)
 
     if (batch_id == 1) {
-      aligned <- new.this.aligned
+      aligned <- recovered
     } else {
-      aligned <- cbind(aligned, new.this.aligned)
+      aligned <- dplyr::full_join(aligned, recovered, on = c("mz", "rt", "mz_min", "mz_max"))
     }
   }
 
-  aligned <- cbind(fake3$aligned.ftrs[, 1:4], aligned)
+  aligned <- dplyr::select(aligned, mz, rt, mz_min, mz_max, contains("_intensity"))
+  stopCluster(cl)
 
   batch.presence.mat <- matrix(0, nrow = nrow(aligned), ncol = length(batches))
   for (batch_id in 1:length(batches))
@@ -268,7 +281,6 @@ two.step.hybrid <- function(
   batch.presence <- apply(batch.presence.mat, 1, sum) / ncol(batch.presence.mat)
   final.aligned <- aligned[which(batch.presence >= min.batch.prop), ]
 
-  stopCluster(cl)
   to.return <- new("list")
   to.return$batchwise.results <- batchwise
   to.return$all.detected.ftrs <- aligned
