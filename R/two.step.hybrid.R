@@ -26,7 +26,7 @@ as_wide_aligned_table <- function(aligned) {
     int_crosstab = aligned$int_crosstab
   )
   aligned <- long_to_wide_feature_table(aligned)
-  aligned <- dplyr::inner_join(aligned, mz_scale_table, on = c("mz", "rt"))
+  aligned <- dplyr::inner_join(aligned, mz_scale_table, by = c("mz", "rt"))
   return(aligned)
 }
 
@@ -45,8 +45,8 @@ long_to_wide_feature_table <- function(feature_table) {
   sample_intensities <- pivot_feature_values(feature_table, "intensity")
   feature_table <- dplyr::select(feature_table, mz, rt) %>%
     dplyr::distinct(mz, rt) %>%
-    dplyr::inner_join(sample_rts, on = c("mz", "rt")) %>%
-    dplyr::inner_join(sample_intensities, on = c("mz", "rt"))
+    dplyr::inner_join(sample_rts, by = c("mz", "rt")) %>%
+    dplyr::inner_join(sample_intensities, by = c("mz", "rt"))
 }
 
 readjust_times <- function(within_batch, between_batch) {
@@ -79,7 +79,7 @@ bind_batch_label_column <- function(filenames, metadata) {
   filenames <- as_tibble(filenames)
   colnames(filenames)[1] <- "filename"
   filenames <- mutate(filenames, sample_name = get_sample_name(filename))
-  filenames <- inner_join(filenames, metadata, on = "sample_name")
+  filenames <- inner_join(filenames, metadata, by = "sample_name")
   return (dplyr::select(filenames, -sample_name))
 }
 
@@ -283,7 +283,7 @@ two.step.hybrid <- function(
     if (batch_id == 1) {
       aligned <- recovered
     } else {
-      aligned <- dplyr::full_join(aligned, recovered, on = c("mz", "rt", "mz_min", "mz_max"))
+      aligned <- dplyr::full_join(aligned, recovered, by = c("mz", "rt", "mz_min", "mz_max"))
     }
   }
 
