@@ -230,13 +230,13 @@ two.step.hybrid <- function(
       }
     }
 
-    colnames(this.aligned) <- colnames(this.fake)[-1:-4]
-    colnames(this.pk.time) <- colnames(this.fake)[-1:-4]
+    colnames(this.aligned) <- extract_pattern_colnames(this.fake, "_intensity")
+    colnames(this.pk.time) <- extract_pattern_colnames(this.fake, "_rt")
 
-    #### go back to cdf files
 
-    that.aligned <- cbind(fake3$aligned.ftrs[, 1:4], this.aligned)
-    that.pk.time <- cbind(fake3$aligned.ftrs[, 1:4], this.pk.time)
+    aligned_features <- dplyr::select(aligned, mz, rt)   
+    that.aligned <- dplyr::bind_cols(aligned_features, this.aligned)
+    that.pk.time <- dplyr::bind_cols(aligned_features, this.pk.time)
 
     # for(i in 1:ncol(this.aligned))
     new.this.aligned <- foreach(i = 1:ncol(this.aligned), .combine = cbind) %dopar% {

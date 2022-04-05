@@ -10,3 +10,8 @@ get_feature_values <- function(features, rt_colname) {
     }
     return(list(mz = mz, chr = chr, lab = lab))
 }
+
+extract_pattern_colnames <- function(dataframe, pattern) {
+    dataframe <- dplyr::select(dataframe, contains(pattern))
+    return(colnames(dataframe))
+}
