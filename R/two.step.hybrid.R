@@ -298,9 +298,9 @@ two.step.hybrid <- function(
     within_batch_threshold = min.within.batch.prop.report, 
     across_batch_threshold = min.batch.prop)
 
-  to.return <- new("list")
-  to.return$batchwise.results <- batchwise
-  to.return$all.detected.ftrs <- aligned
-  to.return$final.ftrs <- final.aligned
-  return(to.return)
+  features <- new("list")
+  features$batchwise_results <- batchwise
+  features$all_features <- aligned
+  features$final_features <- final.aligned
+  return(features)
 }
