@@ -1,3 +1,24 @@
+filter_features_by_presence <- function(
+  feature_table, 
+  metadata, 
+  batches_idx,
+  within_batch_threshold,
+  across_batch_threshold) {
+  across_batch_presence <- data.frame(
+    matrix(
+      nrow = nrow(feature_table), 
+      ncol = length(batches_idx)))
+  for (batch_id in batches_idx) {
+    samples <- filter(metadata, batch == batch_id)$sample_name
+    intensities <- dplyr::select(feature_table, samples)
+    presence <- intensities > 0
+    above_threshold <- rowSums(presence) / length(samples) >= within_batch_threshold
+    across_batch_presence[,batch_id] <- above_threshold
+  }
+  above_threshold <- rowSums(across_batch_presence) / length(batches_idx) >= across_batch_threshold
+  return(feature_table[above_threshold, ])
+}
+
 as_wide_aligned_table <- function(aligned) {
   mz_scale_table <- aligned$rt_crosstab[, c("mz", "rt", "mz_min", "mz_max")]
   aligned <- as_feature_sample_table(
@@ -269,17 +290,13 @@ two.step.hybrid <- function(
   aligned <- dplyr::select(aligned, mz, rt, mz_min, mz_max, contains("_intensity"))
   stopCluster(cl)
 
-  batch.presence.mat <- matrix(0, nrow = nrow(aligned), ncol = length(batches))
-  for (batch_id in 1:length(batches))
-  {
-    batch <- batches[batch_id]
-    this.mat <- aligned[, which(colnames(aligned) %in% info[info[, 2] == batch, 1])]
-    this.mat <- 1 * (this.mat != 0)
-    this.presence <- apply(this.mat, 1, sum) / ncol(this.mat)
-    batch.presence.mat[, batch_id] <- 1 * (this.presence >= min.within.batch.prop.report)
-  }
-  batch.presence <- apply(batch.presence.mat, 1, sum) / ncol(batch.presence.mat)
-  final.aligned <- aligned[which(batch.presence >= min.batch.prop), ]
+  colnames(aligned) <- stringr::str_remove_all(colnames(aligned), "_intensity")
+  aligned_filtered <- filter_features_by_presence(
+    feature_table = aligned, 
+    metadata = metadata, 
+    batches_idx = batches_idx, 
+    within_batch_threshold = min.within.batch.prop.report, 
+    across_batch_threshold = min.batch.prop)
 
   to.return <- new("list")
   to.return$batchwise.results <- batchwise
