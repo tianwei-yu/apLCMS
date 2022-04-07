@@ -300,6 +300,8 @@ two.step.hybrid <- function(
     within_batch_threshold = min.within.batch.prop.report, 
     across_batch_threshold = min.batch.prop)
 
+  recovered_filtered <- dplyr::arrange(recovered, mz, rt)
+
   features <- new("list")
   features$batchwise_features <- batchwise
   features$all_features <- aligned
