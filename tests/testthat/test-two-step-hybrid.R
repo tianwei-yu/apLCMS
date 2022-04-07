@@ -24,9 +24,29 @@ test_that("basic two-step hybrid test", {
     }
 
     result <- two.step.hybrid(filenames=test_files, metadata=metadata, known.table=known_table)
+    final_features <- result$final_features
 
-    expect_equal(result$final_features, as_tibble(expected_final_ftrs))
-    expect_equal(result$all_features, as_tibble(expected_all_ftrs))
-    expect_equal(result$batchwise_features, as_tibble(expected_batchwise))
+    expected_final_features <- as.data.frame(expected_final_ftrs)
+
+    keys <- c("mz", "mbr_test0", "mbr_test1", "mbr_test0_copy", "mbr_test2")
+    final_features <- arrange_at(final_features, keys)
+    expected_final_features <- arrange_at(expected_final_features, keys)
+
+    comparison <- dataCompareR::rCompare(
+        final_features,
+        expected_final_features,
+        keys = keys
+    )
+
+    dataCompareR::saveReport(
+        comparison,
+        reportName = "final_features_comparison",
+        reportLocation = "..",
+        showInViewer = FALSE,
+        missmatchCount = 10000
+    )
+
+    expect_equal(final_features, expected_final_features)
+    expect_equal(final_features$mz, expected_final_features$mz, tolerance=0.001)
 
 })
