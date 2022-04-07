@@ -23,7 +23,11 @@ test_that("basic two-step hybrid test", {
         num_workers <- parallel::detectCores()
     }
 
-    result <- two.step.hybrid(filenames=test_files, metadata=metadata, known.table=known_table)
+    result <- two.step.hybrid(
+        filenames = test_files,
+        metadata = metadata,
+        known.table = known_table,
+        cluster = num_workers)
     final_features <- result$final_features
 
     expected_final_features <- as.data.frame(expected_final_ftrs)
