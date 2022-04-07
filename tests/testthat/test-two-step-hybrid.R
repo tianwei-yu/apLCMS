@@ -25,8 +25,8 @@ test_that("basic two-step hybrid test", {
 
     result <- two.step.hybrid(filenames=test_files, metadata=metadata, known.table=known_table)
 
-    expect_equal(result$final.ftrs, expected_final_ftrs)
-    expect_equal(result$all.detected.ftrs, expected_all_ftrs)
-    expect_equal(result$batchwise.results, expected_batchwise)
+    expect_equal(result$final_features, as_tibble(expected_final_ftrs))
+    expect_equal(result$all_features, as_tibble(expected_all_ftrs))
+    expect_equal(result$batchwise_features, as_tibble(expected_batchwise))
 
 })

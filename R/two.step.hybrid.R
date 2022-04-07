@@ -293,7 +293,7 @@ two.step.hybrid <- function(
   stopCluster(cl)
 
   colnames(recovered) <- stringr::str_remove_all(colnames(recovered), "_intensity")
-  aligned_filtered <- filter_features_by_presence(
+  recovered_filtered <- filter_features_by_presence(
     feature_table = recovered, 
     metadata = metadata, 
     batches_idx = batches_idx, 
@@ -301,8 +301,8 @@ two.step.hybrid <- function(
     across_batch_threshold = min.batch.prop)
 
   features <- new("list")
-  features$batchwise_results <- batchwise
+  features$batchwise_features <- batchwise
   features$all_features <- aligned
-  features$final_features <- recovered
+  features$final_features <- recovered_filtered
   return(features)
 }
