@@ -201,6 +201,12 @@ two.step.hybrid <- function(
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
+
+  recovered <- tibble(mz = numeric(),
+    rt = numeric(),
+    mz_min = numeric(),
+    mz_max = numeric())
+
   for (batch_id in batches_idx)
   {
     this.fake <- step_one_features[[batch_id]]
@@ -260,7 +266,7 @@ two.step.hybrid <- function(
     aligned_features <- dplyr::select(aligned, mz, rt, mz_min, mz_max)   
     aligned_int_crosstab <- dplyr::bind_cols(aligned_features, this.aligned)
     aligned_rt_crosstab <- dplyr::bind_cols(aligned_features, this.pk.time)
-    recovered <- recover_weaker_signals(
+    recovered_batchwise <- recover_weaker_signals(
       cluster = cl,
       filenames = filter(filenames_batchwise, batch == batch_id)$filename,
       extracted_features = batchwise[[batch_id]]$extracted_features,
@@ -278,21 +284,17 @@ two.step.hybrid <- function(
       recover_min_count = recover.min.count
     )
 
-    recovered <- as_wide_aligned_table(recovered)
+    recovered_batchwise <- as_wide_aligned_table(recovered_batchwise)
 
-    if (batch_id == 1) {
-      aligned <- recovered
-    } else {
-      aligned <- dplyr::full_join(aligned, recovered, by = c("mz", "rt", "mz_min", "mz_max"))
-    }
+    recovered <- dplyr::full_join(recovered, recovered_batchwise, by = c("mz", "rt", "mz_min", "mz_max"))
   }
 
-  aligned <- dplyr::select(aligned, mz, rt, mz_min, mz_max, contains("_intensity"))
+  recovered <- dplyr::select(recovered, mz, rt, mz_min, mz_max, contains("_intensity"))
   stopCluster(cl)
 
-  colnames(aligned) <- stringr::str_remove_all(colnames(aligned), "_intensity")
+  colnames(recovered) <- stringr::str_remove_all(colnames(recovered), "_intensity")
   aligned_filtered <- filter_features_by_presence(
-    feature_table = aligned, 
+    feature_table = recovered, 
     metadata = metadata, 
     batches_idx = batches_idx, 
     within_batch_threshold = min.within.batch.prop.report, 
@@ -301,6 +303,6 @@ two.step.hybrid <- function(
   features <- new("list")
   features$batchwise_results <- batchwise
   features$all_features <- aligned
-  features$final_features <- final.aligned
+  features$final_features <- recovered
   return(features)
 }
