@@ -67,7 +67,7 @@ readjust_times <- function(within_batch, between_batch) {
 
 compute_intensity_medians <- function(feature_table) {
   stopifnot("sample_intensity" %in% colnames(feature_table))
-  feature_table <- dplyr::group_by(feature_table, feature, mz, rt) %>%
+  feature_table <- dplyr::group_by(feature_table, mz, rt) %>%
     dplyr::mutate(intensity = median(sample_intensity)) %>%
     dplyr::ungroup()
   return(feature_table)
@@ -81,6 +81,44 @@ bind_batch_label_column <- function(filenames, metadata) {
   filenames <- mutate(filenames, sample_name = get_sample_name(filename))
   filenames <- inner_join(filenames, metadata, by = "sample_name")
   return (dplyr::select(filenames, -sample_name))
+}
+
+batchwise_wrapper <- function(batchwise, batches_idx) {
+  for (batch in batches_idx) {
+    final.ftrs <- as_tibble(batchwise[[batch]]$final.ftrs)
+    final.times <- as_tibble(batchwise[[batch]]$final.times)
+    
+    colnames(final.ftrs)[c(3:4)] <- c("mz_min", "mz_max")
+    colnames(final.times)[c(3:4)] <- c("mz_min", "mz_max")
+
+    colnames(final.ftrs) <- stringr::str_remove_all(colnames(final.ftrs), ".mzml")
+    colnames(final.times) <- stringr::str_remove_all(colnames(final.times), ".mzml")
+    
+    cols_to_pivot_int <- colnames(final.ftrs)[-c(1:4)]
+    cols_to_pivot_rt <- colnames(final.times)[-c(1:4)]
+    
+    final.ftrs <- tidyr::pivot_longer(final.ftrs,
+      cols = all_of(cols_to_pivot_int),
+      names_to = "sample",
+      values_to = "sample_intensity")
+    
+    final.times <- tidyr::pivot_longer(final.times,
+      cols = all_of(cols_to_pivot_rt),
+      names_to = "sample",
+      values_to = "sample_rt")
+    
+    recovered_feature_sample_table <- dplyr::full_join(final.times, final.ftrs, 
+      by = c("mz", "time", "mz_min", "mz_max", "sample"))
+
+    colnames(recovered_feature_sample_table)[2] <- "rt"
+
+    batchwise[[batch]]$recovered_feature_sample_table <- recovered_feature_sample_table
+
+    batchwise[[batch]]$corrected_features <- batchwise[[batch]]$features2
+    batchwise[[batch]]$extracted_features <- batchwise[[batch]]$features
+  }
+  
+  return(batchwise)
 }
 
 two.step.hybrid <- function(
@@ -123,49 +161,54 @@ two.step.hybrid <- function(
   metadata <- read.table(metadata, sep=",", header=TRUE)
   filenames_batchwise <- bind_batch_label_column(filenames, metadata)
   batches_idx <- unique(metadata$batch)
-
   batchwise <- new("list")
   message("**** processing ", length(batches_idx), " batches separately ****")
-  for (batch_id in batches_idx) {
-    filenames_batch <- dplyr::filter(filenames_batchwise, batch == batch_id)$filename
-    batchwise_features <- hybrid(
-      filenames = filenames_batch,
-      known_table = known.table,
-      min_exp = ceiling(min.within.batch.prop.detect * length(filenames_batchwise)),
-      min_pres = min.pres,
-      min_run = min.run,
-      mz_tol = mz.tol,
-      baseline_correct = baseline.correct,
-      baseline_correct_noise_percentile = baseline.correct.noise.percentile,
-      shape_model = shape.model,
-      BIC_factor = BIC.factor,
-      peak_estim_method = peak.estim.method,
-      min_bandwidth = min.bw,
-      max_bandwidth = max.bw,
-      sd_cut = sd.cut,
-      sigma_ratio_lim = sigma.ratio.lim,
-      component_eliminate = component.eliminate,
-      moment_power = moment.power,
-      align_mz_tol = align.mz.tol,
-      align_chr_tol = align.chr.tol,
-      max_align_mz_diff = max.align.mz.diff,
-      match_tol_ppm = match.tol.ppm,
-      new_feature_min_count = new.feature.min.count,
-      recover_mz_range = recover.mz.range,
-      recover_chr_range = recover.chr.range,
-      use_observed_range = use.observed.range,
-      recover_min_count = recover.min.count,
-      intensity_weighted = intensity.weighted,
-      cluster = cluster
-    )
 
-    batchwise[[batch_id]] <- batchwise_features
-  }
+  setwd("/workspaces/recetox-aplcms/tests/testdata")
+  for(batch.i in 1:length(batches_idx)){
+    message("working on batch number ", batch.i)
+
+    files_batch <- dplyr::filter(filenames_batchwise, batch == batch.i)$filename
+    message("**** processing ", length(files_batch), " samples from batch ", batch.i, " ****")
+
+    b <- semi.sup(
+      files = files_batch,
+      folder = getwd(),
+      n.nodes = cluster,
+      known.table = known.table,
+      sd.cut = sd.cut,
+      sigma.ratio.lim = sigma.ratio.lim,
+      component.eliminate = component.eliminate,
+      moment.power = moment.power,
+      min.pres = min.pres,
+      min.run = min.run,
+      min.exp = ceiling(min.within.batch.prop.detect * length(files_batch)),
+      mz.tol = mz.tol,
+      baseline.correct.noise.percentile = baseline.correct.noise.percentile,
+      baseline.correct = baseline.correct,
+      align.mz.tol = align.mz.tol,
+      align.chr.tol = align.chr.tol,
+      max.align.mz.diff = max.align.mz.diff,
+      recover.mz.range = recover.mz.range,
+      recover.chr.range = recover.chr.range,
+      use.observed.range = use.observed.range,
+      shape.model = shape.model,
+      new.feature.min.count = new.feature.min.count,
+      recover.min.count = recover.min.count)
+
+    b$final.ftrs <- b$final.ftrs[order(b$final.ftrs[,1], b$final.ftrs[,2]),]
+    b$final.times <- b$final.times[order(b$final.times[,1], b$final.times[,2]),]
+
+    batchwise[[batch.i]] <- b
+}
+
+  batchwise <- batchwise_wrapper(batchwise, batches_idx)
+
   step_one_features <- list()
   for (batch_id in batches_idx) {
     step_one_features[[batch_id]] <- compute_intensity_medians(
       batchwise[[batch_id]]$recovered_feature_sample_table) %>%
-      dplyr::select(-feature)
+      dplyr::select(-c("mz_min", "mz_max"))
   }
 
   cl <- makeCluster(cluster)
@@ -213,7 +256,6 @@ two.step.hybrid <- function(
     this.fake.medians <- distinct(this.fake, mz, rt, intensity)$intensity
     this.fake <- long_to_wide_feature_table(this.fake)
 
-
     # adjusting the time (already within batch adjusted)
     this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
 
@@ -249,7 +291,7 @@ two.step.hybrid <- function(
           if (length(idx) > 0) {
             idx <- idx[which(diff.time[idx] == min(diff.time[idx]))[1]]
             recaptured[j] <- this.features[[j]][idx, "area"]
-            recaptured.time[j] <- this.features[[j]][idx, "rt"]
+            recaptured.time[j] <- this.features[[j]][idx, "pos"]
           }
         }
         this.aligned[sample, ] <- recaptured
@@ -300,7 +342,7 @@ two.step.hybrid <- function(
     within_batch_threshold = min.within.batch.prop.report, 
     across_batch_threshold = min.batch.prop)
 
-  recovered_filtered <- dplyr::arrange(recovered, mz, rt)
+  recovered_filtered <- dplyr::arrange(recovered_filtered, mz, rt)
 
   features <- new("list")
   features$batchwise_features <- batchwise

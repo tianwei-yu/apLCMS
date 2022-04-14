@@ -31,10 +31,11 @@ test_that("basic two-step hybrid test", {
     final_features <- result$final_features
 
     expected_final_features <- as.data.frame(expected_final_ftrs)
-
-    keys <- c("mz", "mbr_test0", "mbr_test1", "mbr_test0_copy", "mbr_test2")
-    final_features <- arrange_at(final_features, keys)
-    expected_final_features <- arrange_at(expected_final_features, keys)
+    colnames(expected_final_features)[2:4] <- c("rt", "mz_min", "mz_max")
+    colnames(expected_final_features) <- stringr::str_remove_all(colnames(expected_final_features), ".mzml")
+    keys <- c("mz", "rt", "mz_min", "mz_max")
+    final_features <- as_tibble(arrange_at(final_features, keys))
+    expected_final_features <- as_tibble(arrange_at(expected_final_features, keys))
 
     comparison <- dataCompareR::rCompare(
         final_features,

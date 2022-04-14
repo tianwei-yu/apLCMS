@@ -1,6 +1,6 @@
 semi.sup <- function(
+    files,
     folder,
-    file.pattern=".cdf",
     known.table=NA,
     n.nodes=4,
     min.exp=2,
@@ -18,7 +18,6 @@ semi.sup <- function(
     sigma.ratio.lim=c(0.01, 100),
     component.eliminate=0.01,
     moment.power=1,
-    subs=NULL,
     align.mz.tol=NA,
     align.chr.tol=NA,
     max.align.mz.diff=0.01,
@@ -32,13 +31,7 @@ semi.sup <- function(
     intensity.weighted=FALSE)
 {
     setwd(folder)
-    
-    files<-dir(pattern=file.pattern, ignore.case = TRUE)
     files<-files[order(files)]
-    if(!is.null(subs))
-    {
-        if(!is.na(subs[1])) files<-files[subs]
-    }
     
     ###############################################################################################
     
@@ -118,7 +111,7 @@ semi.sup <- function(
     
     ###############################################################################################
     message("****************************** time correction ***************************************")
-    suf<-paste(suf,align.mz.tol,align.chr.tol,subs[1],subs[length(subs)],sep="_")
+    suf<-paste(suf,align.mz.tol,align.chr.tol,files[1],files[length(files)],sep="_")
     this.name<-paste("time_correct_done_",suf,".bin",sep="")
     
     all.files<-dir()
