@@ -36,15 +36,13 @@ semi.sup <- function(
     ###############################################################################################
     
     try(dir.create("error_files"), silent = TRUE)
-    message("***************************** prifiles --> feature lists *****************************")
+    message("** extracting features")
     suf.prof<-paste(min.pres,min.run,mz.tol,baseline.correct,sep="_")
     suf<-paste(suf.prof, shape.model, sd.cut[1], sd.cut[2],component.eliminate, moment.power, sep="_")
     if(shape.model=="bi-Gaussian") suf<-paste(suf, sigma.ratio.lim[1], sigma.ratio.lim[2],sep="_")
     
     to.do<-paste(matrix(unlist(strsplit(tolower(files),"\\.")),nrow=2)[1,],suf, min.bw, max.bw,".feature",sep="_")
-    to.do<-which(!(to.do %in% dir()))
-    message(c("number of files to process: ", length(to.do)))
-    
+    to.do<-which(!(to.do %in% dir()))    
     
     if(length(to.do)>0)
     {
@@ -104,13 +102,12 @@ semi.sup <- function(
     for(i in 1:length(files))
     {
         this.name<-paste(strsplit(tolower(files[i]),"\\.")[[1]][1],suf, min.bw, max.bw,".feature",sep="_")
-        cat(this.name, " ")
         load(this.name)
         features[[i]]<-this.feature
     }
     
     ###############################################################################################
-    message("****************************** time correction ***************************************")
+    message("** correcting time...")
     suf<-paste(suf,align.mz.tol,align.chr.tol,files[1],files[length(files)],sep="_")
     this.name<-paste("time_correct_done_",suf,".bin",sep="")
     
@@ -125,7 +122,7 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("***** correcting time, CPU time (seconds) ",as.vector(system.time(f2<-adjust.time(features,mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c("** correction time, CPU time (seconds) ",as.vector(system.time(f2<-adjust.time(features,mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         
         stopCluster(cl)
         save(f2,file=this.name)
@@ -136,7 +133,7 @@ semi.sup <- function(
     gc()
     
     ###############################################################################################
-    message("****************************  aligning features **************************************")
+    message("** aligning features...")
     suf<-paste(suf,min.exp,sep="_")
     this.name<-paste("aligned_done_",suf,".bin",sep="")
     all.files<-dir()
@@ -150,7 +147,7 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned<-feature.align(f2, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c("** aligned features, CPU time (seconds): ", as.vector(system.time(aligned<-feature.align(f2, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         save(aligned,file=this.name)
         stopCluster(cl)
     }else{
@@ -160,7 +157,7 @@ semi.sup <- function(
     
 
     ###############################################################################################
-    message("************************* merging to known peak table *********************************")
+    message("** merging to known peak table")
     if(is.na(match.tol.ppm)) match.tol.ppm<-aligned$mz.tol*1e6
     
     this.name<-paste("merge_done_", suf, ".bin", sep="")
@@ -265,13 +262,11 @@ semi.sup <- function(
     gc()
     
     ###############################################################################################
-    message("**************************** recovering weaker signals *******************************")
+    message("** recovering weaker signals")
     suf<-paste(suf,recover.mz.range, recover.chr.range, use.observed.range,match.tol.ppm,new.feature.min.count,recover.min.count,sep="_")
     
     worklist<-paste(matrix(unlist(strsplit(tolower(files),"\\.")),nrow=2)[1,],suf,"semi_sup.recover",sep="_")
-    to.do<-which(!(worklist %in% dir()))
-    message(c("number of files to process: ", length(to.do)))
-    
+    to.do<-which(!(worklist %in% dir()))    
     if(length(to.do)>0)
     {
         grps<-round(seq(0, length(to.do), length=n.nodes+1))
@@ -298,7 +293,7 @@ semi.sup <- function(
     
 
     ##############################################################################################
-    message("loading feature tables after recovery")
+    message("** loading feature tables after recovery...")
     features.recov<-new("list")
     
     for(i in 1:length(files))
@@ -309,7 +304,7 @@ semi.sup <- function(
     }
     
     ##############################################################################################
-    message("****************************** second round time correction *************************")
+    message("** second round time correction...")
     suf<-paste(suf,"round 2",sep="_")
     this.name<-paste("time_correct_done_",suf,".bin",sep="")
     
@@ -323,7 +318,7 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("***** correcting time, CPU time (seconds) ",as.vector(system.time(f2.recov<-adjust.time(features.recov, mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c("** correction time, CPU time (seconds) ",as.vector(system.time(f2.recov<-adjust.time(features.recov, mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         save(f2.recov,file=this.name)
         stopCluster(cl)
     }else{
@@ -331,7 +326,7 @@ semi.sup <- function(
     }
     gc()
     ###############################################################################################
-    message("**************************** second round aligning features *************************")
+    message("** second round aligning features...")
     suf<-paste(suf,"min_exp", min.exp, 1,sep="_")
     this.name<-paste("aligned_done_",suf,".bin",sep="")
     all.files<-dir()
@@ -343,7 +338,7 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned.recov<-feature.align(f2.recov, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c("** aligned features, CPU time (seconds): ", as.vector(system.time(aligned.recov<-feature.align(f2.recov, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
         save(aligned.recov,file=this.name)
         stopCluster(cl)
     }else{

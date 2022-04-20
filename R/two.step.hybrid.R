@@ -132,7 +132,7 @@ feature_recovery <- function(cluster,
           idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]))
         }
         if (length(idx) < 1) {
-          message("Warning: batch ", batch_id, " sample ", sample, " has matching issue.")
+          message("warning: batch ", batch_id, " sample ", sample, " has matching issue")
         } else {
           this.aligned[sample, ] <- apply(batchwise_intensities[idx, ], 2, sum)
           this.pk.time[sample, ] <- apply(this.fake.time[idx, ], 2, median)
@@ -275,13 +275,11 @@ two.step.hybrid <- function(filenames,
   filenames_batchwise <- bind_batch_label_column(filenames, metadata)
   batches_idx <- unique(metadata$batch)
   batchwise <- new("list")
-  message("**** processing ", length(batches_idx), " batches separately ****")
+  message("* processing ", length(batches_idx), " batches separately")
 
   for (batch.i in 1:length(batches_idx)) {
-    message("working on batch number ", batch.i)
-
     files_batch <- dplyr::filter(filenames_batchwise, batch == batch.i)$filename
-    message("**** processing ", length(files_batch), " samples from batch ", batch.i, " ****")
+    message("* processing ", length(files_batch), " samples from batch ", batch.i)
 
     b <- semi.sup(
       files = files_batch,
@@ -329,7 +327,7 @@ two.step.hybrid <- function(filenames,
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
-  message("*** aligning time ***")
+  message("* aligning time")
   corrected <- adjust.time(step_one_features,
     mz.tol = batch.align.mz.tol,
     chr.tol = batch.align.chr.tol,
@@ -338,7 +336,7 @@ two.step.hybrid <- function(filenames,
     rt_colname = "rt"
   )
 
-  message("*** aligning features ***")
+  message("* aligning features")
   aligned <- align_features(
     sample_names = paste0("batch_", batches_idx),
     features = corrected,
@@ -354,7 +352,7 @@ two.step.hybrid <- function(filenames,
 
   stopCluster(cl)
 
-  message("*** recovering features across batches ***")
+  message("* recovering features across batches")
 
   cl <- makeCluster(cluster)
   registerDoParallel(cl)
