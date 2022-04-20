@@ -23,3 +23,7 @@ dependencies:
   - r-rocs
   - r-rcpp
   - r-arrow
+  - r-dplyr
+  - r-tidyr
+  - r-stringr
+  - r-datacomparer
