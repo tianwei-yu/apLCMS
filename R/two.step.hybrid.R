@@ -124,6 +124,7 @@ batchwise_wrapper <- function(batchwise, batches_idx) {
 two.step.hybrid <- function(
   filenames,
   metadata,
+  work_dir,
   min.within.batch.prop.detect = 0.1,
   min.within.batch.prop.report = 0.5,
   min.batch.prop = 0.5,
@@ -164,7 +165,6 @@ two.step.hybrid <- function(
   batchwise <- new("list")
   message("**** processing ", length(batches_idx), " batches separately ****")
 
-  setwd("/workspaces/recetox-aplcms/tests/testdata")
   for(batch.i in 1:length(batches_idx)){
     message("working on batch number ", batch.i)
 
@@ -173,7 +173,7 @@ two.step.hybrid <- function(
 
     b <- semi.sup(
       files = files_batch,
-      folder = getwd(),
+      folder = work_dir,
       n.nodes = cluster,
       known.table = known.table,
       sd.cut = sd.cut,

@@ -1,9 +1,14 @@
 test_that("basic two-step hybrid test", {
-    test_files <- c('../testdata/mbr_test0.mzml',
-                    '../testdata/mbr_test1.mzml',
-                    '../testdata/mbr_test2.mzml',
-                    '../testdata/mbr_test0_copy.mzml')
+    test_names <- c("mbr_test0.mzml",
+                    "mbr_test1.mzml",
+                    "mbr_test2.mzml",
+                    "mbr_test0_copy.mzml")
+    test_path <- paste0("../testdata/", test_names)
     metadata <- "../testdata/two_step_hybrid_info.csv"
+
+    tempdir <- tempdir()
+    temp_path <- paste0(tempdir, "/", test_names)
+    file.copy(test_path, temp_path)
 
     expected_final_ftrs <- readRDS("../testdata/final_ftrs.Rda")
     expected_all_ftrs <- readRDS("../testdata/all.detected.ftrs.Rda")
@@ -24,8 +29,9 @@ test_that("basic two-step hybrid test", {
     }
 
     result <- two.step.hybrid(
-        filenames = test_files,
+        filenames = test_names,
         metadata = metadata,
+        work_dir = tempdir,
         known.table = known_table,
         cluster = num_workers)
     final_features <- result$final_features
