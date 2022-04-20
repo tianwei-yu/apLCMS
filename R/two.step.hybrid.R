@@ -83,6 +83,115 @@ bind_batch_label_column <- function(filenames, metadata) {
   return (dplyr::select(filenames, -sample_name))
 }
 
+feature_recovery <- function(
+  cluster,
+  step_one_features,
+  batchwise,
+  filenames_batchwise,
+  corrected,
+  aligned,
+  batches_idx,
+  mz.tol,
+  batch.align.mz.tol,
+  batch.align.chr.tol,
+  recover.mz.range,
+  recover.chr.range,
+  use.observed.range,
+  min.bw,
+  max.bw,
+  recover.min.count) {
+
+  recovered <- tibble(mz = numeric(),
+  rt = numeric(),
+  mz_min = numeric(),
+  mz_max = numeric())
+
+  for (batch_id in batches_idx)
+  {
+    this.fake <- step_one_features[[batch_id]]
+    this.fake.medians <- distinct(this.fake, mz, rt, intensity)$intensity
+    this.fake <- long_to_wide_feature_table(this.fake)
+
+    # adjusting the time (already within batch adjusted)
+    this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
+
+    aligned_intensities <- dplyr::select(aligned, contains("_intensity"))
+    batchwise_intensities <- dplyr::select(this.fake, contains("_intensity"))
+
+    this.fake.time <- dplyr::select(this.fake, contains("_rt"))
+    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(batchwise_intensities))
+
+    for (sample in 1:nrow(aligned)) {
+      if (aligned_intensities[sample, batch_id] != 0) {
+        idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]) 
+          & abs(this.fake.medians - aligned_intensities[sample, batch_id]) < 1)
+        if (length(idx) < 1) {
+          idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]))
+        }
+        if (length(idx) < 1) {
+          message("Warning: batch ", batch_id, " sample ", sample, " has matching issue.")
+        } else {
+          this.aligned[sample, ] <- apply(batchwise_intensities[idx, ], 2, sum)
+          this.pk.time[sample, ] <- apply(this.fake.time[idx, ], 2, median)
+        }
+      } else {
+        ### go into individual feature tables to find a match
+        recaptured <- rep(0, ncol(this.aligned))
+        recaptured.time <- rep(NA, ncol(this.aligned))
+
+        for (j in 1:length(this.features)) {
+          diff.mz <- abs(this.features[[j]][, "mz"] - aligned[sample, "mz"])
+          diff.time <- abs(this.features[[j]][, "pos"] - aligned[sample, "rt"])
+          idx <- which(diff.mz < aligned[sample, "mz"] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
+          
+          if (length(idx) > 0) {
+            idx <- idx[which(diff.time[idx] == min(diff.time[idx]))[1]]
+            recaptured[j] <- this.features[[j]][idx, "area"]
+            recaptured.time[j] <- this.features[[j]][idx, "pos"]
+          }
+        }
+        this.aligned[sample, ] <- recaptured
+        this.pk.time[sample, ] <- recaptured.time
+      }
+    }
+
+    colnames(this.aligned) <- extract_pattern_colnames(this.fake, "_intensity")
+    colnames(this.aligned) <- stringr::str_remove_all(colnames(this.aligned), "_intensity")
+    colnames(this.pk.time) <- extract_pattern_colnames(this.fake, "_rt")
+    colnames(this.pk.time) <- stringr::str_remove_all(colnames(this.pk.time), "_rt")
+
+
+    aligned_features <- dplyr::select(aligned, mz, rt, mz_min, mz_max)   
+    aligned_int_crosstab <- dplyr::bind_cols(aligned_features, this.aligned)
+    aligned_rt_crosstab <- dplyr::bind_cols(aligned_features, this.pk.time)
+    recovered_batchwise <- recover_weaker_signals(
+      cluster = cluster,
+      filenames = filter(filenames_batchwise, batch == batch_id)$filename,
+      extracted_features = batchwise[[batch_id]]$extracted_features,
+      corrected_features = batchwise[[batch_id]]$corrected_features,
+      aligned_rt_crosstab = aligned_rt_crosstab,
+      aligned_int_crosstab = aligned_int_crosstab,
+      original_mz_tolerance = mz.tol,
+      aligned_mz_tolerance = batch.align.mz.tol,
+      aligned_rt_tolerance = batch.align.chr.tol,
+      mz_range = recover.mz.range,
+      rt_range = recover.chr.range,
+      use_observed_range = use.observed.range,
+      min_bandwidth = min.bw,
+      max_bandwidth = max.bw,
+      recover_min_count = recover.min.count
+    )
+
+    recovered_batchwise <- as_wide_aligned_table(recovered_batchwise)
+
+    recovered <- dplyr::full_join(recovered, recovered_batchwise, by = c("mz", "rt", "mz_min", "mz_max"))
+  }
+  recovered <- dplyr::select(recovered, mz, rt, mz_min, mz_max, contains("_intensity"))
+  colnames(recovered) <- stringr::str_remove_all(colnames(recovered), "_intensity")
+
+  return(recovered)
+}
+
 batchwise_wrapper <- function(batchwise, batches_idx) {
   for (batch in batches_idx) {
     final.ftrs <- as_tibble(batchwise[[batch]]$final.ftrs)
@@ -244,97 +353,26 @@ two.step.hybrid <- function(
   registerDoParallel(cl)
   clusterEvalQ(cl, library(recetox.aplcms))
 
+  recovered <- feature_recovery(
+    cluster = cl,
+    step_one_features = step_one_features,
+    batchwise = batchwise,
+    filenames_batchwise = filenames_batchwise,
+    corrected = corrected,
+    aligned = aligned,
+    batches_idx = batches_idx,
+    mz.tol = mz.tol,
+    batch.align.mz.tol = batch.align.mz.tol,
+    batch.align.chr.tol = batch.align.chr.tol,
+    recover.mz.range = recover.mz.range,
+    recover.chr.range = recover.chr.range,
+    use.observed.range = use.observed.range,
+    min.bw = min.bw,
+    max.bw = max.bw,
+    recover.min.count = recover.min.count)
 
-  recovered <- tibble(mz = numeric(),
-    rt = numeric(),
-    mz_min = numeric(),
-    mz_max = numeric())
-
-  for (batch_id in batches_idx)
-  {
-    this.fake <- step_one_features[[batch_id]]
-    this.fake.medians <- distinct(this.fake, mz, rt, intensity)$intensity
-    this.fake <- long_to_wide_feature_table(this.fake)
-
-    # adjusting the time (already within batch adjusted)
-    this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
-
-    aligned_intensities <- dplyr::select(aligned, contains("_intensity"))
-    batchwise_intensities <- dplyr::select(this.fake, contains("_intensity"))
-
-    this.fake.time <- dplyr::select(this.fake, contains("_rt"))
-    this.pk.time <- this.aligned <- matrix(0, nrow = nrow(aligned), ncol = ncol(batchwise_intensities))
-
-    for (sample in 1:nrow(aligned)) {
-      if (aligned_intensities[sample, batch_id] != 0) {
-        idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]) 
-          & abs(this.fake.medians - aligned_intensities[sample, batch_id]) < 1)
-        if (length(idx) < 1) {
-          idx <- which(between(this.fake$mz, aligned[sample, "mz_min"], aligned[sample, "mz_max"]))
-        }
-        if (length(idx) < 1) {
-          message("Warning: batch ", batch_id, " sample ", sample, " has matching issue.")
-        } else {
-          this.aligned[sample, ] <- apply(batchwise_intensities[idx, ], 2, sum)
-          this.pk.time[sample, ] <- apply(this.fake.time[idx, ], 2, median)
-        }
-      } else {
-        ### go into individual feature tables to find a match
-        recaptured <- rep(0, ncol(this.aligned))
-        recaptured.time <- rep(NA, ncol(this.aligned))
-
-        for (j in 1:length(this.features)) {
-          diff.mz <- abs(this.features[[j]][, "mz"] - aligned[sample, "mz"])
-          diff.time <- abs(this.features[[j]][, "pos"] - aligned[sample, "rt"])
-          idx <- which(diff.mz < aligned[sample, "mz"] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
-          
-          if (length(idx) > 0) {
-            idx <- idx[which(diff.time[idx] == min(diff.time[idx]))[1]]
-            recaptured[j] <- this.features[[j]][idx, "area"]
-            recaptured.time[j] <- this.features[[j]][idx, "pos"]
-          }
-        }
-        this.aligned[sample, ] <- recaptured
-        this.pk.time[sample, ] <- recaptured.time
-      }
-    }
-
-    colnames(this.aligned) <- extract_pattern_colnames(this.fake, "_intensity")
-    colnames(this.aligned) <- stringr::str_remove_all(colnames(this.aligned), "_intensity")
-    colnames(this.pk.time) <- extract_pattern_colnames(this.fake, "_rt")
-    colnames(this.pk.time) <- stringr::str_remove_all(colnames(this.pk.time), "_rt")
-
-
-    aligned_features <- dplyr::select(aligned, mz, rt, mz_min, mz_max)   
-    aligned_int_crosstab <- dplyr::bind_cols(aligned_features, this.aligned)
-    aligned_rt_crosstab <- dplyr::bind_cols(aligned_features, this.pk.time)
-    recovered_batchwise <- recover_weaker_signals(
-      cluster = cl,
-      filenames = filter(filenames_batchwise, batch == batch_id)$filename,
-      extracted_features = batchwise[[batch_id]]$extracted_features,
-      corrected_features = batchwise[[batch_id]]$corrected_features,
-      aligned_rt_crosstab = aligned_rt_crosstab,
-      aligned_int_crosstab = aligned_int_crosstab,
-      original_mz_tolerance = mz.tol,
-      aligned_mz_tolerance = batch.align.mz.tol,
-      aligned_rt_tolerance = batch.align.chr.tol,
-      mz_range = recover.mz.range,
-      rt_range = recover.chr.range,
-      use_observed_range = use.observed.range,
-      min_bandwidth = min.bw,
-      max_bandwidth = max.bw,
-      recover_min_count = recover.min.count
-    )
-
-    recovered_batchwise <- as_wide_aligned_table(recovered_batchwise)
-
-    recovered <- dplyr::full_join(recovered, recovered_batchwise, by = c("mz", "rt", "mz_min", "mz_max"))
-  }
-
-  recovered <- dplyr::select(recovered, mz, rt, mz_min, mz_max, contains("_intensity"))
   stopCluster(cl)
-
-  colnames(recovered) <- stringr::str_remove_all(colnames(recovered), "_intensity")
+  
   recovered_filtered <- filter_features_by_presence(
     feature_table = recovered, 
     metadata = metadata, 
