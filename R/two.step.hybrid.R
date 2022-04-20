@@ -281,7 +281,7 @@ two.step.hybrid <- function(filenames,
     files_batch <- dplyr::filter(filenames_batchwise, batch == batch.i)$filename
     message("* processing ", length(files_batch), " samples from batch ", batch.i)
 
-    b <- semi.sup(
+    features <- semi.sup(
       files = files_batch,
       folder = work_dir,
       n.nodes = cluster,
@@ -307,10 +307,10 @@ two.step.hybrid <- function(filenames,
       recover.min.count = recover.min.count
     )
 
-    b$final.ftrs <- b$final.ftrs[order(b$final.ftrs[, 1], b$final.ftrs[, 2]), ]
-    b$final.times <- b$final.times[order(b$final.times[, 1], b$final.times[, 2]), ]
+    features$final.ftrs <- features$final.ftrs[order(features$final.ftrs[, 1], features$final.ftrs[, 2]), ]
+    features$final.times <- features$final.times[order(features$final.times[, 1], features$final.times[, 2]), ]
 
-    batchwise[[batch.i]] <- b
+    batchwise[[batch.i]] <- features
   }
 
   batchwise <- batchwise_wrapper(batchwise, batches_idx)
