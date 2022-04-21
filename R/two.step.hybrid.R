@@ -11,7 +11,7 @@ filter_features_by_presence <- function(feature_table,
   )
   for (batch_id in batches_idx) {
     samples <- filter(metadata, batch == batch_id)$sample_name
-    intensities <- dplyr::select(feature_table, samples)
+    intensities <- dplyr::select(feature_table, contains("_intensity"))
     presence <- intensities > 0
     above_threshold <- rowSums(presence) / length(samples) >= within_batch_threshold
     across_batch_presence[, batch_id] <- above_threshold
@@ -48,6 +48,21 @@ long_to_wide_feature_table <- function(feature_table) {
     dplyr::distinct(mz, rt) %>%
     dplyr::inner_join(sample_rts, by = c("mz", "rt")) %>%
     dplyr::inner_join(sample_intensities, by = c("mz", "rt"))
+}
+
+wide_to_long_feature_table <- function(wide_table, sample_names) {
+  wide_table <- tibble::rowid_to_column(wide_table, "feature")
+
+  long_rt <- tidyr::gather(wide_table, sample, sample_rt, contains("_rt"), factor_key=FALSE) %>%
+    dplyr::select(-contains("_intensity")) %>%
+    mutate(sample = stringr::str_remove_all(sample, "_rt"))
+  long_int <- tidyr::gather(wide_table, sample, sample_intensity, contains("_intensity"), factor_key=FALSE) %>%
+    dplyr::select(-contains("_rt")) %>%
+    mutate(sample = stringr::str_remove_all(sample, "_intensity"))
+  
+  long_features <- dplyr::full_join(long_rt, long_int, by = c("feature", "mz", "rt", "mz_min", "mz_max", "sample"))
+  
+  return(long_features)
 }
 
 readjust_times <- function(within_batch, between_batch) {
@@ -189,8 +204,7 @@ feature_recovery <- function(cluster,
 
     recovered <- dplyr::full_join(recovered, recovered_batchwise, by = c("mz", "rt", "mz_min", "mz_max"))
   }
-  recovered <- dplyr::select(recovered, mz, rt, mz_min, mz_max, contains("_intensity"))
-  colnames(recovered) <- stringr::str_remove_all(colnames(recovered), "_intensity")
+  recovered <- dplyr::select(recovered, mz, rt, mz_min, mz_max, contains("_rt"), contains("_intensity"))
 
   return(recovered)
 }
@@ -388,10 +402,11 @@ two.step.hybrid <- function(filenames,
   )
 
   recovered_filtered <- dplyr::arrange(recovered_filtered, mz, rt)
+  recovered_features <- wide_to_long_feature_table(recovered_filtered)
 
   features <- new("list")
   features$batchwise_features <- batchwise
   features$all_features <- aligned
-  features$final_features <- recovered_filtered
+  features$final_features <- recovered_features
   return(features)
 }

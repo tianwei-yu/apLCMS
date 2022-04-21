@@ -27,3 +27,4 @@ dependencies:
   - r-tidyr
   - r-stringr
   - r-datacomparer
+  - r-tibble
