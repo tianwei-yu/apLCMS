@@ -337,9 +337,9 @@ two.step.hybrid <- function(filenames,
       dplyr::select(-c("mz_min", "mz_max"))
   }
 
-  cl <- makeCluster(cluster)
-  registerDoParallel(cl)
-  clusterEvalQ(cl, library(recetox.aplcms))
+  cluster <- parallel::makeCluster(cluster)
+  doParallel::registerDoParallel(cluster)
+  clusterEvalQ(cluster, library(recetox.aplcms))
 
   message("* aligning time")
   corrected <- adjust.time(step_one_features,
@@ -364,16 +364,9 @@ two.step.hybrid <- function(filenames,
 
   aligned <- as_wide_aligned_table(aligned)
 
-  stopCluster(cl)
-
   message("* recovering features across batches")
-
-  cl <- makeCluster(cluster)
-  registerDoParallel(cl)
-  clusterEvalQ(cl, library(recetox.aplcms))
-
   recovered <- feature_recovery(
-    cluster = cl,
+    cluster = cluster,
     step_one_features = step_one_features,
     batchwise = batchwise,
     filenames_batchwise = filenames_batchwise,
@@ -391,7 +384,7 @@ two.step.hybrid <- function(filenames,
     recover.min.count = recover.min.count
   )
 
-  stopCluster(cl)
+  stopCluster(cluster)
 
   recovered_filtered <- filter_features_by_presence(
     feature_table = recovered,
