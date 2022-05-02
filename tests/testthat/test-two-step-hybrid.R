@@ -6,7 +6,7 @@ test_that("basic two-step hybrid test", {
     "mbr_test0_copy.mzml"
   )
   test_path <- paste0("../testdata/", test_names)
-  metadata <- "../testdata/two_step_hybrid_info.csv"
+  metadata <- read.table("../testdata/two_step_hybrid_info.csv", sep = ",", header = TRUE)
 
   tempdir <- tempdir()
   temp_path <- paste0(tempdir, "/", test_names)

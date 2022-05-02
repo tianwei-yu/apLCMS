@@ -285,7 +285,6 @@ two.step.hybrid <- function(filenames,
                             recover.min.count = 3,
                             intensity.weighted = FALSE,
                             BIC.factor = 2) {
-  metadata <- read.table(metadata, sep = ",", header = TRUE)
   filenames_batchwise <- bind_batch_label_column(filenames, metadata)
   batches_idx <- unique(metadata$batch)
   batchwise <- new("list")
