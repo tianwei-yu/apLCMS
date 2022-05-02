@@ -180,8 +180,8 @@ feature_recovery <- function(cluster,
 
 
     aligned_features <- dplyr::select(aligned, mz, rt, mz_min, mz_max)
-    aligned_int_crosstab <- dplyr::bind_cols(aligned_features, this.aligned)
-    aligned_rt_crosstab <- dplyr::bind_cols(aligned_features, this.pk.time)
+    aligned_int_crosstab <- dplyr::bind_cols(aligned_features, as_tibble(this.aligned))
+    aligned_rt_crosstab <- dplyr::bind_cols(aligned_features, as_tibble(this.pk.time))
     recovered_batchwise <- recover_weaker_signals(
       cluster = cluster,
       filenames = filter(filenames_batchwise, batch == batch_id)$filename,
