@@ -260,7 +260,7 @@ two.step.hybrid <- function(filenames,
   batchwise <- new("list")
   message("* processing ", length(batches_idx), " batches separately")
 
-  for (batch.i in 1:length(batches_idx)) {
+  for (batch.i in batches_idx) {
     files_batch <- dplyr::filter(filenames_batchwise, batch == batch.i)$filename
     message("* processing ", length(files_batch), " samples from batch ", batch.i)
 
