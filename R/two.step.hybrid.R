@@ -41,7 +41,7 @@ readjust_times <- function(within_batch, between_batch) {
 compute_intensity_medians <- function(feature_table) {
   stopifnot("sample_intensity" %in% colnames(feature_table))
   feature_table <- dplyr::group_by(feature_table, mz, rt) %>%
-    dplyr::mutate(intensity = median(sample_intensity)) %>%
+    dplyr::mutate(median_intensity = median(sample_intensity)) %>%
     dplyr::ungroup()
   return(feature_table)
 }
@@ -82,7 +82,7 @@ feature_recovery <- function(cluster,
   for (batch_id in batches_idx)
   {
     this.fake <- step_one_features[[batch_id]]
-    this.fake.medians <- distinct(this.fake, mz, rt, intensity)$intensity
+    this.fake.medians <- distinct(this.fake, mz, rt, median_intensity)$median_intensity
     this.fake <- long_to_wide_feature_table(this.fake)
 
     # adjusting the time (already within batch adjusted)
