@@ -20,51 +20,6 @@ filter_features_by_presence <- function(feature_table,
   return(feature_table[above_threshold, ])
 }
 
-as_wide_aligned_table <- function(aligned) {
-  mz_scale_table <- aligned$rt_crosstab[, c("mz", "rt", "mz_min", "mz_max")]
-  aligned <- as_feature_sample_table(
-    rt_crosstab = aligned$rt_crosstab,
-    int_crosstab = aligned$int_crosstab
-  )
-  aligned <- long_to_wide_feature_table(aligned)
-  aligned <- dplyr::inner_join(aligned, mz_scale_table, by = c("mz", "rt"))
-  return(aligned)
-}
-
-pivot_feature_values <- function(feature_table, variable) {
-  extended_variable <- paste0("sample_", variable)
-  values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
-  values <- tidyr::pivot_wider(values, names_from = sample, values_from = !!sym(extended_variable))
-  variable_colnames <- colnames(values)[3:ncol(values)]
-  variable_colnames <- paste0(variable_colnames, "_", variable)
-  colnames(values)[3:ncol(values)] <- variable_colnames
-  return(values)
-}
-
-long_to_wide_feature_table <- function(feature_table) {
-  sample_rts <- pivot_feature_values(feature_table, "rt")
-  sample_intensities <- pivot_feature_values(feature_table, "intensity")
-  feature_table <- dplyr::select(feature_table, mz, rt) %>%
-    dplyr::distinct(mz, rt) %>%
-    dplyr::inner_join(sample_rts, by = c("mz", "rt")) %>%
-    dplyr::inner_join(sample_intensities, by = c("mz", "rt"))
-}
-
-wide_to_long_feature_table <- function(wide_table, sample_names) {
-  wide_table <- tibble::rowid_to_column(wide_table, "feature")
-
-  long_rt <- tidyr::gather(wide_table, sample, sample_rt, contains("_rt"), factor_key=FALSE) %>%
-    dplyr::select(-contains("_intensity")) %>%
-    mutate(sample = stringr::str_remove_all(sample, "_rt"))
-  long_int <- tidyr::gather(wide_table, sample, sample_intensity, contains("_intensity"), factor_key=FALSE) %>%
-    dplyr::select(-contains("_rt")) %>%
-    mutate(sample = stringr::str_remove_all(sample, "_intensity"))
-  
-  long_features <- dplyr::full_join(long_rt, long_int, by = c("feature", "mz", "rt", "mz_min", "mz_max", "sample"))
-  
-  return(long_features)
-}
-
 readjust_times <- function(within_batch, between_batch) {
   within_batch_recovered <- long_to_wide_feature_table(
     within_batch$recovered_feature_sample_table
