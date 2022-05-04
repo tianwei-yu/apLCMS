@@ -9,6 +9,7 @@ test_that("basic two-step hybrid test", {
   metadata <- read.table("../testdata/two_step_hybrid_info.csv", sep = ",", header = TRUE)
 
   tempdir <- tempdir()
+  dir.create(tempdir)
   temp_path <- paste0(tempdir, "/", test_names)
   file.copy(test_path, temp_path)
 
@@ -48,6 +49,8 @@ test_that("basic two-step hybrid test", {
     showInViewer = FALSE,
     missmatchCount = 10000
   )
+
+  unlink(tempdir, recursive = TRUE)
 
   expect_equal(final_features, expected_final_features, tolerance = 0.001)
   expect_equal(final_features$mz, expected_final_features$mz, tolerance = 0.001)
