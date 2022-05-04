@@ -164,7 +164,7 @@ feature_recovery <- function(cluster,
   return(recovered)
 }
 
-batchwise_wrapper <- function(batchwise, batches_idx) {
+semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
   for (batch in batches_idx) {
     final.ftrs <- as_tibble(batchwise[[batch]]$final.ftrs)
     final.times <- as_tibble(batchwise[[batch]]$final.times)
@@ -296,7 +296,7 @@ two.step.hybrid <- function(filenames,
     batchwise[[batch.i]] <- features
   }
 
-  batchwise <- batchwise_wrapper(batchwise, batches_idx)
+  batchwise <- semisup_to_hybrid_adapter(batchwise, batches_idx)
 
   step_one_features <- list()
   for (batch_id in batches_idx) {
