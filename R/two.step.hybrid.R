@@ -169,14 +169,29 @@ batchwise_wrapper <- function(batchwise, batches_idx) {
     final.ftrs <- as_tibble(batchwise[[batch]]$final.ftrs)
     final.times <- as_tibble(batchwise[[batch]]$final.times)
 
-    colnames(final.ftrs)[c(3:4)] <- c("mz_min", "mz_max")
-    colnames(final.times)[c(3:4)] <- c("mz_min", "mz_max")
+    mz_pattern <- c("mz.min", "mz.max")
+    mz_replacement <- c("mz_min", "mz_max")
+
+    colnames(final.ftrs) <- stringr::str_replace_all(
+      colnames(final.ftrs),
+      mz_pattern,
+      mz_replacement)
+
+    colnames(final.times) <- stringr::str_replace_all(
+      colnames(final.ftrs),
+      mz_pattern,
+      mz_replacement )
 
     colnames(final.ftrs) <- stringr::str_remove_all(colnames(final.ftrs), ".mzml")
     colnames(final.times) <- stringr::str_remove_all(colnames(final.times), ".mzml")
 
-    cols_to_pivot_int <- colnames(final.ftrs)[-c(1:4)]
-    cols_to_pivot_rt <- colnames(final.times)[-c(1:4)]
+    cols_to_exclude <- c("mz", "time", "rt", "mz_min", "mz_max")
+    cols_to_pivot_int <- colnames(final.ftrs)[which(
+      !colnames(final.ftrs) %in% cols_to_exclude)
+      ]
+    cols_to_pivot_rt <- colnames(final.times)[which(
+      !colnames(final.times) %in% cols_to_exclude)
+      ]
 
     final.ftrs <- tidyr::pivot_longer(final.ftrs,
       cols = all_of(cols_to_pivot_int),
