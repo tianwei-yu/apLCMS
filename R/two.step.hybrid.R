@@ -182,25 +182,22 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
       mz_pattern,
       mz_replacement )
 
-    colnames(final.ftrs) <- stringr::str_remove_all(colnames(final.ftrs), ".mzml")
-    colnames(final.times) <- stringr::str_remove_all(colnames(final.times), ".mzml")
+    feature_cols <- c("mz", "time", "mz_min", "mz_max")
+    sample_cols_idx <- which(!colnames(final.ftrs) %in% feature_cols)
 
-    cols_to_exclude <- c("mz", "time", "rt", "mz_min", "mz_max")
-    cols_to_pivot_int <- colnames(final.ftrs)[which(
-      !colnames(final.ftrs) %in% cols_to_exclude)
-      ]
-    cols_to_pivot_rt <- colnames(final.times)[which(
-      !colnames(final.times) %in% cols_to_exclude)
-      ]
+    colnames(final.ftrs)[sample_cols_idx] <- tools::file_path_sans_ext(colnames(final.ftrs)[sample_cols_idx])
+    colnames(final.times)[sample_cols_idx] <- tools::file_path_sans_ext(colnames(final.times)[sample_cols_idx])
+
+    sample_cols <- colnames(final.ftrs)[sample_cols_idx]
 
     final.ftrs <- tidyr::pivot_longer(final.ftrs,
-      cols = all_of(cols_to_pivot_int),
+      cols = all_of(sample_cols),
       names_to = "sample",
       values_to = "sample_intensity"
     )
 
     final.times <- tidyr::pivot_longer(final.times,
-      cols = all_of(cols_to_pivot_rt),
+      cols = all_of(sample_cols),
       names_to = "sample",
       values_to = "sample_rt"
     )
