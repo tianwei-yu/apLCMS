@@ -81,13 +81,11 @@ feature_recovery <- function(cluster,
 
   for (batch_id in batches_idx)
   {
-    this.fake <- step_one_features[[batch_id]]
-    this.fake.medians <- distinct(this.fake, mz, rt, median_intensity)$median_intensity
-    this.fake <- long_to_wide_feature_table(this.fake)
+    this.fake <- long_to_wide_feature_table(step_one_features[[batch_id]])
+    this.fake.medians <- apply(dplyr::select(this.fake, contains("_intensity")), 1, median)
 
     # adjusting the time (already within batch adjusted)
     this.features <- readjust_times(batchwise[[batch_id]], corrected[[batch_id]])
-
     aligned_intensities <- dplyr::select(aligned, contains("_intensity"))
     batchwise_intensities <- dplyr::select(this.fake, contains("_intensity"))
 
@@ -307,8 +305,22 @@ two.step.hybrid <- function(filenames,
   doParallel::registerDoParallel(cluster)
   clusterEvalQ(cluster, library(recetox.aplcms))
 
+  extracted_features <- list()
+  for (batch_id in batches_idx) {
+    extracted <- batchwise[[batch_id]]$recovered_feature_sample_table
+    extracted <- long_to_wide_feature_table(extracted)
+    intensities <- dplyr::select(extracted, contains("_intensity"))
+    median_intensity <- apply(intensities, 1, median)
+    extracted <- dplyr::select(extracted, mz, rt)
+    extracted[, 3:4] <- NA
+    colnames(extracted)[3:4] <- c("mz_min", "mz_max")
+    extracted[, 5] <- median_intensity
+    colnames(extracted)[5] <- "median_intensity"
+    extracted_features[[batch_id]] <- extracted
+  }
+
   message("* aligning time")
-  corrected <- adjust.time(step_one_features,
+  corrected <- adjust.time(extracted_features,
     mz.tol = batch.align.mz.tol,
     chr.tol = batch.align.chr.tol,
     find.tol.max.d = 10 * mz.tol,
@@ -371,6 +383,5 @@ two.step.hybrid <- function(filenames,
   )
   features$corrected_features <- corrected
   features$final_features <- recovered_features
-  browser()
   return(features)
 }
