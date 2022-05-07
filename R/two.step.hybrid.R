@@ -365,8 +365,12 @@ two.step.hybrid <- function(filenames,
 
   features <- new("list")
   features$batchwise_features <- batchwise
-  features$aligned_features <- aligned
+  features$aligned_features <- as_feature_sample_table(
+    rt_crosstab = aligned$rt_crosstab,
+    int_crosstab = aligned$int_crosstab
+  )
   features$corrected_features <- corrected
   features$final_features <- recovered_features
+  browser()
   return(features)
 }
