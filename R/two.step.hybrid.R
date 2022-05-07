@@ -369,6 +369,7 @@ two.step.hybrid <- function(filenames,
   features <- new("list")
   features$batchwise_features <- batchwise
   features$all_features <- aligned
+  features$corrected_features <- corrected
   features$final_features <- recovered_features
   return(features)
 }
