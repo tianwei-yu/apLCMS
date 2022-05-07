@@ -331,7 +331,7 @@ two.step.hybrid <- function(filenames,
     rt_colname = "rt"
   )
 
-  aligned <- as_wide_aligned_table(aligned)
+  aligned_wide <- as_wide_aligned_table(aligned)
 
   message("* recovering features across batches")
   recovered <- feature_recovery(
@@ -340,7 +340,7 @@ two.step.hybrid <- function(filenames,
     batchwise = batchwise,
     filenames_batchwise = filenames_batchwise,
     corrected = corrected,
-    aligned = aligned,
+    aligned = aligned_wide,
     batches_idx = batches_idx,
     mz.tol = mz.tol,
     batch.align.mz.tol = batch.align.mz.tol,
@@ -368,7 +368,7 @@ two.step.hybrid <- function(filenames,
 
   features <- new("list")
   features$batchwise_features <- batchwise
-  features$all_features <- aligned
+  features$aligned_features <- aligned
   features$corrected_features <- corrected
   features$final_features <- recovered_features
   return(features)
