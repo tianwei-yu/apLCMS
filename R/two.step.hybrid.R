@@ -1,3 +1,37 @@
+merge_known_tables <- function(batchwise, batches_idx) {
+  colnames <- c("chemical_formula", "HMDB_ID", "KEGG_compound_ID", "mass", "ion.type", "m.z",
+              "Number_profiles_processed", "Percent_found", "mz_min", "mz_max", 
+              "RT_mean", "RT_sd", "RT_min", "RT_max", "int_mean(log)", "int_sd(log)", 
+              "int_min(log)", "int_max(log)")
+
+  known_table <- tibble(
+    chemical_formula = character(),
+    HMDB_ID = character(),
+    KEGG_compound_ID = character(),
+    mass = numeric(),
+    ion.type = character(),
+    m.z = numeric(),
+    Number_profiles_processed = numeric(),
+    Percent_found = numeric(),
+    mz_min = numeric(),
+    mz_max = numeric(),
+    RT_mean = numeric(),
+    RT_sd = numeric(),
+    RT_min = numeric(),
+    RT_max = numeric(),
+    "int_mean(log)" = numeric(),
+    "int_sd(log)" = numeric(),
+    "int_min(log)" = numeric(),
+    "int_max(log)" = numeric()
+  )
+
+  for (batch in batches_idx) {
+    known_table <- dplyr::full_join(known_table, batchwise[[batch]]$updated.known.table, by = colnames)
+  }
+
+  return(known_table)
+}
+
 filter_features_by_presence <- function(feature_table,
                                         metadata,
                                         batches_idx,
@@ -377,6 +411,7 @@ two.step.hybrid <- function(filenames,
 
   features <- new("list")
   features$batchwise_features <- batchwise
+  features$known_table <- merge_known_tables(batchwise, batches_idx)
   features$aligned_features <- as_feature_sample_table(
     rt_crosstab = aligned$rt_crosstab,
     int_crosstab = aligned$int_crosstab
