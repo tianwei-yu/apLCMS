@@ -1,5 +1,5 @@
 adjust.time <-
-function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE)  # features is a list project, each sub-object is a matrix as identified by prof.to.features
+function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE, rt_colname="pos")  # features is a list project, each sub-object is a matrix as identified by prof.to.features
 {
     
     num.exp<-nrow(summary(features))
@@ -11,22 +11,11 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
             text(x=0,y=0,"Retention time \n adjustment",cex=2)
         }
 
-        a<-summary(features)
-        sizes<-as.numeric(a[,1])/ncol(features[[1]])
-        sizes<-cumsum(sizes)
-        #		sel<-max(which(sizes<=5e6))
-        sel<-length(sizes)
-        
-        mz<-chr<-lab<-rep(0, sizes[sel])
-        sizes<-c(0, sizes)
-        
-        for(i in 1:sel)
-        {
-            mz[(sizes[i]+1):sizes[i+1]]<-features[[i]][,1]
-            chr[(sizes[i]+1):sizes[i+1]]<-features[[i]][,2]
-            lab[(sizes[i]+1):sizes[i+1]]<-i
-        }
-        
+        values <- get_feature_values(features, rt_colname)
+        mz <- values$mz
+        chr <- values$chr
+        lab <- values$lab
+
         if(is.na(mz.tol))
         {
             mz.tol<-find.tol(mz,uppermost=find.tol.max.d, do.plot=do.plot)
@@ -71,7 +60,7 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
             this.feature<-features[[j]]
             if(j != template)
             {
-                this.comb<-rbind(cbind(candi, rep(template,nrow(candi))),cbind(this.feature[,1:2],rep(j,nrow(this.feature))))
+                this.comb<-rbind(cbind(candi, label = rep(template,nrow(candi))),cbind(this.feature[,1:2],label = rep(j,nrow(this.feature))))
                 this.comb<-this.comb[order(this.comb[,1]),]
                 l<-nrow(this.comb)
                 
