@@ -16,7 +16,7 @@
 		},
 		"common": {
 			"installZsh": "false",
-			"username": "true",
+			"username": "false",
 
 		}
 	},
@@ -30,6 +30,10 @@
 		"ms-vscode-remote.vscode-remote-extensionpack",
 		"meakbiyik.vscode-r-test-adapter"
 	],
+	"settings": {
+		"r.rterm.linux": "/bin/local/miniconda/envs/recetox-aplcms/bin/radian",
+		"r.rpath.linux": "/bin/local/miniconda/envs/recetox-aplcms/bin/R"
+	},
 
 	"onCreateCommand": "apt update && apt install -y locales && locale-gen en_US.UTF-8 && git config --global --add safe.directory /workspaces/recetox-aplcms",
 
