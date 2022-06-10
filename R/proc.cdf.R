@@ -1,6 +1,4 @@
-load_file <- function(
-  filename  
-) {
+load_file <- function(filename) {
   this <- load.lcms(filename)
 
   # this could eventually be replaced using drop_na
@@ -19,15 +17,13 @@ load_file <- function(
 }
 
 
-load_data <- function(
-  filename,
-  cache,
-  min.run,
-  min.pres,
-  tol,
-  baseline.correct,
-  intensity.weighted
-  ) {
+load_data <- function(filename,
+                      cache,
+                      min.run,
+                      min.pres,
+                      tol,
+                      baseline.correct,
+                      intensity.weighted) {
   rawprof_filename <- paste(strsplit(tolower(filename), "\\.")[[1]][1], "_", min.run, "_", min.pres, "_", tol, ".rawprof", sep = "")
 
   if (cache && file.exists(rawprof_filename)) {
@@ -45,22 +41,20 @@ load_data <- function(
 }
 
 
-proc.cdf <- function(
-  filename,
-  min.pres = 0.5,
-  min.run = 12,
-  tol = 1e-5,
-  baseline.correct = 0,
-  baseline.correct.noise.percentile = 0,
-  do.plot = FALSE,
-  intensity.weighted = FALSE,
-  cache = TRUE) {
-  
+proc.cdf <- function(filename,
+                     min.pres = 0.5,
+                     min.run = 12,
+                     tol = 1e-5,
+                     baseline.correct = 0,
+                     baseline.correct.noise.percentile = 0,
+                     do.plot = FALSE,
+                     intensity.weighted = FALSE,
+                     cache = TRUE) {
   raw.prof <- load_data(filename, cache, min.run, min.pres, tol, baseline.correct, intensity.weighted)
 
   newprof <- cbind(raw.prof$masses, raw.prof$labels, raw.prof$intensi, raw.prof$grps)
   run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres & raw.prof$height.rec[, 3] > baseline.correct), 1]
-  
+
   newprof <- newprof[newprof[, 4] %in% run.sel, ]
   new.prof <- cont.index(newprof, min.pres = min.pres, min.run = min.run)
 
