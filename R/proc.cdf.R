@@ -51,6 +51,7 @@ load_data <- function(
 plot_raw_profile_histogram <- function(
   raw.prof,
   min.pres,
+  baseline.correct,
   baseline.correct.noise.percentile,
   tol,
   new.prof
@@ -89,7 +90,7 @@ proc.cdf <- function(
   tol = 1e-5,
   baseline.correct = 0,
   baseline.correct.noise.percentile = 0,
-  do.plot = TRUE,
+  do.plot = FALSE,
   intensity.weighted = FALSE,
   cache = TRUE) {
   
@@ -105,6 +106,7 @@ proc.cdf <- function(
     plot_raw_profile_histogram(
       raw.prof,
       min.pres,
+      baseline.correct,
       baseline.correct.noise.percentile,
       tol,
       new.prof
