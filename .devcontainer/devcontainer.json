@@ -16,7 +16,7 @@
 		},
 		"common": {
 			"installZsh": "false",
-			"username": "false",
+			"username": "true",
 
 		}
 	},
