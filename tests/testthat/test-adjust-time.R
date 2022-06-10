@@ -14,7 +14,7 @@ test_that("adjust time test", {
     cluster <- 2L
   } else {
     # use all cores in devtools::test()
-    cluster <- parallel::detectCores()
+    cluster = 4
   }
 
   if (!is(cluster, 'cluster')) {
@@ -39,6 +39,10 @@ test_that("adjust time test", {
     max.align.mz.diff = 0.01,
     do.plot = FALSE
   )
+
+  for(i in seq(extracted_feature_files)){
+    dimnames(corrected[[i]])[[2]][6:7] <- c("V6", "V7")
+  }
 
   expect_equal(corrected, expected)
 })
