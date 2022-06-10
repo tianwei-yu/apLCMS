@@ -24,7 +24,7 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": ["ikuyadeu.r"],
 
-	"onCreateCommand": "apt update && apt install -y locales && locale-gen en_US.UTF-8",
+	"onCreateCommand": "apt update && apt install -y locales && locale-gen en_US.UTF-8 && git config --global --add safe.directory /workspaces/recetox-aplcms",
 
-	"postAttachCommand": "/bin/bash"
+	"postAttachCommand": "/bin/bash && conda activate recetox-aplcms"
 }
