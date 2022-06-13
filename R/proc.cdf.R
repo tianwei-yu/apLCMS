@@ -45,12 +45,12 @@ load_data <- function(filename,
 proc.cdf <- function(filename,
                      min.pres = 0.5,
                      min.run = 12,
-                     tol = 1e-5,
-                     baseline.correct = 0,
-                     baseline.correct.noise.percentile = 0,
+                     tol = 1e-05,
+                     baseline.correct = 0.0,
+                     baseline.correct.noise.percentile = 0.05,
                      do.plot = FALSE,
                      intensity.weighted = FALSE,
-                     cache = TRUE) {
+                     cache = FALSE) {
   raw.prof <- load_data(filename, cache, min.run, min.pres, tol, baseline.correct, intensity.weighted)
 
   newprof <- cbind(raw.prof$masses, raw.prof$labels, raw.prof$intensi, raw.prof$grps)
