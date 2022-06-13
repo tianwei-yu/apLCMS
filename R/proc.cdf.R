@@ -40,7 +40,8 @@ load_data <- function(filename,
   return(raw.prof)
 }
 
-
+#' Process file and return the profile.
+#' @export
 proc.cdf <- function(filename,
                      min.pres = 0.5,
                      min.run = 12,

@@ -12,12 +12,11 @@
 	"features": {
 		"git": {
 			"version": "latest",
-			"ppa": false
+			"ppa": false,
 		},
 		"common": {
 			"installZsh": "false",
 			"username": "false",
-
 		}
 	},
 	
@@ -27,7 +26,6 @@
 		"rdebugger.r-debugger",
 		"eamodio.gitlens",
 		"mutantdino.resourcemonitor",
-		"ms-vscode-remote.vscode-remote-extensionpack",
 		"meakbiyik.vscode-r-test-adapter"
 	],
 	"settings": {
