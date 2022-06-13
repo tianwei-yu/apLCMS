@@ -1,7 +1,7 @@
 test_that("adjust time test", {
-  extracted_feature_files <- c('../testdata/extracted-feature/extracted_0.parquet',
-                               '../testdata/extracted-feature/extracted_1.parquet',
-                               '../testdata/extracted-feature/extracted_2.parquet')
+  extracted_feature_files <- c('../testdata/adjust-time/extracted_0.parquet',
+                               '../testdata/adjust-time/extracted_1.parquet',
+                               '../testdata/adjust-time/extracted_2.parquet')
   
   corrected_files <- c('../testdata/adjust-time/corrected_0.parquet',
                        '../testdata/adjust-time/corrected_1.parquet',

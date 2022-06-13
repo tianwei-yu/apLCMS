@@ -1,14 +1,20 @@
-adjust.time <-
-function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align.mz.diff=0.01, do.plot=TRUE, rt_colname="pos")  # features is a list project, each sub-object is a matrix as identified by prof.to.features
-{
+# features is a list project, each sub-object is a matrix as identified by prof.to.features
+adjust.time <- function(features,
+                        mz.tol=NA,
+                        chr.tol=NA,
+                        colors=NA,
+                        find.tol.max.d=1e-4,
+                        max.align.mz.diff=0.01,
+                        do.plot=TRUE,
+                        rt_colname="pos") {
     
-    num.exp<-nrow(summary(features))
-    if(num.exp>1)
-    {
+    num.exp <- nrow(summary(features))
+    if(num.exp > 1) {
         if (do.plot) {
-            par(mfrow=c(2,2))
-            plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="",axes=FALSE)
-            text(x=0,y=0,"Retention time \n adjustment",cex=2)
+            par(mfrow = c(2,2))
+            plot(c(-1,1), c(-1,1), type="n", xlab="",
+                 ylab="", main="", axes=FALSE)
+            text(x=0, y=0, "Retention time \n adjustment", cex=2)
         }
 
         values <- get_feature_values(features, rt_colname)
@@ -16,115 +22,138 @@ function(features,mz.tol=NA, chr.tol=NA,colors=NA,find.tol.max.d=1e-4, max.align
         chr <- values$chr
         lab <- values$lab
 
-        if(is.na(mz.tol))
-        {
-            mz.tol<-find.tol(mz,uppermost=find.tol.max.d, do.plot=do.plot)
+        if(is.na(mz.tol)) {
+            mz.tol <- find.tol(mz, uppermost = find.tol.max.d, do.plot = do.plot)
         } else if(do.plot) {
-            plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="m/z tolerance level given",axes=FALSE)
-            text(x=0,y=0,mz.tol,cex=1.2)
+            plot(c(-1,1), c(-1,1), type="n", xlab="",
+                 ylab="", main="m/z tolerance level given", axes=FALSE)
+            text(x=0, y=0, mz.tol, cex=1.2)
         }
         
-        if(!is.na(chr.tol) && do.plot)
-        {
-            plot(c(-1,1),c(-1,1),type="n",xlab="",ylab="",main="retention time \n tolerance level given",axes=FALSE)
-            text(x=0,y=0,chr.tol,cex=1.2)
+        if(!is.na(chr.tol) && do.plot) {
+            plot(c(-1,1), c(-1,1), type="n", xlab="",
+                 ylab="", main="retention time \n tolerance level given", axes=FALSE)
+            text(x=0, y=0, chr.tol, cex=1.2)
         }
         
-        all.ft<-find.tol.time(mz, chr, lab, num.exp=num.exp, mz.tol=mz.tol, chr.tol=chr.tol, max.mz.diff=max.align.mz.diff, do.plot=do.plot)
-        chr.tol<-all.ft$chr.tol
+        all.ft <- find.tol.time(mz, 
+                                chr,
+                                lab,
+                                num.exp = num.exp,
+                                mz.tol = mz.tol,
+                                chr.tol = chr.tol,
+                                max.mz.diff = max.align.mz.diff,
+                                do.plot = do.plot)
+        chr.tol <- all.ft$chr.tol
         
         message("**** performing time correction ****")
         message(paste("m/z tolerance level: ", mz.tol))
         message(paste("time tolerance level:", chr.tol))
         
-        for(i in 1:num.exp)
-        {
-            this<-features[[i]]
-            sel<-which(all.ft$lab == i)
-            that<-cbind(all.ft$mz[sel], all.ft$chr[sel], all.ft$grps[sel])
-            this<-this[order(this[,1], this[,2]), ]
-            that<-that[order(that[,1], that[,2]), ]
-            this<-cbind(this, rep(i, nrow(this)), that[,3])
-            features[[i]]<-this
+        for(i in 1:num.exp) {
+            this <- features[[i]]
+            sel <- which(all.ft$lab == i)
+            that <- cbind(all.ft$mz[sel], all.ft$chr[sel], all.ft$grps[sel])
+            this <- this[order(this[, 1], this[, 2]), ]
+            that <- that[order(that[, 1], that[, 2]), ]
+            this <- cbind(this, rep(i, nrow(this)), that[, 3])
+            features[[i]] <- this
         }
         
-        num.ftrs<-as.vector(table(all.ft$lab))
-        template<-which(num.ftrs==max(num.ftrs))[1]
-        message(paste("the template is sample",template))
-        if(is.na(colors[1])) colors<-c("red","blue","dark blue","orange","green","yellow","cyan","pink","violet","bisque","azure","brown","chocolate",rep("grey",num.exp))
+        num.ftrs <- as.vector(table(all.ft$lab))
+        template <- which(num.ftrs == max(num.ftrs))[1]
+        message(paste("the template is sample", template))
+        if(is.na(colors[1])) 
+          colors <-c ("red", "blue", "dark blue", "orange", "green", "yellow", 
+                      "cyan", "pink", "violet", "bisque", "azure", "brown",
+                      "chocolate", rep("grey", num.exp))
         
-        candi<-features[[template]][,1:2]
+        candi <- features[[template]][, 1:2]
         
-        features.2<-foreach(j=1:num.exp) %dopar%
-        {
-            this.feature<-features[[j]]
-            if(j != template)
-            {
-                this.comb<-rbind(cbind(candi, label = rep(template,nrow(candi))),cbind(this.feature[,1:2],label = rep(j,nrow(this.feature))))
-                this.comb<-this.comb[order(this.comb[,1]),]
-                l<-nrow(this.comb)
+        features.2 <- foreach(j = 1:num.exp) %dopar% {
+            this.feature <- features[[j]]
+            if(j != template) {
+                this.comb <- rbind(cbind(candi, label = rep(template, nrow(candi))),
+                                   cbind(this.feature[, 1:2], 
+                                         label = rep(j, nrow(this.feature))))
+                this.comb <- this.comb[order(this.comb[, 1]),]
+                l <- nrow(this.comb)
                 
-                sel<-which(this.comb[2:l,1]-this.comb[1:(l-1),1]< mz.tol * this.comb[1:(l-1),1] * 2 &
-                abs(this.comb[2:l,2]-this.comb[1:(l-1),2])< chr.tol &
-                this.comb[2:l,3] != this.comb[1:(l-1),3]
-                )
-                if(length(sel)<20)
-                {
+                sel <- which(this.comb[2:l, 1] - this.comb[1:(l-1), 1] < 
+                               mz.tol * this.comb[1:(l-1), 1] * 2 & 
+                               abs(this.comb[2:l, 2] - this.comb[1:(l-1), 2]) < 
+                               chr.tol & this.comb[2:l, 3] != this.comb[1:(l-1), 3])
+                if(length(sel) < 20) {
                     cat("too few, aborted")
-                }else{
-                    all.ftr.table <- cbind(this.comb[sel,2], this.comb[sel+1,2])
-                    to.flip <- which(this.comb[sel,3] == j)
-                    temp<-all.ftr.table[to.flip,2]
-                    all.ftr.table[to.flip,2]<-all.ftr.table[to.flip,1]
-                    all.ftr.table[to.flip,1]<-temp
+                } else {
+                    all.ftr.table <- cbind(this.comb[sel, 2], this.comb[sel+1, 2])
+                    to.flip <- which(this.comb[sel, 3] == j)
+                    temp <- all.ftr.table[to.flip, 2]
+                    all.ftr.table[to.flip, 2] <- all.ftr.table[to.flip, 1]
+                    all.ftr.table[to.flip, 1] <- temp
                     
-                    # now the first column is the template retention time. the second column is the to-be-adjusted retention time
+                    # now the first column is the template retention time. 
+                    # the second column is the to-be-adjusted retention time
                     
-                    cat(c("sample",j,"using",nrow(all.ftr.table),","))
-                    if(j %% 3 ==0) cat("\n")
+                    cat(c("sample", j, "using", nrow(all.ftr.table), ", "))
+                    if(j %% 3 == 0) 
+                      cat("\n")
                     
-                    all.ftr.table<-all.ftr.table[order(all.ftr.table[,2]),]
+                    all.ftr.table <- all.ftr.table[order(all.ftr.table[, 2]), ]
                     
-                    this.dev<-all.ftr.table[,2]             ## the to be adjusted time
-                    aver.time<-all.ftr.table[,1]-this.dev   ## the difference between the true time and the to-be-adjusted time
+                    # the to be adjusted time
+                    this.dev <- all.ftr.table[, 2]
                     
-                    this.feature<-this.feature[order(this.feature[,2], this.feature[,1]),]
-                    this.corrected<-this.old<-this.feature[,2]
-                    to.correct<-this.old[this.old>=min(this.dev) & this.old<=max(this.dev)]
+                    # the difference between the true time and the to-be-adjusted time
+                    aver.time <- all.ftr.table[, 1] - this.dev
                     
-                    this.smooth<-ksmooth(this.dev, aver.time, kernel="normal", bandwidth=(max(this.dev)-min(this.dev))/5, x.points=to.correct)
+                    this.feature <- this.feature[order(this.feature[, 2], 
+                                                       this.feature[, 1]), ]
+                    this.corrected <- this.old <- this.feature[, 2]
+                    to.correct <- this.old[this.old >= min(this.dev) & 
+                                             this.old <= max(this.dev)]
                     
-                    this.corrected[this.old>=min(this.dev) & this.old<=max(this.dev)] <- this.smooth$y + to.correct
-                    this.corrected[this.old < min(this.dev)]<-  this.corrected[this.old < min(this.dev)] + mean(this.smooth$y[this.smooth$x==min(this.smooth$x)])
-                    this.corrected[this.old > max(this.dev)]<-  this.corrected[this.old > max(this.dev)] + mean(this.smooth$y[this.smooth$x==max(this.smooth$x)])
-                    this.feature[,2]<-this.corrected
-                    this.feature<-this.feature[order(this.feature[,1], this.feature[,2]),]
+                    this.smooth <- ksmooth(this.dev, aver.time, kernel="normal", 
+                                           bandwidth = (max(this.dev) - min(this.dev)) / 5, 
+                                           x.points = to.correct)
+                    
+                    this.corrected[this.old >= min(this.dev) & this.old <= max(this.dev)] <- 
+                      this.smooth$y + to.correct
+                    this.corrected[this.old < min(this.dev)] <- 
+                      this.corrected[this.old < min(this.dev)] + 
+                      mean(this.smooth$y[this.smooth$x == min(this.smooth$x)])
+                    this.corrected[this.old > max(this.dev)] <- 
+                      this.corrected[this.old > max(this.dev)] + 
+                      mean(this.smooth$y[this.smooth$x == max(this.smooth$x)])
+                    this.feature[, 2] <- this.corrected
+                    this.feature <- this.feature[order(this.feature[, 1], this.feature[, 2]), ]
                 }
             }
 
-            if(sum(is.na(this.feature[,2]))>0)
-            {
-                orig.feature<-features[[j]]
-                s<-which(is.na(this.feature[,2]))
-                for(i in s)
-                {
-                    this.d<-abs(orig.feature[i,2]-orig.feature[,2])
-                    this.d[s]<-Inf
-                    this.s<-which(this.d==min(this.d))[1]
-                    this.feature[i,2]<-orig.feature[i,2]+this.feature[this.s,2]-orig.feature[this.s,2]
+            if(sum(is.na(this.feature[, 2])) > 0) {
+                orig.feature <- features[[j]]
+                s <- which(is.na(this.feature[, 2]))
+                for(i in s) {
+                    this.d <- abs(orig.feature[i, 2] - orig.feature[, 2])
+                    this.d[s] <- Inf
+                    this.s <- which(this.d == min(this.d))[1]
+                    this.feature[i, 2] <- orig.feature[i, 2] + this.feature[this.s, 2] - 
+                      orig.feature[this.s, 2]
                 }
             }
             this.feature
         }
-    }else{
+    } else {
         message("Only one sample.  No need to correct for time.")
     }
 
     if (do.plot) {
-        plot(range(features[[1]][,2]), c(-chr.tol, chr.tol),type="n", ylab="Retention time deviation", xlab="Original Retention time")
+        plot(range(features[[1]][, 2]), c(-chr.tol, chr.tol), type="n", 
+             ylab = "Retention time deviation", xlab = "Original Retention time")
         for(i in 1:num.exp) {
-            features[[i]]<-features[[i]][order(features[[i]][,1], features[[i]][,2]),]
-            points(features[[i]][,2], features.2[[i]][,2]-features[[i]][,2],col=colors[i], cex=.2)
+            features[[i]] <- features[[i]][order(features[[i]][, 1], features[[i]][, 2]), ]
+            points(features[[i]][, 2], features.2[[i]][, 2] - features[[i]][, 2], 
+                   col=colors[i], cex=.2)
         }
     }
 
