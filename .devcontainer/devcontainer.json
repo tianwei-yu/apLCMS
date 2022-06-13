@@ -26,7 +26,8 @@
 		"rdebugger.r-debugger",
 		"eamodio.gitlens",
 		"mutantdino.resourcemonitor",
-		"meakbiyik.vscode-r-test-adapter"
+		"meakbiyik.vscode-r-test-adapter",
+		"dvirtz.parquet-viewer"
 	],
 	"settings": {
 		"r.rterm.linux": "/bin/local/miniconda/envs/recetox-aplcms/bin/radian",
