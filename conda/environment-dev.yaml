@@ -30,4 +30,5 @@ dependencies:
   - r-languageserver
   - r-jsonlite
   - r-styler
+  - r-datacomparer
   - radian
