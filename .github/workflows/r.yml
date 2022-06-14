@@ -10,9 +10,9 @@ name: R
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "44_ci" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "44_ci" ]
   workflow_dispatch:
 
 permissions:
