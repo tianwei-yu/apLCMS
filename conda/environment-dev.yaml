@@ -27,3 +27,8 @@ dependencies:
   - r-stringr
   - r-datacomparer
   - r-tibble
+  - r-languageserver
+  - r-jsonlite
+  - r-styler
+  - r-datacomparer
+  - radian

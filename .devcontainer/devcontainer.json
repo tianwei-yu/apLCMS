@@ -12,19 +12,29 @@
 	"features": {
 		"git": {
 			"version": "latest",
-			"ppa": false
+			"ppa": false,
 		},
 		"common": {
 			"installZsh": "false",
 			"username": "false",
-
 		}
 	},
 	
 	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": ["ikuyadeu.r"],
+	"extensions": [
+		"reditorsupport.r",
+		"rdebugger.r-debugger",
+		"eamodio.gitlens",
+		"mutantdino.resourcemonitor",
+		"meakbiyik.vscode-r-test-adapter",
+		"dvirtz.parquet-viewer"
+	],
+	"settings": {
+		"r.rterm.linux": "/bin/local/miniconda/envs/recetox-aplcms/bin/radian",
+		"r.rpath.linux": "/bin/local/miniconda/envs/recetox-aplcms/bin/R"
+	},
 
-	"onCreateCommand": "apt update && apt install -y locales && locale-gen en_US.UTF-8",
+	"onCreateCommand": "apt update && apt install -y locales && locale-gen en_US.UTF-8 && git config --global --add safe.directory /workspaces/recetox-aplcms",
 
 	"postAttachCommand": "/bin/bash"
 }
