@@ -1,3 +1,5 @@
+#' Load raw data from file
+#' @export
 load_file <- function(filename) {
   this <- load.lcms(filename)
 
@@ -16,7 +18,8 @@ load_file <- function(filename) {
   return(this)
 }
 
-
+#' Load data either from cache or load raw file and detect peaks.
+#' @export
 load_data <- function(filename,
                       cache,
                       min.run,
