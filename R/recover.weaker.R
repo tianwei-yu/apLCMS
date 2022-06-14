@@ -90,14 +90,17 @@ recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, al
     ttt<-table(adjusted.time)
     to.use<-which(adjusted.time %in% as.numeric(names(ttt)[ttt==1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0==1]))
     if(length(to.use) > 2000) to.use<-sample(to.use, 2000, replace=FALSE)
-    orig.time<-orig.time[to.use]
-    adjusted.time<-adjusted.time[to.use]
-    sp<-interpSpline(orig.time~adjusted.time, na.action = na.omit)
     
     sel.non.na<-which(!is.na(aligned.ftrs[,2]))
     target.time<-aligned.ftrs[,2]
-    target.time[sel.non.na]<-predict(sp,aligned.ftrs[sel.non.na,2])$y
-    
+	
+    orig.time<-orig.time[to.use]
+    adjusted.time<-adjusted.time[to.use]
+	if(length(adjusted.time)>=4)
+	{
+		sp<-interpSpline(orig.time~adjusted.time, na.action = na.omit)
+		target.time[sel.non.na]<-predict(sp,aligned.ftrs[sel.non.na,2])$y
+    }
     
     l<-length(masses)
     curr.bw<-0.5*orig.tol*max(masses)

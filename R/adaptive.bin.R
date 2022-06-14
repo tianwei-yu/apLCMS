@@ -70,7 +70,7 @@ function(x, min.run, min.pres, tol, baseline.correct, weighted=FALSE)
             }else{
                 mass.den<-density(this.masses, bw=this.bw)
             }
-            mass.den$y[mass.den$y < min(this.intensi)/10]<-0
+            #mass.den$y[mass.den$y < min(this.intensi)/10]<-0
             mass.turns<-find.turn.point(mass.den$y)
             mass.pks<-mass.den$x[mass.turns$pks]
             mass.vlys<-c(-Inf, mass.den$x[mass.turns$vlys], Inf)
