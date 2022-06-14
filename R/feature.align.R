@@ -95,7 +95,7 @@ function(features, min.exp=2,mz.tol=NA,chr.tol=NA,find.tol.max.d=1e-4, max.align
         
         sel.labels<-as.numeric(names(ttt)[ttt>=min.exp])
         
-        aligned.ftrs<-foreach(i= seq_along(sel.labels), .combine=rbind) %dopar%
+        aligned.ftrs<-foreach(i= seq_along(sel.labels), .combine=rbind) %do%
         {
             if(i %% 100 == 0) gc()
             this.return<-NULL
