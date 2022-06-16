@@ -1,8 +1,13 @@
+draw_plot <- function(x=c(-1,1), y=c(-1,1), xlab="", ylab="", main="", axes=FALSE, label="", cex=1.2){
+    plot(x, y, type="n", xlab=xlab,
+         ylab=ylab, main=main, axes=axes)
+    text(x=0, y=0, label, cex=cex)
+}
+
 compute_comb <- function(candi, template, this.feature, j){
-    this.comb <- rbind(cbind(candi, label = rep(template, nrow(candi))),
-                       cbind(this.feature[, 1:2], 
-                             label = rep(j, nrow(this.feature))))
-    this.comb <- this.comb[order(this.comb[, 1]),]
+    this.comb <- dplyr::bind_rows(dplyr::bind_cols(candi, label = rep(template, nrow(candi))),
+                        dplyr::bind_cols(this.feature[, 1:2], label = rep(j, nrow(this.feature))))
+    this.comb <- dplyr::arrange(this.comb, this.comb[, 1])
     return(this.comb)
 }
 
@@ -12,6 +17,7 @@ compute_sel <- function(this.comb, mz.tol, chr.tol){
                    mz.tol * this.comb[1:(l-1), 1] * 2 & 
                    abs(this.comb[2:l, 2] - this.comb[1:(l-1), 2]) < 
                    chr.tol & this.comb[2:l, 3] != this.comb[1:(l-1), 3])
+    return(sel)
 }
 
 compute_template_adjusted_rt <- function(this.comb, sel, j){
@@ -33,8 +39,7 @@ compute_template_adjusted_rt <- function(this.comb, sel, j){
 }
 
 compute_corrected_features <- function(this.feature, this.dev, aver.time){
-    this.feature <- this.feature[order(this.feature[, 2], 
-                                       this.feature[, 1]), ]
+    this.feature <- this.feature[order(this.feature[, 2], this.feature[, 1]), ]
     this.corrected <- this.old <- this.feature[, 2]
     to.correct <- this.old[this.old >= min(this.dev) & 
                              this.old <= max(this.dev)]
@@ -82,9 +87,14 @@ adjust.time <- function(features,
     if(num.exp > 1) {
         if (do.plot) {
             par(mfrow = c(2,2))
-            plot(c(-1,1), c(-1,1), type="n", xlab="",
-                 ylab="", main="", axes=FALSE)
-            text(x=0, y=0, "Retention time \n adjustment", cex=2)
+            draw_plot(x = c(-1,1), 
+                      y = c(-1,1), 
+                      xlab = "", 
+                      ylab = "", 
+                      main = "", 
+                      axes = FALSE, 
+                      label = "Retention time \n adjustment", 
+                      cex = 2)
         }
 
         values <- get_feature_values(features, rt_colname)
@@ -95,15 +105,25 @@ adjust.time <- function(features,
         if(is.na(mz.tol)) {
             mz.tol <- find.tol(mz, uppermost = find.tol.max.d, do.plot = do.plot)
         } else if(do.plot) {
-            plot(c(-1,1), c(-1,1), type="n", xlab="",
-                 ylab="", main="m/z tolerance level given", axes=FALSE)
-            text(x=0, y=0, mz.tol, cex=1.2)
+            draw_plot(x = c(-1,1), 
+                      y = c(-1,1), 
+                      xlab = "", 
+                      ylab = "", 
+                      main = "m/z tolerance level given", 
+                      axes = FALSE, 
+                      label = mz.tol, 
+                      cex = 1.2)
         }
         
         if(!is.na(chr.tol) && do.plot) {
-            plot(c(-1,1), c(-1,1), type="n", xlab="",
-                 ylab="", main="retention time \n tolerance level given", axes=FALSE)
-            text(x=0, y=0, chr.tol, cex=1.2)
+            draw_plot(x = c(-1,1), 
+                      y = c(-1,1), 
+                      xlab = "", 
+                      ylab = "", 
+                      main = "retention time \n tolerance level given", 
+                      axes = FALSE, 
+                      label = chr.tol, 
+                      cex = 1.2)
         }
         
         all.ft <- find.tol.time(mz, 
@@ -167,7 +187,7 @@ adjust.time <- function(features,
             this.feature
         }
     } else {
-        message("Only one sample.  No need to correct for time.")
+        message("Only one sample. No need to correct for time.")
     }
 
     if (do.plot) {
@@ -176,8 +196,14 @@ adjust.time <- function(features,
                       "cyan", "pink", "violet", "bisque", "azure", "brown",
                       "chocolate", rep("grey", num.exp))
 
-        plot(range(features[[1]][, 2]), c(-chr.tol, chr.tol), type="n", 
-             ylab = "Retention time deviation", xlab = "Original Retention time")
+        draw_plot(x = range(features[[1]][, 2]), 
+                  y = c(-chr.tol, chr.tol), 
+                  xlab = "Original Retention time",
+                  ylab = "Retention time deviation",
+                  main = "",
+                  axes = TRUE,
+                  label = "")
+
         for(i in 1:num.exp) {
             features[[i]] <- features[[i]][order(features[[i]][, 1], features[[i]][, 2]), ]
             points(features[[i]][, 2], features.2[[i]][, 2] - features[[i]][, 2], 
