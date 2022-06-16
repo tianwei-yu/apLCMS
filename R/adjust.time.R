@@ -42,7 +42,7 @@ adjust.time <- function(features,
                                 number_of_experiments = num.exp,
                                 mz_tol_relative = mz.tol,
                                 rt_tol_relative = chr.tol,
-                                max.mz.diff = max.align.mz.diff,
+                                mz_tol_absolute = max.align.mz.diff,
                                 do.plot = do.plot)
         chr.tol <- all.ft$chr.tol
         
