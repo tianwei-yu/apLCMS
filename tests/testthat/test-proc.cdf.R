@@ -1,6 +1,8 @@
 patrick::with_parameters_test_that(
-  "test proc.cdf test",
+  "test proc.cdf",
   {
+    if(ci_skip == TRUE) skip_on_ci()
+    
     testdata <- file.path("..", "testdata", .test_name)
     input_path <- file.path(testdata, filename)
     actual <- proc.cdf(
@@ -25,7 +27,8 @@ patrick::with_parameters_test_that(
       tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
-      intensity_weighted = FALSE
+      intensity_weighted = FALSE,
+      ci_skip = FALSE
     ),
     RCX_01_shortened_v2 = list(
       filename = c("RCX_01_shortened_v2.mzML"),
@@ -33,7 +36,8 @@ patrick::with_parameters_test_that(
       tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
-      intensity_weighted = TRUE
+      intensity_weighted = TRUE,
+      ci_skip = FALSE
     ),
     RCX_09_shortened_v2 = list(
       filename = c("RCX_09_shortened_v2.mzML"),
@@ -41,7 +45,8 @@ patrick::with_parameters_test_that(
       tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
-      intensity_weighted = TRUE
+      intensity_weighted = TRUE,
+      ci_skip = TRUE
     ),
     RCX_16_shortened_v2 = list(
       filename = c("RCX_16_shortened_v2.mzML"),
@@ -49,7 +54,8 @@ patrick::with_parameters_test_that(
       tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
-      intensity_weighted = TRUE
+      intensity_weighted = TRUE,
+      ci_skip = TRUE
     )
   )
 )

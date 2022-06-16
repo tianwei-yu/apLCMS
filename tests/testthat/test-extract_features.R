@@ -1,6 +1,8 @@
 patrick::with_parameters_test_that(
   "extract single feature works",
   {
+    skip_on_ci()
+
     testdata <- file.path("..", "testdata")
 
     filenames <- lapply(files, function(x) {
