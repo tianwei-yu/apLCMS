@@ -1,13 +1,13 @@
 find.tol.time <- function(mz,
                           chr,
                           lab,
-                          num.exp,
-                          mz.tol = 2e-5,
-                          chr.tol = NA,
+                          number_of_experiments,
+                          mz_tol_relative = 2e-5,
+                          rt_tol_relative = NA,
                           aver.bin.size = 200,
                           min.bins = 50,
                           max.bins = 100,
-                          max.mz.diff = 0.01,
+                          mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
     o <- order(mz)
@@ -19,7 +19,7 @@ find.tol.time <- function(mz,
     l <- length(mz)
     
     breaks <-
-        c(0, which((mz[2:l] - mz[1:(l - 1)]) > min(max.mz.diff, mz.tol * ((
+        c(0, which((mz[2:l] - mz[1:(l - 1)]) > min(mz_tol_absolute, mz_tol_relative * ((
             mz[2:l] + mz[1:(l - 1)]
         ) / 2))), l)
     
@@ -32,7 +32,7 @@ find.tol.time <- function(mz,
     }
     
     breaks <- breaks[c(-1, -length(breaks))]
-    if (is.na(chr.tol)) {
+    if (is.na(rt_tol_relative)) {
         da <- 0
         if (length(breaks) > max.num.segments) {
             s <- floor(seq(2, length(breaks), length.out = max.num.segments))
@@ -43,7 +43,7 @@ find.tol.time <- function(mz,
         for (i in s) {
             this.sel <- (breaks[i - 1] + 1):breaks[i]
             
-            if (length(this.sel) <= 3 * num.exp) {
+            if (length(this.sel) <= 3 * number_of_experiments) {
                 this.d <- as.vector(dist(chr[this.sel]))
                 if (length(this.d) > 100)
                     this.d <- sample(this.d, 100)
@@ -71,7 +71,7 @@ find.tol.time <- function(mz,
         yy <- cumsum(y > 1.5 * exp.y)
         yi <- seq_along(yy)
         sel <- min(which(yy < yi)) - 1
-        chr.tol <- x[sel]
+        rt_tol_relative <- x[sel]
         
         if (do.plot) {
             plot(x, y,  xlab = "Delta", ylab = "Density",
@@ -82,7 +82,7 @@ find.tol.time <- function(mz,
     }
     
     da <- chr[2:l] - chr[1:(l - 1)]
-    breaks.2 <- which(da > chr.tol)
+    breaks.2 <- which(da > rt_tol_relative)
     all.breaks <- c(0, unique(c(breaks, breaks.2)), l)
     all.breaks <- all.breaks[order(all.breaks)]
     
@@ -96,7 +96,7 @@ find.tol.time <- function(mz,
         chr = chr,
         lab = lab,
         grps = grps,
-        chr.tol = chr.tol,
-        mz.tol = mz.tol
+        chr.tol = rt_tol_relative,
+        mz.tol = mz_tol_relative
     )
 }
