@@ -14,6 +14,7 @@ patrick::with_parameters_test_that(
 
     expected_path <- file.path(testdata, expected_filename)
     expected <- readRDS(expected_path)
+    
     expect_equal(actual, expected)
   },
   patrick::cases(
@@ -26,6 +27,18 @@ patrick::with_parameters_test_that(
     RCX_01_shortened_v2 = list(
       filename = c("RCX_01_shortened_v2_cdf.Rds"),
       expected_filename = "RCX_01_shortened_v2_features.Rds",
+      sd_cut = c(0.01, 500),
+      sigma_ratio_lim = c(0.01, 100)
+    ),
+    RCX_09_shortened_v2 = list(
+      filename = c("RCX_09_shortened_v2_cdf.Rds"),
+      expected_filename = "RCX_09_shortened_v2_features.Rds",
+      sd_cut = c(0.01, 500),
+      sigma_ratio_lim = c(0.01, 100)
+    ),
+    RCX_16_shortened_v2 = list(
+      filename = c("RCX_16_shortened_v2_cdf.Rds"),
+      expected_filename = "RCX_16_shortened_v2_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100)
     )

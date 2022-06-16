@@ -34,6 +34,22 @@ patrick::with_parameters_test_that(
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE
+    ),
+    RCX_09_shortened_v2 = list(
+      filename = c("RCX_09_shortened_v2.mzML"),
+      expected_filename = "RCX_09_shortened_v2_cdf.Rds",
+      tol = 1e-06,
+      min_pres = 0.7,
+      min_run = 4,
+      intensity_weighted = TRUE
+    ),
+    RCX_16_shortened_v2 = list(
+      filename = c("RCX_16_shortened_v2.mzML"),
+      expected_filename = "RCX_16_shortened_v2_cdf.Rds",
+      tol = 1e-06,
+      min_pres = 0.7,
+      min_run = 4,
+      intensity_weighted = TRUE
     )
   )
 )
