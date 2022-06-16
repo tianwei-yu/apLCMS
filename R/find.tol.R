@@ -1,15 +1,15 @@
-find.tol <- function(a,
-                     uppermost = 1e-4,
+find.tol <- function(mz_values,
+                     mz_max_diff = 1e-4,
                      aver.bin.size = 4000,
                      min.bins = 50,
                      max.bins = 200,
                      do.plot = TRUE) {
-    a <- a[order(a)]
-    l <- length(a)
-    da <- (a[2:l] - a[1:(l - 1)]) / ((a[2:l] + a[1:(l - 1)]) / 2)
-    da <- da[da < uppermost]
+    mz_values <- mz_values[order(mz_values)]
+    l <- length(mz_values)
+    da <- (mz_values[2:l] - mz_values[1:(l - 1)]) / ((mz_values[2:l] + mz_values[1:(l - 1)]) / 2)
+    da <- da[da < mz_max_diff]
     n <- min(max.bins, max(round(length(da) / aver.bin.size), min.bins))
-    des <-density(da, kernel = "gaussian", n = n, bw = uppermost / n * 2, from = 0)
+    des <- density(da, kernel = "gaussian", n = n, bw = mz_max_diff / n * 2, from = 0)
     y <- des$y[des$x > 0]
     x <- des$x[des$x > 0]
     
