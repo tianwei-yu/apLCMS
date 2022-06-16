@@ -147,7 +147,20 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("** aligned features, CPU time (seconds): ", as.vector(system.time(aligned<-feature.align(f2, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c(
+            "** aligned features, CPU time (seconds): ",
+            as.vector(system.time(
+                aligned <-
+                    feature.align(
+                        f2,
+                        min_occurrence = min.exp,
+                        mz_tol_relative = align.mz.tol,
+                        rt_tol_relative = align.chr.tol,
+                        mz_max_diff = 10 * mz.tol,
+                        mz_tol_absolute = max.align.mz.diff
+                    )
+            ))[1]
+        ))
         save(aligned,file=this.name)
         stopCluster(cl)
     }else{
@@ -338,7 +351,20 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("** aligned features, CPU time (seconds): ", as.vector(system.time(aligned.recov<-feature.align(f2.recov, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c(
+            "** aligned features, CPU time (seconds): ",
+            as.vector(system.time(
+                aligned.recov <-
+                    feature.align(
+                        f2.recov,
+                        min_occurrence = min.exp,
+                        mz_tol_relative = align.mz.tol,
+                        rt_tol_relative = align.chr.tol,
+                        mz_max_diff = 10 * mz.tol,
+                        mz_tol_absolute = max.align.mz.diff
+                    )
+            ))[1]
+        ))
         save(aligned.recov,file=this.name)
         stopCluster(cl)
     }else{

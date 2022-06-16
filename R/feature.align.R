@@ -47,7 +47,7 @@ feature.align <- function(features,
         
         # find relative m/z tolerance level
         if (is.na(mz_tol_relative)) {
-            mz_tol_relative <- find.tol(mz_values, uppermost = mz_max_diff, do.plot = do.plot)
+            mz_tol_relative <- find.tol(mz_values, mz_max_diff = mz_max_diff, do.plot = do.plot)
             if (length(mz_tol_relative) == 0) {
                 mz_tol_relative <- 1e-5
                 warning(
@@ -70,10 +70,10 @@ feature.align <- function(features,
         all.ft <- find.tol.time(mz_values,
                                 chr,
                                 lab,
-                                num.exp=number_of_experiments,
-                                mz.tol = mz_tol_relative,
-                                chr.tol = rt_tol_relative,
-                                max.mz.diff = mz_tol_absolute,
+                                number_of_experiments = number_of_experiments,
+                                mz_tol_relative = mz_tol_relative,
+                                rt_tol_relative = rt_tol_relative,
+                                mz_tol_absolute = mz_tol_absolute,
                                 do.plot = do.plot)
         rt_tol_relative <- all.ft$chr.tol
         

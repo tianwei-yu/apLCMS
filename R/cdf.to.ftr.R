@@ -128,7 +128,20 @@ function(folder, file.pattern=".cdf", n.nodes=4, min.exp=2, min.pres=0.5, min.ru
             #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
             clusterEvalQ(cl, library(apLCMS))
             
-            message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned<-feature.align(f2, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+            message(c(
+                "***** aligning features, CPU time (seconds): ",
+                as.vector(system.time(
+                    aligned <-
+                        feature.align(
+                            f2,
+                            min_occurrence = min.exp,
+                            mz_tol_relative = align.mz.tol,
+                            rt_tol_relative = align.chr.tol,
+                            mz_max_diff = 10 * mz.tol,
+                            mz_tol_absolute = max.align.mz.diff
+                        )
+                ))[1]
+            ))
             save(aligned,file=this.name)
             stopCluster(cl)
             

@@ -23,7 +23,7 @@ adjust.time <- function(features,
         lab <- values$lab
 
         if(is.na(mz.tol)) {
-            mz.tol <- find.tol(mz, uppermost = find.tol.max.d, do.plot = do.plot)
+            mz.tol <- find.tol(mz, mz_max_diff = find.tol.max.d, do.plot = do.plot)
         } else if(do.plot) {
             plot(c(-1,1), c(-1,1), type="n", xlab="",
                  ylab="", main="m/z tolerance level given", axes=FALSE)
@@ -36,12 +36,12 @@ adjust.time <- function(features,
             text(x=0, y=0, chr.tol, cex=1.2)
         }
         
-        all.ft <- find.tol.time(mz, 
+        all.ft <- find.tol.time(mz,
                                 chr,
                                 lab,
-                                num.exp = num.exp,
-                                mz.tol = mz.tol,
-                                chr.tol = chr.tol,
+                                number_of_experiments = num.exp,
+                                mz_tol_relative = mz.tol,
+                                rt_tol_relative = chr.tol,
                                 max.mz.diff = max.align.mz.diff,
                                 do.plot = do.plot)
         chr.tol <- all.ft$chr.tol
