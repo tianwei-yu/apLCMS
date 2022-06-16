@@ -1,3 +1,20 @@
+to_attach <- function(pick, number_of_experiments, use = "sum") {
+    strengths <- rep(0, number_of_experiments)
+    if (is.null(nrow(pick))) {
+        strengths[pick[6]] <- pick[5]
+        return(c(pick[1], pick[2], pick[1], pick[1], strengths))
+    } else {
+        for (i in seq_along(strengths)) {
+            if (use == "sum")
+                strengths[i] <- sum(pick[pick[, 6] == i, 5])
+            if (use == "median")
+                strengths[i] <- median(pick[pick[, 6] == i, 5])
+        }
+        return(c(mean(pick[, 1]), mean(pick[, 2]), min(pick[, 1]),
+                 max(pick[, 1]), strengths))
+    }
+}
+
 # returns a list of aligned features and original peak times
 feature.align <- function(features,
                           min.exp = 2,
@@ -14,34 +31,6 @@ feature.align <- function(features,
         text(x = 0, y = 0, "Feature alignment", cex = 2)
         plot(c(-1, 1), c(-1, 1), type = "n", xlab = "",
              ylab = "", main = "", axes = FALSE)
-    }
-    
-    to.attach <- function(this.pick, num.exp, use = "sum") {
-        this.strengths <- rep(0, num.exp)
-        if (is.null(nrow(this.pick))) {
-            this.strengths[this.pick[6]] <- this.pick[5]
-            return(c(
-                this.pick[1],
-                this.pick[2],
-                this.pick[1],
-                this.pick[1],
-                this.strengths
-            ))
-        } else {
-            for (m in seq_along(this.strengths)) {
-                if (use == "sum")
-                    this.strengths[m] <- sum(this.pick[this.pick[, 6] == m, 5])
-                if (use == "median")
-                    this.strengths[m] <- median(this.pick[this.pick[, 6] == m, 5])
-            }
-            return(c(
-                mean(this.pick[, 1]),
-                mean(this.pick[, 2]),
-                min(this.pick[, 1]),
-                max(this.pick[, 1]),
-                this.strengths
-            ))
-        }
     }
     
     num.exp <- nrow(summary(features))
@@ -151,8 +140,8 @@ feature.align <- function(features,
                                         if (!is.null(nrow(thee))) {
                                             if (length(unique(thee[, 6])) >= min.exp) {
                                                 this.return <-
-                                                    c(to.attach(thee, num.exp, use = "sum"),
-                                                      to.attach(thee[, c(1, 2, 3, 4, 2, 6)], num.exp, use = "median"),
+                                                    c(to_attach(thee, num.exp, use = "sum"),
+                                                      to_attach(thee[, c(1, 2, 3, 4, 2, 6)], num.exp, use = "median"),
                                                       sd(thee[, 1], na.rm = TRUE)
                                                     )
                                             }
@@ -165,8 +154,8 @@ feature.align <- function(features,
                 } else {
                     if (min.exp == 1) {
                         thee <- c(mz_values[sel], chr[sel], chr[sel], chr[sel], area[sel], lab[sel])
-                        this.return <- c(to.attach(thee, num.exp, use = "sum"),
-                                         to.attach(thee[c(1, 2, 3, 4, 2, 6)], num.exp, use = "median"),
+                        this.return <- c(to_attach(thee, num.exp, use = "sum"),
+                                         to_attach(thee[c(1, 2, 3, 4, 2, 6)], num.exp, use = "median"),
                                          NA
                         )
                     }
