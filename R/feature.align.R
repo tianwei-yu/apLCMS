@@ -17,11 +17,11 @@ to_attach <- function(pick, number_of_experiments, use = "sum") {
 
 # returns a list of aligned features and original peak times
 feature.align <- function(features,
-                          min.exp = 2,
-                          mz.tol = NA,
-                          chr.tol = NA,
-                          find.tol.max.d = 1e-4,
-                          max.align.mz.diff = 0.01,
+                          min_occurrence = 2,
+                          mz_tol_relative = NA,
+                          rt_tol_relative = NA,
+                          mz_max_diff = 1e-4,
+                          mz_tol_absolute = 0.01,
                           do.plot = TRUE,
                           rt_colname = "pos") {
     if (do.plot) {
@@ -33,23 +33,23 @@ feature.align <- function(features,
              ylab = "", main = "", axes = FALSE)
     }
     
-    num.exp <- nrow(summary(features))
-    if (num.exp > 1) {
+    number_of_experiments <- nrow(summary(features))
+    if (number_of_experiments > 1) {
         values <- get_feature_values(features, rt_colname)
-        masses <- values$mz
+        mz_values <- values$mz
         chr <- values$chr
         lab <- values$lab
         
-        o <- order(masses, chr)
-        masses <- masses[o]
+        o <- order(mz_values, chr)
+        mz_values <- mz_values[o]
         chr <- chr[o]
         lab <- lab[o]
-        l <- length(masses)
         
-        if (is.na(mz.tol)) {
-            mz.tol <- find.tol(masses, uppermost = find.tol.max.d, do.plot = do.plot)
-            if (length(mz.tol) == 0) {
-                mz.tol <- 1e-5
+        # find relative m/z tolerance level
+        if (is.na(mz_tol_relative)) {
+            mz_tol_relative <- find.tol(mz_values, uppermost = mz_max_diff, do.plot = do.plot)
+            if (length(mz_tol_relative) == 0) {
+                mz_tol_relative <- 1e-5
                 warning(
                     "Automatic tolerance finding failed, 10 ppm was assigned. May need to manually assign alignment mz tolerance level."
                 )
@@ -57,45 +57,47 @@ feature.align <- function(features,
         } else if (do.plot) {
             plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "",
                  main = "alignment m/z tolerance level given", axes = FALSE)
-            text(x = 0, y = 0, mz.tol, cex = 1.2)
+            text(x = 0, y = 0, mz_tol_relative, cex = 1.2)
         }
         
-        if (!is.na(chr.tol) && do.plot) {
+        if (!is.na(rt_tol_relative) && do.plot) {
             plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "",
                  main = "retention time \n tolerance level given", axes = FALSE)
-            text(x = 0, y = 0, chr.tol, cex = 1.2)
+            text(x = 0, y = 0, rt_tol_relative, cex = 1.2)
         }
         
-        all.ft <- find.tol.time(masses,
+        # find relative retention time tolerance level
+        all.ft <- find.tol.time(mz_values,
                                 chr,
                                 lab,
-                                num.exp=num.exp,
-                                mz.tol = mz.tol,
-                                chr.tol = chr.tol,
-                                max.mz.diff = max.align.mz.diff,
+                                num.exp=number_of_experiments,
+                                mz.tol = mz_tol_relative,
+                                chr.tol = rt_tol_relative,
+                                max.mz.diff = mz_tol_absolute,
                                 do.plot = do.plot)
-        chr.tol <- all.ft$chr.tol
+        rt_tol_relative <- all.ft$chr.tol
         
         message("**** performing feature alignment ****")
-        message(paste("m/z tolerance level: ", mz.tol))
-        message(paste("time tolerance level:", chr.tol))
+        message(paste("m/z tolerance level: ", mz_tol_relative))
+        message(paste("time tolerance level:", rt_tol_relative))
         
-        aligned.ftrs <- pk.times <- rep(0, 4 + num.exp)
+        aligned.ftrs <- pk.times <- rep(0, 4 + number_of_experiments)
         mz.sd.rec <- 0
         
         labels <- unique(all.ft$grps)
         
-        area <- grps <- masses
+        area <- grps <- mz_values
         
+        # grouping the features based on their m/z values (assuming the tolerance level)
         sizes <- c(0, cumsum(sapply(features, nrow)))
-        for (i in 1:num.exp) {
+        for (i in 1:number_of_experiments) {
             this <- features[[i]]
             sel <- which(all.ft$lab == i)
             that <- cbind(all.ft$mz[sel], all.ft$chr[sel], all.ft$grps[sel])
             this <- this[order(this[, 1], this[, 2]),]
             that <- that[order(that[, 1], that[, 2]),]
             
-            masses[(sizes[i] + 1):sizes[i + 1]] <- this[, 1]
+            mz_values[(sizes[i] + 1):sizes[i + 1]] <- this[, 1]
             chr[(sizes[i] + 1):sizes[i + 1]] <- this[, 2]
             area[(sizes[i] + 1):sizes[i + 1]] <- this[, 5]
             grps[(sizes[i] + 1):sizes[i + 1]] <- that[, 3]
@@ -103,12 +105,13 @@ feature.align <- function(features,
         }
         
         ttt <- table(all.ft$grps)
-        curr.row <- sum(ttt >= min.exp) * 3
+        curr.row <- sum(ttt >= min_occurrence) * 3
         mz.sd.rec <- rep(0, curr.row)
         curr.row <- 1
         
-        sel.labels <- as.numeric(names(ttt)[ttt >= min.exp])
+        sel.labels <- as.numeric(names(ttt)[ttt >= min_occurrence])
         
+        # retention time alignment
         aligned.ftrs <-
             foreach(i = seq_along(sel.labels), .combine = rbind) %do% {
                 if (i %% 100 == 0)
@@ -116,9 +119,9 @@ feature.align <- function(features,
                 this.return <- NULL
                 sel <- which(grps == sel.labels[i])
                 if (length(sel) > 1) {
-                    this <- cbind(masses[sel], chr[sel], chr[sel], chr[sel], area[sel], lab[sel])
-                    if (length(unique(this[, 6])) >= min.exp) {
-                        this.den <- density(this[, 1], bw = mz.tol * median(this[, 1]))
+                    this <- cbind(mz_values[sel], chr[sel], chr[sel], chr[sel], area[sel], lab[sel])
+                    if (length(unique(this[, 6])) >= min_occurrence) {
+                        this.den <- density(this[, 1], bw = mz_tol_relative * median(this[, 1]))
                         turns <- find.turn.point(this.den$y)
                         pks <- this.den$x[turns$pks]
                         vlys <- this.den$x[turns$vlys]
@@ -128,8 +131,8 @@ feature.align <- function(features,
                             this.sel <- which(this[, 1] > this.lower & this[, 1] <= this.upper)
                             that <- this[this.sel, ]
                             if (!is.null(nrow(that))) {
-                                if (length(unique(that[, 6])) >= min.exp) {
-                                    that.den <- density(that[, 2], bw = chr.tol / 1.414)
+                                if (length(unique(that[, 6])) >= min_occurrence) {
+                                    that.den <- density(that[, 2], bw = rt_tol_relative / 1.414)
                                     that.turns <- find.turn.point(that.den$y)
                                     that.pks <- that.den$x[that.turns$pks]
                                     that.vlys <- that.den$x[that.turns$vlys]
@@ -138,10 +141,10 @@ feature.align <- function(features,
                                         that.upper <- min(that.vlys[that.vlys > that.pks[k]])
                                         thee <- that[that[, 2] > that.lower & that[, 2] <= that.upper, ]
                                         if (!is.null(nrow(thee))) {
-                                            if (length(unique(thee[, 6])) >= min.exp) {
+                                            if (length(unique(thee[, 6])) >= min_occurrence) {
                                                 this.return <-
-                                                    c(to_attach(thee, num.exp, use = "sum"),
-                                                      to_attach(thee[, c(1, 2, 3, 4, 2, 6)], num.exp, use = "median"),
+                                                    c(to_attach(thee, number_of_experiments, use = "sum"),
+                                                      to_attach(thee[, c(1, 2, 3, 4, 2, 6)], number_of_experiments, use = "median"),
                                                       sd(thee[, 1], na.rm = TRUE)
                                                     )
                                             }
@@ -152,10 +155,10 @@ feature.align <- function(features,
                         }
                     }
                 } else {
-                    if (min.exp == 1) {
+                    if (min_occurrence == 1) {
                         thee <- c(mz_values[sel], chr[sel], chr[sel], chr[sel], area[sel], lab[sel])
-                        this.return <- c(to_attach(thee, num.exp, use = "sum"),
-                                         to_attach(thee[c(1, 2, 3, 4, 2, 6)], num.exp, use = "median"),
+                        this.return <- c(to_attach(thee, number_of_experiments, use = "sum"),
+                                         to_attach(thee[c(1, 2, 3, 4, 2, 6)], number_of_experiments, use = "median"),
                                          NA
                         )
                     }
@@ -163,18 +166,18 @@ feature.align <- function(features,
                 this.return
             }
         
-        pk.times <- aligned.ftrs[, (5 + num.exp):(2 * (4 + num.exp))]
+        pk.times <- aligned.ftrs[, (5 + number_of_experiments):(2 * (4 + number_of_experiments))]
         mz.sd.rec <- aligned.ftrs[, ncol(aligned.ftrs)]
-        aligned.ftrs <- aligned.ftrs[, 1:(4 + num.exp)]
+        aligned.ftrs <- aligned.ftrs[, 1:(4 + number_of_experiments)]
         
         colnames(aligned.ftrs) <-
-            colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:num.exp))
+            colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:number_of_experiments))
         
         rec <- new("list")
         rec$aligned.ftrs <- aligned.ftrs
         rec$pk.times <- pk.times
-        rec$mz.tol <- mz.tol
-        rec$chr.tol <- chr.tol
+        rec$mz.tol <- mz_tol_relative
+        rec$chr.tol <- rt_tol_relative
         
         if (do.plot) {
             hist(mz.sd.rec, xlab = "m/z SD", ylab = "Frequency",
