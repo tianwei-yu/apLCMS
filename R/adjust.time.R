@@ -50,11 +50,9 @@ compute_corrected_features <- function(this.feature, this.dev, aver.time){
     
     this.corrected[this.old >= min(this.dev) & this.old <= max(this.dev)] <- 
       this.smooth$y + to.correct
-    this.corrected[this.old < min(this.dev)] <- 
-      this.corrected[this.old < min(this.dev)] + 
+    this.corrected[this.old < min(this.dev)] <- this.corrected[this.old < min(this.dev)] + 
       mean(this.smooth$y[this.smooth$x == min(this.smooth$x)])
-    this.corrected[this.old > max(this.dev)] <- 
-      this.corrected[this.old > max(this.dev)] + 
+    this.corrected[this.old > max(this.dev)] <- this.corrected[this.old > max(this.dev)] + 
       mean(this.smooth$y[this.smooth$x == max(this.smooth$x)])
     this.feature[, 2] <- this.corrected
     this.feature <- this.feature[order(this.feature[, 1], this.feature[, 2]), ]
@@ -87,13 +85,7 @@ adjust.time <- function(features,
     if(num.exp > 1) {
         if (do.plot) {
             par(mfrow = c(2,2))
-            draw_plot(x = c(-1,1), 
-                      y = c(-1,1), 
-                      xlab = "", 
-                      ylab = "", 
-                      main = "", 
-                      axes = FALSE, 
-                      label = "Retention time \n adjustment", 
+            draw_plot(label = "Retention time \n adjustment", 
                       cex = 2)
         }
 
@@ -105,25 +97,13 @@ adjust.time <- function(features,
         if(is.na(mz.tol)) {
             mz.tol <- find.tol(mz, uppermost = find.tol.max.d, do.plot = do.plot)
         } else if(do.plot) {
-            draw_plot(x = c(-1,1), 
-                      y = c(-1,1), 
-                      xlab = "", 
-                      ylab = "", 
-                      main = "m/z tolerance level given", 
-                      axes = FALSE, 
-                      label = mz.tol, 
-                      cex = 1.2)
+            draw_plot(main = "m/z tolerance level given", 
+                      label = mz.tol)
         }
         
         if(!is.na(chr.tol) && do.plot) {
-            draw_plot(x = c(-1,1), 
-                      y = c(-1,1), 
-                      xlab = "", 
-                      ylab = "", 
-                      main = "retention time \n tolerance level given", 
-                      axes = FALSE, 
-                      label = chr.tol, 
-                      cex = 1.2)
+            draw_plot(main = "retention time \n tolerance level given", 
+                      label = chr.tol)
         }
         
         all.ft <- find.tol.time(mz, 
@@ -200,9 +180,7 @@ adjust.time <- function(features,
                   y = c(-chr.tol, chr.tol), 
                   xlab = "Original Retention time",
                   ylab = "Retention time deviation",
-                  main = "",
-                  axes = TRUE,
-                  label = "")
+                  axes = TRUE)
 
         for(i in 1:num.exp) {
             features[[i]] <- features[[i]][order(features[[i]][, 1], features[[i]][, 2]), ]
