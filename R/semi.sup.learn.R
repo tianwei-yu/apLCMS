@@ -124,20 +124,20 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         clusterEvalQ(cl, library(apLCMS))
 
         if(is.na(align.mz.tol)) align.mz.tol=2 * match.tol.ppm *1e-6
-        message(c(
-            "***** aligning features, CPU time (seconds): ",
-            as.vector(system.time(
-                aligned <-
-                    feature.align(
-                        f2,
-                        min_occurrence = min.exp,
-                        mz_tol_relative = align.mz.tol,
-                        rt_tol_relative = align.chr.tol,
-                        mz_max_diff = 10 * mz.tol,
-                        mz_tol_absolute = max.align.mz.diff
-                    )
-            ))[1]
-        ))
+        
+        cpu_time <- system.time(
+          aligned <-
+            feature.align(
+              f2,
+              min_occurrence = min.exp,
+              mz_tol_relative = align.mz.tol,
+              rt_tol_relative = align.chr.tol,
+              mz_max_diff = 10 * mz.tol,
+              mz_tol_absolute = max.align.mz.diff
+            )
+        )
+        
+        message(c("***** aligning features, CPU time (seconds): ", as.vector(cpu_time)[1]))
         save(aligned,file=this.name)
         stopCluster(cl)
     }else{
