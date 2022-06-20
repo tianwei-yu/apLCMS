@@ -23,10 +23,7 @@ find.tol <- function(mz_values,
     sel <- min(which(yy < yi)) - 1
     
     if (do.plot) {
-        plot(x, y, xlab = "Delta", ylab = "Density",
-             main = "find m/z tolerance", cex = .25)
-        lines(x, exp.y, col = "red")
-        abline(v = x[sel], col = "blue")
+        tolerance_plot(x, y, exp.y, sel, main = "find m/z tolerance")
     }
     
     return(x[sel])

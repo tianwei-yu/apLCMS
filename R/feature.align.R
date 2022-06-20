@@ -26,11 +26,8 @@ feature.align <- function(features,
                           rt_colname = "pos") {
     if (do.plot) {
         par(mfrow = c(3, 2))
-        plot(c(-1, 1), c(-1, 1), type = "n", xlab = "",
-             ylab = "", main = "", axes = FALSE)
-        text(x = 0, y = 0, "Feature alignment", cex = 2)
-        plot(c(-1, 1), c(-1, 1), type = "n", xlab = "",
-             ylab = "", main = "", axes = FALSE)
+        draw_plot(label = "Feature alignment", cex = 2)
+        draw_plot()
     }
     
     number_of_samples <- nrow(summary(features))
@@ -55,15 +52,13 @@ feature.align <- function(features,
                 )
             }
         } else if (do.plot) {
-            plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "",
-                 main = "alignment m/z tolerance level given", axes = FALSE)
-            text(x = 0, y = 0, mz_tol_relative, cex = 1.2)
+            draw_plot(main = "alignment m/z tolerance level given", 
+                      label = mz_tol_relative, cex = 1.2)
         }
         
         if (!is.na(rt_tol_relative) && do.plot) {
-            plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "",
-                 main = "retention time \n tolerance level given", axes = FALSE)
-            text(x = 0, y = 0, rt_tol_relative, cex = 1.2)
+            draw_plot(main = "retention time \n tolerance level given", 
+                      label = rt_tol_relative, cex = 1.2)
         }
         
         # find relative retention time tolerance level

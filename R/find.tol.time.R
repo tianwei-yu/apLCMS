@@ -74,10 +74,7 @@ find.tol.time <- function(mz,
         rt_tol_relative <- x[sel]
         
         if (do.plot) {
-            plot(x, y,  xlab = "Delta", ylab = "Density",
-                 main = "find retention time tolerance", cex = 0.25)
-            lines(x, exp.y, col = "red")
-            abline(v = x[sel], col = "blue")
+          tolerance_plot(x, y, exp.y, sel, main = "find retention time tolerance")
         }
     }
     
