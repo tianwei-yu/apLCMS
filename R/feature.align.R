@@ -107,7 +107,6 @@ feature.align <- function(features,
         ttt <- table(all.ft$grps)
         curr.row <- sum(ttt >= min_occurrence) * 3
         mz.sd.rec <- rep(0, curr.row)
-        curr.row <- 1
         
         sel.labels <- as.numeric(names(ttt)[ttt >= min_occurrence])
         
