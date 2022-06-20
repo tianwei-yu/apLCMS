@@ -366,11 +366,11 @@ two.step.hybrid <- function(filenames,
   aligned <- align_features(
     sample_names = paste0("batch_", batches_idx),
     features = corrected,
-    min.exp = ceiling(min.batch.prop * length(batches_idx)),
-    mz.tol = batch.align.mz.tol,
-    chr.tol = batch.align.chr.tol,
-    find.tol.max.d = 10 * mz.tol,
-    max.align.mz.diff = max.align.mz.diff,
+    min_occurrence = ceiling(min.batch.prop * length(batches_idx)),
+    mz_tol_relative = batch.align.mz.tol,
+    rt_tol_relative = batch.align.chr.tol,
+    mz_max_diff = 10 * mz_tol,
+    mz_tol_absolute = max.align.mz.diff,
     rt_colname = "rt"
   )
 
