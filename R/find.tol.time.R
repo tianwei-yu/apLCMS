@@ -1,7 +1,7 @@
 find.tol.time <- function(mz,
                           chr,
                           lab,
-                          number_of_experiments,
+                          number_of_samples,
                           mz_tol_relative = 2e-5,
                           rt_tol_relative = NA,
                           aver.bin.size = 200,
@@ -43,7 +43,7 @@ find.tol.time <- function(mz,
         for (i in s) {
             this.sel <- (breaks[i - 1] + 1):breaks[i]
             
-            if (length(this.sel) <= 3 * number_of_experiments) {
+            if (length(this.sel) <= 3 * number_of_samples) {
                 this.d <- as.vector(dist(chr[this.sel]))
                 if (length(this.d) > 100)
                     this.d <- sample(this.d, 100)

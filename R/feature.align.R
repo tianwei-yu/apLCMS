@@ -1,5 +1,5 @@
-to_attach <- function(pick, number_of_experiments, use = "sum") {
-    strengths <- rep(0, number_of_experiments)
+to_attach <- function(pick, number_of_samples, use = "sum") {
+    strengths <- rep(0, number_of_samples)
     if (is.null(nrow(pick))) {
         strengths[pick[6]] <- pick[5]
         return(c(pick[1], pick[2], pick[1], pick[1], strengths))
@@ -33,8 +33,8 @@ feature.align <- function(features,
              ylab = "", main = "", axes = FALSE)
     }
     
-    number_of_experiments <- nrow(summary(features))
-    if (number_of_experiments > 1) {
+    number_of_samples <- nrow(summary(features))
+    if (number_of_samples > 1) {
         values <- get_feature_values(features, rt_colname)
         mz_values <- values$mz
         chr <- values$chr
@@ -70,7 +70,7 @@ feature.align <- function(features,
         all.ft <- find.tol.time(mz_values,
                                 chr,
                                 lab,
-                                number_of_experiments = number_of_experiments,
+                                number_of_samples = number_of_samples,
                                 mz_tol_relative = mz_tol_relative,
                                 rt_tol_relative = rt_tol_relative,
                                 mz_tol_absolute = mz_tol_absolute,
@@ -81,7 +81,7 @@ feature.align <- function(features,
         message(paste("m/z tolerance level: ", mz_tol_relative))
         message(paste("time tolerance level:", rt_tol_relative))
         
-        aligned.ftrs <- pk.times <- rep(0, 4 + number_of_experiments)
+        aligned.ftrs <- pk.times <- rep(0, 4 + number_of_samples)
         mz.sd.rec <- 0
         
         labels <- unique(all.ft$grps)
@@ -90,7 +90,7 @@ feature.align <- function(features,
         
         # grouping the features based on their m/z values (assuming the tolerance level)
         sizes <- c(0, cumsum(sapply(features, nrow)))
-        for (i in 1:number_of_experiments) {
+        for (i in 1:number_of_samples) {
             this <- features[[i]]
             sel <- which(all.ft$lab == i)
             that <- cbind(all.ft$mz[sel], all.ft$chr[sel], all.ft$grps[sel])
@@ -143,8 +143,8 @@ feature.align <- function(features,
                                         if (!is.null(nrow(thee))) {
                                             if (length(unique(thee[, 6])) >= min_occurrence) {
                                                 this.return <-
-                                                    c(to_attach(thee, number_of_experiments, use = "sum"),
-                                                      to_attach(thee[, c(1, 2, 3, 4, 2, 6)], number_of_experiments, use = "median"),
+                                                    c(to_attach(thee, number_of_samples, use = "sum"),
+                                                      to_attach(thee[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
                                                       sd(thee[, 1], na.rm = TRUE)
                                                     )
                                             }
@@ -157,8 +157,8 @@ feature.align <- function(features,
                 } else {
                     if (min_occurrence == 1) {
                         thee <- c(mz_values[sel], chr[sel], chr[sel], chr[sel], area[sel], lab[sel])
-                        this.return <- c(to_attach(thee, number_of_experiments, use = "sum"),
-                                         to_attach(thee[c(1, 2, 3, 4, 2, 6)], number_of_experiments, use = "median"),
+                        this.return <- c(to_attach(thee, number_of_samples, use = "sum"),
+                                         to_attach(thee[c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
                                          NA
                         )
                     }
@@ -166,12 +166,12 @@ feature.align <- function(features,
                 this.return
             }
         
-        pk.times <- aligned.ftrs[, (5 + number_of_experiments):(2 * (4 + number_of_experiments))]
+        pk.times <- aligned.ftrs[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
         mz.sd.rec <- aligned.ftrs[, ncol(aligned.ftrs)]
-        aligned.ftrs <- aligned.ftrs[, 1:(4 + number_of_experiments)]
+        aligned.ftrs <- aligned.ftrs[, 1:(4 + number_of_samples)]
         
         colnames(aligned.ftrs) <-
-            colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:number_of_experiments))
+            colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:number_of_samples))
         
         rec <- new("list")
         rec$aligned.ftrs <- aligned.ftrs
