@@ -31,4 +31,5 @@ dependencies:
   - r-jsonlite
   - r-styler
   - r-datacomparer
+  - r-patrick
   - radian

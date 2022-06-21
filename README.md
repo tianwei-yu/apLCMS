@@ -10,6 +10,15 @@ Install through conda: https://anaconda.org/bioconda/r-recetox-aplcms
 Use as a Galaxy Tool: https://github.com/RECETOX/galaxytools/tree/master/tools/recetox_aplcms
 
 ## Testing
+Before being able to run the tests, it is necessary to fetch the required data using the following commands:
+
+```
+wget -P tests/testdata/mbr_test0 -i tests/remote-files/mbr_test0.txt
+wget -P tests/testdata/RCX_01_shortened_v2 -i tests/remote-files/RCX_01_shortened_v2.txt
+wget -P tests/testdata/RCX_09_shortened_v2 -i tests/remote-files/RCX_09_shortened_v2.txt
+wget -P tests/testdata/RCX_16_shortened_v2 -i tests/remote-files/RCX_16_shortened_v2.txt
+```
+
 The `hybrid` and `unsupervised` tests of recetox-aplcms are [reported](https://github.com/RECETOX/recetox-aplcms/issues/24) to be OS specific and may fail depending on the platrform they are run on. To ensure reproducibility during development process you can run the tests in a designated Docker container as follows:
 ```
 # from the repository root run
