@@ -380,8 +380,21 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
             registerDoParallel(cl)
             #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
             clusterEvalQ(cl, library(apLCMS))
-
-            message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned.recov<-feature.align(f2.recov, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+            
+            
+            cpu_time <- system.time(
+              aligned.recov <-
+                feature.align(
+                  f2.recov,
+                  min_occurrence = min.exp,
+                  mz_tol_relative = align.mz.tol,
+                  rt_tol_relative = align.chr.tol,
+                  mz_max_diff = 10 * mz.tol,
+                  mz_tol_absolute = max.align.mz.diff
+                )
+            )
+            
+            message(c("***** aligning features, CPU time (seconds): ", as.vector(cpu_time)[1]))
             save(aligned.recov,file=this.name)
             stopCluster(cl)
         }else{

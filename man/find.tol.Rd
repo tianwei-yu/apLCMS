@@ -6,12 +6,12 @@
   The function finds the tolerance level in m/z from a given vector of observed m/z values.
 }
 \usage{
-find.tol(a, uppermost=1e-4, aver.bin.size=4000, min.bins=50, max.bins=200, do.plot=TRUE)
+find.tol(mz_values, mz_max_diff=1e-4, aver.bin.size=4000, min.bins=50, max.bins=200, do.plot=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{a}{ The vector of observed m/z values. }
-  \item{uppermost}{ Consider only m/z diffs smaller than this value. }
+  \item{mz_values}{ The vector of observed m/z values. }
+  \item{mz_max_diff}{ Consider only m/z diffs smaller than this value. }
   \item{aver.bin.size}{The average bin size to determine the number of equally spaced points in the kernel density estimation.}
   \item{min.bins}{the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.}
   \item{max.bins}{the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.}

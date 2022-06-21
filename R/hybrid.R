@@ -214,11 +214,11 @@ hybrid <- function(
   aligned <- align_features(
     sample_names = sample_names,
     features = corrected,
-    min.exp = min_exp,
-    mz.tol = align_mz_tol,
-    chr.tol = align_chr_tol,
-    find.tol.max.d = 10 * mz_tol,
-    max.align.mz.diff = max_align_mz_diff,
+    min_occurrence = min_exp,
+    mz_tol_relative = align_mz_tol,
+    rt_tol_relative = align_chr_tol,
+    mz_max_diff = 10 * mz_tol,
+    mz_tol_absolute = max_align_mz_diff,
     do.plot = FALSE
   )
 
@@ -262,11 +262,11 @@ hybrid <- function(
   recovered_aligned <- align_features(
     sample_names = sample_names,
     features = recovered_corrected,
-    min.exp = min_exp,
-    mz.tol = align_mz_tol,
-    chr.tol = align_chr_tol,
-    find.tol.max.d = 10 * mz_tol,
-    max.align.mz.diff = max_align_mz_diff,
+    min_occurrence = min_exp,
+    mz_tol_relative = align_mz_tol,
+    rt_tol_relative = align_chr_tol,
+    mz_max_diff = 10 * mz_tol,
+    mz_tol_absolute = max_align_mz_diff,
     do.plot = FALSE
   )
 
