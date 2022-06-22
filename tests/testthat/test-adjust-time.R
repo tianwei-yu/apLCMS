@@ -1,45 +1,61 @@
-test_that("adjust time test", {
-  extracted_feature_files <- c('../testdata/RCX_01_shortened_v2/RCX_01_shortened_v2_features.Rds',
-                               '../testdata/RCX_09_shortened_v2/RCX_09_shortened_v2_features.Rds',
-                               '../testdata/RCX_16_shortened_v2/RCX_16_shortened_v2_features.Rds')
-
-  corrected_files <- c('../testdata/adjust-time/RCX_01_shortened_v2_features_corrected.Rds',
-                       '../testdata/adjust-time/RCX_09_shortened_v2_features_corrected.Rds',
-                       '../testdata/adjust-time/RCX_16_shortened_v2_features_corrected.Rds')
-
-  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-  
-  if (nzchar(chk) && chk == "TRUE") {
-    # use 2 cores in CRAN/Travis/AppVeyor
-    cluster <- 2L
-  } else {
-    # use all cores in devtools::test()
-    cluster = 4
-  }
-
-  if (!is(cluster, 'cluster')) {
-    cluster <- parallel::makeCluster(cluster)
-    on.exit(parallel::stopCluster(cluster))
-  }
-
-  # NOTE: side effect (doParallel has no functionality to clean up)
-  doParallel::registerDoParallel(cluster)
-
-  extracted <- lapply(extracted_feature_files, readRDS)
-
-  expected <- lapply(corrected_files, readRDS)
-  expected <- lapply(expected, as.data.frame)
-
-  corrected <- adjust.time(
-    features = extracted,
-    mz.tol = NA,
-    chr.tol = NA,
-    find.tol.max.d = 10 * 1e-05,
-    max.align.mz.diff = 0.01,
-    do.plot = FALSE
+patrick::with_parameters_test_that(
+  "adjust time test",
+  {
+    skip_on_ci()
+    
+    testdata <- file.path("..", "testdata")
+    
+    filenames <- lapply(files, function(x) {
+      file.path(testdata, x, paste0(x, "_features.Rds"))
+    })
+    
+    extracted <- lapply(filenames, readRDS)
+    
+    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+    
+    if (nzchar(chk) && chk == "TRUE") {
+      # use 2 cores in CRAN/Travis/AppVeyor
+      cluster <- 2L
+    } else {
+      # use all cores in devtools::test()
+      cluster <- parallel::detectCores()
+    }
+    
+    if (!is(cluster, "cluster")) {
+      cluster <- parallel::makeCluster(cluster)
+      on.exit(parallel::stopCluster(cluster))
+    }
+    
+    # NOTE: side effect (doParallel has no functionality to clean up)
+    doParallel::registerDoParallel(cluster)
+    
+    corrected <- adjust.time(
+      features = extracted,
+      mz.tol = mz_tol,
+      chr.tol = chr_tol,
+      find.tol.max.d = find_tol_max_d,
+      max.align.mz.diff = max_align_mz_diff,
+      do.plot = FALSE
+    )
+    
+    expected_filenames <- lapply(files, function(x) {
+      file.path(testdata, "adjust-time", paste0(x, "_features_corrected.Rds"))
+    })
+    
+    expected <- lapply(expected_filenames, readRDS)
+    expected <- lapply(expected, as.data.frame)
+    
+    corrected <- lapply(corrected, as.data.frame)
+    
+    expect_equal(corrected, expected)
+  },
+  patrick::cases(
+    RCX_shortened = list(
+      files = c("RCX_01_shortened_v2", "RCX_09_shortened_v2", "RCX_16_shortened_v2"),
+      mz_tol = NA,
+      chr_tol = NA,
+      find_tol_max_d = 10 * 1e-05,
+      max_align_mz_diff = 0.01
+    )
   )
-
-  corrected <- lapply(corrected, as.data.frame)
-
-  expect_equal(corrected, expected)
-})
+)
