@@ -1,11 +1,11 @@
 test_that("adjust time test", {
-  extracted_feature_files <- c('../testdata/adjust-time/extracted_0.parquet',
-                               '../testdata/adjust-time/extracted_1.parquet',
-                               '../testdata/adjust-time/extracted_2.parquet')
-  
-  corrected_files <- c('../testdata/adjust-time/corrected_0.parquet',
-                       '../testdata/adjust-time/corrected_1.parquet',
-                       '../testdata/adjust-time/corrected_2.parquet')
+  extracted_feature_files <- c('../testdata/RCX_01_shortened_v2/RCX_01_shortened_v2_features.Rds',
+                               '../testdata/RCX_09_shortened_v2/RCX_09_shortened_v2_features.Rds',
+                               '../testdata/RCX_16_shortened_v2/RCX_16_shortened_v2_features.Rds')
+
+  corrected_files <- c('../testdata/adjust-time/RCX_01_shortened_v2_features_corrected.Rds',
+                       '../testdata/adjust-time/RCX_09_shortened_v2_features_corrected.Rds',
+                       '../testdata/adjust-time/RCX_16_shortened_v2_features_corrected.Rds')
 
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
   
@@ -25,11 +25,10 @@ test_that("adjust time test", {
   # NOTE: side effect (doParallel has no functionality to clean up)
   doParallel::registerDoParallel(cluster)
 
-  extracted <- lapply(extracted_feature_files, arrow::read_parquet)
-  extracted <- lapply(extracted, as.matrix)
+  extracted <- lapply(extracted_feature_files, readRDS)
 
-  expected <- lapply(corrected_files, arrow::read_parquet)
-  expected <- lapply(expected, as.matrix)
+  expected <- lapply(corrected_files, readRDS)
+  expected <- lapply(expected, as.data.frame)
 
   corrected <- adjust.time(
     features = extracted,
@@ -40,9 +39,7 @@ test_that("adjust time test", {
     do.plot = FALSE
   )
 
-  for(i in seq(extracted_feature_files)){
-    dimnames(corrected[[i]])[[2]][6:7] <- c("V6", "V7")
-  }
+  corrected <- lapply(corrected, as.data.frame)
 
   expect_equal(corrected, expected)
 })
