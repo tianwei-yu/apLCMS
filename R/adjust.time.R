@@ -1,9 +1,3 @@
-draw_plot <- function(x=c(-1,1), y=c(-1,1), xlab="", ylab="", main="", axes=FALSE, label="", cex=1.2){
-    plot(x, y, type="n", xlab=xlab,
-         ylab=ylab, main=main, axes=axes)
-    text(x=0, y=0, label, cex=cex)
-}
-
 compute_comb <- function(candi, template, this.feature, j){
     this.comb <- dplyr::bind_rows(dplyr::bind_cols(candi, label = rep(template, nrow(candi))),
                         dplyr::bind_cols(this.feature[, 1:2], label = rep(j, nrow(this.feature))))
