@@ -122,7 +122,18 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("** correction time, CPU time (seconds) ",as.vector(system.time(f2<-adjust.time(features,mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        cpu_time_adj_time <- system.time(
+          f2 <- 
+            adjust.time(
+              features,
+              mz_tol_relative = align.mz.tol,
+              rt_tol_relative = align.chr.tol,
+              mz_max_diff = 10 * mz.tol,
+              mz_tol_absolute = max.align.mz.diff
+            )
+        )
+
+        message(c("** correction time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         
         stopCluster(cl)
         save(f2,file=this.name)
@@ -330,7 +341,18 @@ semi.sup <- function(
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(recetox.aplcms))
 
-        message(c("** correction time, CPU time (seconds) ",as.vector(system.time(f2.recov<-adjust.time(features.recov, mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        cpu_time_adj_time <- system.time(
+          f2.recov <- 
+            adjust.time(
+              features.recov,
+              mz_tol_relative = align.mz.tol,
+              rt_tol_relative = align.chr.tol,
+              mz_max_diff = 10 * mz.tol,
+              mz_tol_absolute = max.align.mz.diff
+            )
+        )
+
+        message(c("** correction time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         save(f2.recov,file=this.name)
         stopCluster(cl)
     }else{

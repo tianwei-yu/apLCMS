@@ -67,13 +67,13 @@ fill_missing_values <- function(orig.feature, this.feature) {
 
 # features is a list project, each sub-object is a matrix as identified by prof.to.features
 adjust.time <- function(features,
-                        mz_tol_relative=NA,
-                        rt_tol_relative=NA,
-                        colors=NA,
-                        mz_max_diff=1e-4,
-                        mz_tol_absolute=0.01,
-                        do.plot=TRUE,
-                        rt_colname="pos") {
+                        mz_tol_relative = NA,
+                        rt_tol_relative = NA,
+                        colors = NA,
+                        mz_max_diff = 1e-4,
+                        mz_tol_absolute = 0.01,
+                        do.plot = TRUE,
+                        rt_colname = "pos") {
     
     number_of_samples <- nrow(summary(features))
     if(number_of_samples > 1) {

@@ -31,10 +31,10 @@ patrick::with_parameters_test_that(
     
     corrected <- adjust.time(
       features = extracted,
-      mz.tol = mz_tol,
-      chr.tol = chr_tol,
-      find.tol.max.d = find_tol_max_d,
-      max.align.mz.diff = max_align_mz_diff,
+      mz_tol_relative = mz_tol,
+      rt_tol_relative = chr_tol,
+      mz_max_diff = find_tol_max_d,
+      mz_tol_absolute = max_align_mz_diff,
       do.plot = FALSE
     )
     
