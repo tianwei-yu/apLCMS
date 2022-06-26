@@ -183,5 +183,7 @@ adjust.time <- function(features,
         }
     }
 
-    return(corrected_features)
+    if(exists("corrected_features")){
+        return(corrected_features)
+    }
 }
