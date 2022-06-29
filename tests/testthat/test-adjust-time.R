@@ -39,14 +39,14 @@ patrick::with_parameters_test_that(
     )
     
     expected_filenames <- lapply(files, function(x) {
-      file.path(testdata, "adjust-time", paste0(x, "_features_corrected.Rds"))
+      file.path(testdata, "adjust-time", paste0(x, "_features_corrected.parquet"))
     })
     
-    expected <- lapply(expected_filenames, readRDS)
+    expected <- lapply(expected_filenames, arrow::read_parquet)
     expected <- lapply(expected, as.data.frame)
     
     corrected <- lapply(corrected, as.data.frame)
-    
+  
     expect_equal(corrected, expected)
   },
   patrick::cases(
