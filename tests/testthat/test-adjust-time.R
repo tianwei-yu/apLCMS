@@ -39,7 +39,7 @@ patrick::with_parameters_test_that(
     )
     
     expected_filenames <- lapply(files, function(x) {
-      file.path(testdata, "adjust-time", paste0(x, "_features_corrected.parquet"))
+      file.path(testdata, x, paste0(x, "_features_corrected.parquet"))
     })
     
     expected <- lapply(expected_filenames, arrow::read_parquet)
