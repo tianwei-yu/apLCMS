@@ -355,10 +355,10 @@ two.step.hybrid <- function(filenames,
 
   message("* aligning time")
   corrected <- adjust.time(extracted_features,
-    mz.tol = batch.align.mz.tol,
-    chr.tol = batch.align.chr.tol,
-    find.tol.max.d = 10 * mz.tol,
-    max.align.mz.diff = max.align.mz.diff,
+    mz_tol_relative = batch.align.mz.tol,
+    rt_tol_relative = batch.align.chr.tol,
+    mz_max_diff = 10 * mz.tol,
+    mz_tol_absolute = max.align.mz.diff,
     rt_colname = "rt"
   )
 
