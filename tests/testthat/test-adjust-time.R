@@ -1,8 +1,6 @@
 patrick::with_parameters_test_that(
   "adjust time test",
   {
-    skip_on_ci()
-    
     testdata <- file.path("..", "testdata")
     
     filenames <- lapply(files, function(x) {
