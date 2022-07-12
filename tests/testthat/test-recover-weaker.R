@@ -41,8 +41,6 @@ patrick::with_parameters_test_that(
       on.exit(parallel::stopCluster(cluster))
     }
     
-    ######################################
-    
     clusterExport(cluster, c("recover.weaker", "load.lcms", "find.turn.point", 
                              "combine.seq.3", "interpol.area"))
     clusterEvalQ(cluster, library("splines"))

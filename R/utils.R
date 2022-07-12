@@ -66,6 +66,9 @@ load_aligned_features <- function(rt_file, int_file, tol_file) {
   int_cross_table <- arrow::read_parquet(int_file)
   tolerances_table <- arrow::read_parquet(tol_file)
   
+  row.names(rt_cross_table) <- as.character(row.names(rt_cross_table))
+  row.names(int_cross_table) <- as.character(row.names(int_cross_table))
+  
   result <- list()
   result$mz_tolerance <- tolerances_table$mz_tolerance
   result$rt_tolerance <- tolerances_table$rt_tolerance
