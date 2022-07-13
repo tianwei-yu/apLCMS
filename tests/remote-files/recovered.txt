@@ -1,0 +1,2 @@
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/recovered/aligned_feature_sample_table.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/recovered/recovered_feature_sample_table.parquet

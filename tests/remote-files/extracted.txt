@@ -1,0 +1,3 @@
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/extracted/RCX_06_shortened.parquet  
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/extracted/RCX_07_shortened.parquet  
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/extracted/RCX_08_shortened.parquet 
