@@ -49,9 +49,9 @@ jobs:
       - name: Fetch recovered test data
         run: wget -P tests/testdata/recovered -i tests/remote-files/recovered.txt
       - name: Fetch recovered-extracted test data
-        run: wget -P tests/testdata/recovered-extracted -i tests/remote-files/recovered-extracted.txt
+        run: wget -P tests/testdata/recovered/recovered-extracted -i tests/remote-files/recovered-extracted.txt
       - name: Fetch recovered-corrected test data
-        run: wget -P tests/testdata/recovered-corrected -i tests/remote-files/recovered-corrected.txt
+        run: wget -P tests/testdata/recovered/recovered-corrected -i tests/remote-files/recovered-corrected.txt
       - name: Fetch filtered test data
         run: wget -P tests/testdata/filtered -i tests/remote-files/filtered.txt
       - name: Fetch features test data
