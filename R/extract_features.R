@@ -31,7 +31,8 @@ extract_features <- function(
     'plot_raw_profile_histogram',
     'compute_mass_values',
     'compute_densities',
-    'compute_breaks'
+    'compute_breaks',
+    'rm.ridge'
   ))
 
   parLapply(cluster, filenames, function(filename) {

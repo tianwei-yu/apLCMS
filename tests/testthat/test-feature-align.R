@@ -16,11 +16,11 @@ test_that("feature align test", {
   aligned_actual <- align_features(
       sample_names = sample_names,
       features = corrected_features,
-      min.exp = 2,
-      mz.tol = NA,
-      chr.tol = NA,
-      find.tol.max.d = 10 * 1e-05,
-      max.align.mz.diff = 0.01,
+      min_occurrence = 2,
+      mz_tol_relative = NA,
+      rt_tol_relative = NA,
+      mz_max_diff = 10 * 1e-05,
+      mz_tol_absolute = 0.01,
       do.plot = FALSE
   )
   

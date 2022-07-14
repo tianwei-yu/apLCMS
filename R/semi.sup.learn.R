@@ -101,8 +101,19 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
         clusterEvalQ(cl, library(apLCMS))
 
+        cpu_time_adj_time <- system.time(
+          f2 <- 
+            adjust.time(
+              features,
+              mz_tol_relative = align.mz.tol,
+              rt_tol_relative = align.chr.tol,
+              mz_max_diff = 10 * mz.tol,
+              mz_tol_absolute = max.align.mz.diff
+            )
+        )
+
         if(is.na(align.mz.tol)) align.mz.tol=2 * match.tol.ppm *1e-6
-        message(c("***** correcting time, CPU time (seconds) ",as.vector(system.time(f2<-adjust.time(features,mz.tol=align.mz.tol, chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        message(c("***** correcting time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         save(f2,file=this.name)
         stopCluster(cl)
     }else{
@@ -124,7 +135,20 @@ function(folder, file.pattern=".cdf", known.table=NA, n.nodes=4, min.exp=2, min.
         clusterEvalQ(cl, library(apLCMS))
 
         if(is.na(align.mz.tol)) align.mz.tol=2 * match.tol.ppm *1e-6
-        message(c("***** aligning features, CPU time (seconds): ", as.vector(system.time(aligned<-feature.align(f2, min.exp=min.exp,mz.tol=align.mz.tol,chr.tol=align.chr.tol, find.tol.max.d=10*mz.tol, max.align.mz.diff=max.align.mz.diff)))[1]))
+        
+        cpu_time <- system.time(
+          aligned <-
+            feature.align(
+              f2,
+              min_occurrence = min.exp,
+              mz_tol_relative = align.mz.tol,
+              rt_tol_relative = align.chr.tol,
+              mz_max_diff = 10 * mz.tol,
+              mz_tol_absolute = max.align.mz.diff
+            )
+        )
+        
+        message(c("***** aligning features, CPU time (seconds): ", as.vector(cpu_time)[1]))
         save(aligned,file=this.name)
         stopCluster(cl)
     }else{

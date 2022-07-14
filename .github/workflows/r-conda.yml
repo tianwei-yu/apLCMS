@@ -38,6 +38,14 @@ jobs:
       - run: |
           conda init bash
           conda env list
+      - name: Fetch mbr_test0 test data
+        run: wget -P tests/testdata/mbr_test0 -i tests/remote-files/mbr_test0.txt
+      - name: Fetch RCX_01_shortened_v2 test data
+        run: wget -P tests/testdata/RCX_01_shortened_v2 -i tests/remote-files/RCX_01_shortened_v2.txt
+      - name: Fetch RCX_09_shortened_v2 test data
+        run: wget -P tests/testdata/RCX_09_shortened_v2 -i tests/remote-files/RCX_09_shortened_v2.txt
+      - name: Fetch RCX_16_shortened_v2 test data
+        run: wget -P tests/testdata/RCX_16_shortened_v2 -i tests/remote-files/RCX_16_shortened_v2.txt
       - name: Run devtools::check()
         run: |
           conda activate recetox-aplcms

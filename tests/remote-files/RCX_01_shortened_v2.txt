@@ -1,0 +1,4 @@
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/RCX_01_shortened_v2/RCX_01_shortened_v2.mzML
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/RCX_01_shortened_v2/RCX_01_shortened_v2_cdf.Rds
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/RCX_01_shortened_v2/RCX_01_shortened_v2_features.Rds
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/RCX_01_shortened_v2/RCX_01_shortened_v2_features_corrected.parquet

@@ -7,21 +7,21 @@
   This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
 }
 \usage{
-find.tol.time(mz, chr, lab, num.exp, mz.tol = 2e-05, chr.tol = NA,
+find.tol.time(mz, chr, lab, number_of_samples, mz_tol_relative = 2e-05, rt_tol_relative = NA,
                  aver.bin.size = 200, min.bins = 50, max.bins = 100,
-                 max.mz.diff = 0.01, max.num.segments = 10000, do.plot=TRUE)
+                 mz_tol_absolute = 0.01, max.num.segments = 10000, do.plot=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{mz}{ mz value of all peaks in all profiles in the study. }
   \item{chr}{ retention time of all peaks in all profiles in the study.}
   \item{lab}{ label of all peaks in all profiles in the study.}
-  \item{num.exp}{ The number of spectra in this analysis. }
-  \item{mz.tol}{ m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. }
-  \item{chr.tol}{ the elution time tolerance. If NA, the function finds the tolerance level first. If a numerical value is given, the function directly goes to the second step - grouping peaks based on the tolerance. }
+  \item{number_of_samples}{ The number of spectra in this analysis. }
+  \item{mz_tol_relative}{ m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. }
+  \item{rt_tol_relative}{ the elution time tolerance. If NA, the function finds the tolerance level first. If a numerical value is given, the function directly goes to the second step - grouping peaks based on the tolerance. }
   \item{aver.bin.size}{The average bin size to determine the number of equally spaced points in the kernel density estimation.}
   \item{min.bins}{the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.}
-  \item{max.mz.diff}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
+  \item{mz_tol_absolute}{As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{max.bins}{the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.}
   \item{max.num.segments}{ the maximum number of segments. }
   \item{do.plot}{Indicates whether plot should be drawn.}
@@ -31,7 +31,7 @@ find.tol.time(mz, chr, lab, num.exp, mz.tol = 2e-05, chr.tol = NA,
 }
 \value{
   A list object is returned:
-  \item{chr.tol}{ The elution time tolerance level.}
+  \item{rt_tol_relative}{ The elution time tolerance level.}
   \item{comp2 }{A matrix with six columns. Every row corrsponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength, spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered by the elution time.}
 }
 \author{Tianwei Yu <tyu8@emory.edu>}
