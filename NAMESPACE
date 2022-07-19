@@ -15,7 +15,6 @@ import(splines)
 
 export(adjust.time)
 export(adaptive.bin)
-export(cdf.to.ftr)
 export(cont.index)
 export(EIC.plot)
 export(EIC.plot.learn)

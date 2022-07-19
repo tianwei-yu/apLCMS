@@ -84,5 +84,5 @@ A list is returned.
   \item{final.ftrs}{Feature table. This is the end product of the function.}
 }
 \author{ Tianwei Yu < tianwei.yu@emory.edu> }
-\seealso{ semi.sup, cdf.to.ftrs, proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
+\seealso{ semi.sup, proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
 \keyword{ models }

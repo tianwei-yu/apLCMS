@@ -87,5 +87,5 @@ A list is returned.
   \item{intensity.weighted}{Whether to weight the local density by signal intensities in the initial peak detection stage.}
 }
 \author{ Tianwei Yu < tianwei.yu@emory.edu> }
-\seealso{ cdf.to.ftrs, proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
+\seealso{ proc.cdf, prof.to.feature, adjust.time, feature.align, recover.weaker }
 \keyword{ models }
