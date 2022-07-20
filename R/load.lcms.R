@@ -1,3 +1,4 @@
+#' @export
 load.lcms <- function(filename) {
   mz_conn <- mzR::openMSfile(filename = filename)
   b <- mzR::header(mz_conn)$retentionTime

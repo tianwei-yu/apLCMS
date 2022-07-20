@@ -1,3 +1,4 @@
+#' @export
 recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range=NA, chr.range=NA, use.observed.range=TRUE, orig.tol=1e-5,min.bw=NA,max.bw=NA,bandwidth=.5, recover.min.count=3, intensity.weighted=FALSE)
 {
     duplicate.row.remove<-function(new.table)

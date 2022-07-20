@@ -1,3 +1,4 @@
+#' @export
 prof.to.features <- function(a,
                              bandwidth = 0.5,
                              min.bw = NA,

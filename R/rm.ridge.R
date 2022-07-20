@@ -1,3 +1,4 @@
+#' @export
 rm.ridge <-
 function(x,y2, bw)
 {

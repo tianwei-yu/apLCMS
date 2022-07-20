@@ -65,7 +65,7 @@ fill_missing_values <- function(orig.feature, this.feature) {
     return(this.feature)
 }
 
-# features is a list project, each sub-object is a matrix as identified by prof.to.features
+#' @export
 adjust.time <- function(features,
                         mz_tol_relative = NA,
                         rt_tol_relative = NA,

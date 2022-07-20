@@ -249,6 +249,7 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
   return(batchwise)
 }
 
+#' @export
 two.step.hybrid <- function(filenames,
                             metadata,
                             work_dir,

@@ -1,3 +1,4 @@
+#' @export
 cont.index <-
 function(newprof, min.pres=0.6, min.run=5)
 {

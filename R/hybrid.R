@@ -138,6 +138,7 @@ augment_known_table <- function(
   list(pairing = pairing, known_table = known_table)
 }
 
+#' @export
 hybrid <- function(
   filenames,
   known_table,

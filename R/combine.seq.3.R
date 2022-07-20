@@ -1,3 +1,4 @@
+#' @export
 combine.seq.3 <-
 function(a, mz, inte)             ### the input need to be pre-ordered by a
 {

@@ -1,3 +1,4 @@
+#' @export
 interpol.area <-
 function(x, y, all.x, all.w) # x is retention time, all.w is weight of each all.x, y is observed intensities
 {

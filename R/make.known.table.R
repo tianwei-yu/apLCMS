@@ -1,3 +1,4 @@
+#' @export
 make.known.table <-
 function(metabolite.table, adduct.table, ion.mode="+")
 ###		the metabolite.table should be a four-column data frame. The columns should be chemical formula, HMDB_ID, KEGG ID, and monoisotopic mass

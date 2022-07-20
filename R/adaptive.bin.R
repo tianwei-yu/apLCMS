@@ -1,3 +1,4 @@
+#' @export
 compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 512) {
   bandwidth <- 0.5 * tol * bw_func(masses)
   if (weighted) {
@@ -9,6 +10,7 @@ compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 5
   return(all.mass.den)
 }
 
+#' @export
 compute_mass_values <- function(tol, masses, intensi, weighted) {
   n <- 2^min(15, floor(log2(length(masses))) - 2)
 
@@ -19,12 +21,14 @@ compute_mass_values <- function(tol, masses, intensi, weighted) {
   return(all.mass.vlys)
 }
 
+#' @export
 compute_breaks <- function(tol, masses, intensi, weighted) {
   all.mass.vlys <- compute_mass_values(tol, masses, intensi, weighted)
   breaks <- c(0, unique(round(approx(masses, 1:length(masses), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
   return(breaks)
 }
 
+#' @export
 adaptive.bin <- function(x,
                          min.run,
                          min.pres,
