@@ -60,3 +60,27 @@ wide_to_long_feature_table <- function(wide_table, sample_names) {
   
   return(long_features)
 }
+
+load_aligned_features <- function(rt_file, int_file, tol_file) {
+  rt_cross_table <- arrow::read_parquet(rt_file)
+  int_cross_table <- arrow::read_parquet(int_file)
+  tolerances_table <- arrow::read_parquet(tol_file)
+  
+  row.names(rt_cross_table) <- as.character(row.names(rt_cross_table))
+  row.names(int_cross_table) <- as.character(row.names(int_cross_table))
+  
+  result <- list()
+  result$mz_tolerance <- tolerances_table$mz_tolerance
+  result$rt_tolerance <- tolerances_table$rt_tolerance
+  result$rt_crosstab <- rt_cross_table
+  result$int_crosstab <- int_cross_table
+  return(result)
+}
+
+create_feature_sample_table <- function(features) {
+  table <- as_feature_sample_table(
+    rt_crosstab = features$rt_crosstab,
+    int_crosstab = features$int_crosstab
+  )
+  return(table)
+}

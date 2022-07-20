@@ -6,7 +6,7 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
 
     filenames <- lapply(files, function(x) {
-      file.path(testdata, x, paste0(x, ".mzML"))
+      file.path(testdata, "input", paste0(x, ".mzML"))
     })
 
     # CRAN limits the number of cores available to packages to 2
@@ -47,10 +47,11 @@ patrick::with_parameters_test_that(
     )
 
     expected_filenames <- lapply(files, function(x) {
-      file.path(testdata, x, paste0(x, "_features.Rds"))
+      file.path(testdata, "extracted", paste0(x, ".parquet"))
     })
-
-    expected <- lapply(expected_filenames, readRDS)
+    
+    expected <- lapply(expected_filenames, arrow::read_parquet)
+    expected <- lapply(expected, as.data.frame)
 
     actual <- unique(actual)
     expected <- unique(expected)
@@ -84,11 +85,11 @@ patrick::with_parameters_test_that(
   },
   patrick::cases(
     RCX_shortened = list(
-      files = c("RCX_01_shortened_v2", "RCX_09_shortened_v2", "RCX_16_shortened_v2"),
-      tol = 1e-06,
-      min_pres = 0.7,
-      min_run = 4,
-      intensity_weighted = TRUE,
+      files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
+      tol = 1e-05,
+      min_pres = 0.5,
+      min_run = 12,
+      intensity_weighted = FALSE,
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100)
     )

@@ -1,8 +1,8 @@
 patrick::with_parameters_test_that(
   "test prof.to.features",
   {
-    testdata <- file.path("..", "testdata", .test_name)
-    input_path <- file.path(testdata, filename)
+    testdata <- file.path("..", "testdata")
+    input_path <- file.path(testdata, "filtered", filename)
     extracted_features <- readRDS(input_path)
 
     actual <- prof.to.features(
@@ -12,7 +12,7 @@ patrick::with_parameters_test_that(
       do.plot = FALSE
     )
 
-    expected_path <- file.path(testdata, expected_filename)
+    expected_path <- file.path(testdata, "features", expected_filename)
     expected <- readRDS(expected_path)
     
     expect_equal(actual, expected)
@@ -25,20 +25,20 @@ patrick::with_parameters_test_that(
       sigma_ratio_lim = c(0.1, 10)
     ),
     RCX_01_shortened_v2 = list(
-      filename = c("RCX_01_shortened_v2_cdf.Rds"),
-      expected_filename = "RCX_01_shortened_v2_features.Rds",
+      filename = c("RCX_06_shortened_cdf.Rds"),
+      expected_filename = "RCX_06_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100)
     ),
     RCX_09_shortened_v2 = list(
-      filename = c("RCX_09_shortened_v2_cdf.Rds"),
-      expected_filename = "RCX_09_shortened_v2_features.Rds",
+      filename = c("RCX_07_shortened_cdf.Rds"),
+      expected_filename = "RCX_07_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100)
     ),
     RCX_16_shortened_v2 = list(
-      filename = c("RCX_16_shortened_v2_cdf.Rds"),
-      expected_filename = "RCX_16_shortened_v2_features.Rds",
+      filename = c("RCX_08_shortened_cdf.Rds"),
+      expected_filename = "RCX_08_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100)
     )
