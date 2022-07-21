@@ -338,7 +338,7 @@ two.step.hybrid <- function(filenames,
 
   cluster <- parallel::makeCluster(cluster)
   doParallel::registerDoParallel(cluster)
-  clusterEvalQ(cluster, library(recetox.aplcms))
+  snow::clusterEvalQ(cluster, library(recetox.aplcms))
 
   extracted_features <- list()
   for (batch_id in batches_idx) {
@@ -397,7 +397,7 @@ two.step.hybrid <- function(filenames,
     recover.min.count = recover.min.count
   )
 
-  stopCluster(cluster)
+  snow::stopCluster(cluster)
 
   recovered_filtered <- filter_features_by_presence(
     feature_table = recovered,

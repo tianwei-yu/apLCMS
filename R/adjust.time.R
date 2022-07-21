@@ -130,7 +130,7 @@ adjust.time <- function(features,
         
         candi <- features[[template]][, 1:2]
         
-        corrected_features <- foreach(j = 1:number_of_samples,.export = c("compute_corrected_features",
+        corrected_features <- foreach::foreach(j = 1:number_of_samples,.export = c("compute_corrected_features",
         "compute_template_adjusted_rt", "compute_comb", "compute_sel")) %dopar% {
             this.feature <- features[[j]]
             if(j != template) {

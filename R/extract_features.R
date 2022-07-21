@@ -17,7 +17,7 @@ extract_features <- function(
   moment_power,
   BIC_factor
 ) {
-  clusterExport(cluster, list(
+  snow::clusterExport(cluster, list(
     'proc.cdf',
     'prof.to.features',
     'load.lcms',
@@ -35,7 +35,7 @@ extract_features <- function(
     'rm.ridge'
   ))
 
-  parLapply(cluster, filenames, function(filename) {
+  snow::parLapply(cluster, filenames, function(filename) {
     profile <- proc.cdf(
       filename = filename,
       min.pres = min_pres,

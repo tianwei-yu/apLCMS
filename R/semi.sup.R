@@ -50,13 +50,13 @@ semi.sup <- function(
         grps<-round(seq(0, length(to.do), length=n.nodes+1))
         grps<-unique(grps)
         
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         
-        features<-foreach(i=2:length(grps)) %dopar%
+        features<-foreach::foreach(i=2:length(grps)) %dopar%
         {
             this.subset<-to.do[(grps[i-1]+1):grps[i]]
             for(j in this.subset)
@@ -92,7 +92,7 @@ semi.sup <- function(
                 }
             }
         }
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }
 
     all.files<-dir()
@@ -118,10 +118,10 @@ semi.sup <- function(
 
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         cpu_time_adj_time <- system.time(
           f2 <- 
@@ -136,7 +136,7 @@ semi.sup <- function(
 
         message(c("** correction time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         
-        stopCluster(cl)
+        snow::stopCluster(cl)
         save(f2,file=this.name)
     }else{
         load(this.name)
@@ -154,10 +154,10 @@ semi.sup <- function(
 
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
         
         cpu_time <- system.time(
           aligned <-
@@ -173,7 +173,7 @@ semi.sup <- function(
         
         message(c("** aligned features, CPU time (seconds): ", as.vector(cpu_time)[1]))
         save(aligned,file=this.name)
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }else{
         load(this.name)
     }
@@ -296,10 +296,10 @@ semi.sup <- function(
         grps<-round(seq(0, length(to.do), length=n.nodes+1))
         grps<-unique(grps)
         
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         features.recov<-foreach(i=2:length(grps)) %dopar%
         {
@@ -311,7 +311,7 @@ semi.sup <- function(
                 save(this.recovered, file=this.name)
             }
         }
-        stopCluster(cl)
+        snow::stopCluster(cl)
         gc()
     }
     
@@ -337,10 +337,10 @@ semi.sup <- function(
     
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         cpu_time_adj_time <- system.time(
           f2.recov <- 
@@ -355,7 +355,7 @@ semi.sup <- function(
 
         message(c("** correction time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         save(f2.recov,file=this.name)
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }else{
         load(this.name)
     }
@@ -368,10 +368,10 @@ semi.sup <- function(
     is.done<-all.files[which(all.files == this.name)]
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
         
         cpu_time <- system.time(
           aligned.recov <-
@@ -387,7 +387,7 @@ semi.sup <- function(
         
         message(c("** aligned features, CPU time (seconds): ", as.vector(cpu_time)[1]))
         save(aligned.recov,file=this.name)
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }else{
         load(this.name)
     }

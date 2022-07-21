@@ -78,10 +78,10 @@ recover_weaker_signals <- function(
   max_bandwidth,
   recover_min_count
 ) {
-  clusterExport(cluster, c('recover.weaker'))
-  clusterEvalQ(cluster, library("splines"))
+  snow::clusterExport(cluster, c('recover.weaker'))
+  snow::clusterEvalQ(cluster, library("splines"))
 
-  recovered <- parLapply(cluster, seq_along(filenames), function(i) {
+  recovered <- snow::parLapply(cluster, seq_along(filenames), function(i) {
     recover.weaker(
       loc = i,
       filename = filenames[[i]],

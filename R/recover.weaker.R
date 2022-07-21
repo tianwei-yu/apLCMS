@@ -99,7 +99,7 @@ recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, al
     adjusted.time<-adjusted.time[to.use]
 	if(length(adjusted.time)>=4)
 	{
-		sp<-interpSpline(orig.time~adjusted.time, na.action = na.omit)
+		sp<-splines::interpSpline(orig.time~adjusted.time, na.action = na.omit)
 		target.time[sel.non.na]<-predict(sp,aligned.ftrs[sel.non.na,2])$y
     }
     
