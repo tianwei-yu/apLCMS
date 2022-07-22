@@ -1,3 +1,5 @@
+#' @examples
+#' peak.characterize(existing.row = NA, ftrs.row, chr.row)
 peak.characterize <-
 function(existing.row=NA, ftrs.row, chr.row)
 {
