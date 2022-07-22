@@ -45,6 +45,8 @@ load_data <- function(filename,
 
 #' Process file and return the profile.
 #' @export
+#' @examples
+#' proc.cdf(input_path, min_pres, min_run, tol, intensity.weighted = intensity_weighted)
 proc.cdf <- function(filename,
                      min.pres = 0.5,
                      min.run = 12,
