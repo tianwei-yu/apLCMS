@@ -29,6 +29,8 @@ compute_breaks <- function(tol, masses, intensi, weighted) {
 }
 
 #' @export
+#' @examples
+#' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
 adaptive.bin <- function(x,
                          min.run,
                          min.pres,
