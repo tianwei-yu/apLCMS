@@ -140,6 +140,8 @@ augment_known_table <- function(
 }
 
 #' @export
+#' @examples
+#' hybrid(test_files, known_table, cluster = num_workers)
 hybrid <- function(
   filenames,
   known_table,
