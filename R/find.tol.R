@@ -1,4 +1,6 @@
 #' @export
+#' @examples
+#' find.tol(mz_values, mz_max_diff = mz_max_diff, do.plot = FALSE)
 find.tol <- function(mz_values,
                      mz_max_diff = 1e-4,
                      aver.bin.size = 4000,
