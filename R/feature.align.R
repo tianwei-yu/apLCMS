@@ -17,6 +17,8 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
 
 # returns a list of aligned features and original peak times
 #' @export
+#' @examples
+#' feature.align(features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
 feature.align <- function(features,
                           min_occurrence = 2,
                           mz_tol_relative = NA,
