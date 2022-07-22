@@ -1,4 +1,6 @@
 #' @export
+#' @examples
+#' cont.index(newprof, min.pres = min.pres, min.run = min.run)
 cont.index <-
 function(newprof, min.pres=0.6, min.run=5)
 {
