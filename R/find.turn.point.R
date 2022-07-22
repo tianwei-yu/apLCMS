@@ -1,4 +1,6 @@
 #' @export
+#' @examples
+#' find.turn.point(y)
 find.turn.point <-
 function(y)
 {
