@@ -1,4 +1,6 @@
 #' @export
+#' @examples
+#' combine.seq.3(retention_time_vector, masses, intensi)
 combine.seq.3 <-
 function(a, mz, inte)             ### the input need to be pre-ordered by a
 {
