@@ -1,3 +1,5 @@
+#' @examples
+#' find.match(time.matched, unacceptable=aligned$chr.tol/2)
 find.match <-
 function(a, unacceptable=4)
 {
