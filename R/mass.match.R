@@ -1,3 +1,5 @@
+#' @examples
+#' mass.match(aligned.ftrs, known.table, match.tol.ppm)
 mass.match <-
 function(x, known.mz, match.tol.ppm=5)
 {
