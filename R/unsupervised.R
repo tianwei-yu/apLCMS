@@ -118,6 +118,8 @@ recover_weaker_signals <- function(
 }
 
 #' @export
+#' @examples
+#' unsupervised(test_files, cluster = num_workers)
 unsupervised <- function(
   filenames,
   min_exp = 2,
