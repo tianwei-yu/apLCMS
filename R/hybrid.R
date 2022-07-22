@@ -77,6 +77,7 @@
   pairing
 }
 
+#' @export
 augment_with_known_features <- function(aligned, known_table, match_tol_ppm) {
   pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
 
