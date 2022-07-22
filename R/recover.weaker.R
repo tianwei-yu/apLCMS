@@ -19,6 +19,34 @@ duplicate.row.remove <- function(new.table) {
   new.table
 }
 
+#' Compute all time values from base curve.
+#' @param base_curve Basis curve
+#' @export
+compute_all_times <- function(base_curve) {
+  all_times <- base_curve[, 1]
+  if (all_times[1] > 0) all_times <- c(0, all_times)
+  all_times <- c(all_times, 2 * all_times[length(all_times)] - all_times[length(all_times) - 1])
+  all_times <- (all_times[1:(length(all_times) - 1)] + all_times[2:length(all_times)]) / 2
+  all_times <- all_times[2:length(all_times)] - all_times[1:(length(all_times) - 1)]
+  return(all_times)
+}
+
+#' Get all times, average difference and span for retention times.
+#' @export
+get_all_times <- function(times) {
+  base.curve <- unique(times)
+  all.span <- range(base.curve)
+
+  base.curve <- base.curve[order(base.curve)]
+  aver.diff <- mean(diff(base.curve))
+
+  base.curve <- cbind(base.curve, base.curve * 0)
+
+  all.times <- compute_all_times(base.curve)
+
+  return(list(all.times = all.times, base.curve = base.curve, aver.diff = aver.diff, all,span = all.span))
+}
+
 recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range = NA, chr.range = NA, use.observed.range = TRUE, orig.tol = 1e-5, min.bw = NA, max.bw = NA, bandwidth = .5, recover.min.count = 3, intensity.weighted = FALSE) {
   if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
   if (is.na(chr.range)) chr.range <- align.chr.tol / 2
@@ -54,16 +82,10 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
   if (min.bw >= max.bw) min.bw <- max.bw / 4
 
   times <- times[order(times)]
-  base.curve <- unique(times)
-  base.curve <- base.curve[order(base.curve)]
-  aver.diff <- mean(diff(base.curve))
-  base.curve <- cbind(base.curve, base.curve * 0)
-
-  all.times <- base.curve[, 1]
-  if (all.times[1] > 0) all.times <- c(0, all.times)
-  all.times <- c(all.times, 2 * all.times[length(all.times)] - all.times[length(all.times) - 1])
-  all.times <- (all.times[1:(length(all.times) - 1)] + all.times[2:length(all.times)]) / 2
-  all.times <- all.times[2:length(all.times)] - all.times[1:(length(all.times) - 1)]
+  result <- get_all_times(times)
+  aver.diff <- result$aver.diff
+  all.times <- result$all.times
+  base.curve <- result$base.curve
 
   this.ftrs <- aligned.ftrs[, (loc + 4)]
   this.times <- pk.times[, (loc + 4)]
