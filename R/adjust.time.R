@@ -66,6 +66,8 @@ fill_missing_values <- function(orig.feature, this.feature) {
 }
 
 #' @export
+#' @examples
+#' adjust.time(extracted_features)
 adjust.time <- function(features,
                         mz_tol_relative = NA,
                         rt_tol_relative = NA,
