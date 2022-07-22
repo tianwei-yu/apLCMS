@@ -4,10 +4,11 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
     
     filenames <- lapply(files, function(x) {
-      file.path(testdata, x, paste0(x, "_features.Rds"))
+      file.path(testdata, "extracted", paste0(x, ".parquet"))
     })
     
-    extracted <- lapply(filenames, readRDS)
+    extracted <- lapply(filenames, arrow::read_parquet)
+    extracted <- lapply(extracted, as.data.frame)
     
     chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
     
@@ -37,7 +38,7 @@ patrick::with_parameters_test_that(
     )
     
     expected_filenames <- lapply(files, function(x) {
-      file.path(testdata, x, paste0(x, "_features_corrected.parquet"))
+      file.path(testdata, "adjusted", paste0(x, ".parquet"))
     })
     
     expected <- lapply(expected_filenames, arrow::read_parquet)
@@ -49,7 +50,7 @@ patrick::with_parameters_test_that(
   },
   patrick::cases(
     RCX_shortened = list(
-      files = c("RCX_01_shortened_v2", "RCX_09_shortened_v2", "RCX_16_shortened_v2"),
+      files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
       mz_tol = NA,
       chr_tol = NA,
       find_tol_max_d = 10 * 1e-05,

@@ -3,8 +3,9 @@ patrick::with_parameters_test_that(
   {
     if(ci_skip == TRUE) skip_on_ci()
     
-    testdata <- file.path("..", "testdata", .test_name)
-    input_path <- file.path(testdata, filename)
+    testdata <- file.path("..", "testdata")
+    input_path <- file.path(testdata, "input", filename)
+    
     actual <- proc.cdf(
       input_path,
       min.pres = min_pres,
@@ -14,7 +15,7 @@ patrick::with_parameters_test_that(
       cache = FALSE
     )
 
-    expected_path <- file.path(testdata, expected_filename)
+    expected_path <- file.path(testdata, "filtered", expected_filename)
     expected <- readRDS(expected_path)
 
     # exclude last column from comparison as there lies the stochastic nature
@@ -31,8 +32,8 @@ patrick::with_parameters_test_that(
       ci_skip = FALSE
     ),
     RCX_01_shortened_v2 = list(
-      filename = c("RCX_01_shortened_v2.mzML"),
-      expected_filename = "RCX_01_shortened_v2_cdf.Rds",
+      filename = c("RCX_06_shortened.mzML"),
+      expected_filename = "RCX_06_shortened_cdf.Rds",
       tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
@@ -40,8 +41,8 @@ patrick::with_parameters_test_that(
       ci_skip = FALSE
     ),
     RCX_09_shortened_v2 = list(
-      filename = c("RCX_09_shortened_v2.mzML"),
-      expected_filename = "RCX_09_shortened_v2_cdf.Rds",
+      filename = c("RCX_07_shortened.mzML"),
+      expected_filename = "RCX_07_shortened_cdf.Rds",
       tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
@@ -49,8 +50,8 @@ patrick::with_parameters_test_that(
       ci_skip = TRUE
     ),
     RCX_16_shortened_v2 = list(
-      filename = c("RCX_16_shortened_v2.mzML"),
-      expected_filename = "RCX_16_shortened_v2_cdf.Rds",
+      filename = c("RCX_08_shortened.mzML"),
+      expected_filename = "RCX_08_shortened_cdf.Rds",
       tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,

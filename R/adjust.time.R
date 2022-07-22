@@ -120,7 +120,7 @@ adjust.time <- function(features,
             that <- cbind(all.ft$mz[sel], all.ft$chr[sel], all.ft$grps[sel])
             this <- this[order(this[, 1], this[, 2]), ]
             that <- that[order(that[, 1], that[, 2]), ]
-            this <- cbind(this, rep(i, nrow(this)), that[, 3])
+            this <- cbind(this, V6=rep(i, nrow(this)), V7=that[, 3])
             features[[i]] <- this
         }
         
