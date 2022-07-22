@@ -1,4 +1,6 @@
 #' @export
+#' @examples
+#' rm.ridge(rt, intensi, bw)
 rm.ridge <-
 function(x,y2, bw)
 {
