@@ -101,6 +101,21 @@ get_times_to_use <- function(orig.time, adjusted.time) {
   return(to.use)
 }
 
+compute_breaks_2 <- function(data_table, orig.tol) {
+  all.mass.den <- density(
+    data_table$mz,
+    weights = l2normalize(data_table$intensities),
+    bw = 0.5 * orig.tol * max(data_table$mz),
+    n = 2^min(15, floor(log2(length(data_table$mz))) - 2)
+  )
+
+  all.mass.turns <- find.turn.point(all.mass.den$y)
+  all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
+  breaks <- c(0, unique(round(approx(data_table$mz, seq_along(data_table$mz), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
+
+  return(breaks)
+}
+
 recover.weaker <- function(filename,
                            sample_name,
                            aligned.ftrs,
@@ -155,16 +170,8 @@ recover.weaker <- function(filename,
     round(this.f2[, "pos"], 5)
   )
 
-  all.mass.den <- density(
-    masses,
-    weights = l2normalize(data_table$intensities),
-    bw = 0.5 * orig.tol * max(masses),
-    n = 2^min(15, floor(log2(length(masses))) - 2)
-  )
+  breaks <- compute_breaks_2(data_table, orig.tol)
 
-  all.mass.turns <- find.turn.point(all.mass.den$y)
-  all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
-  breaks <- c(0, unique(round(approx(masses, seq_along(masses), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
   this.mz <- rep(NA, length(this.ftrs))
 
   for (i in 1:length(this.ftrs))
