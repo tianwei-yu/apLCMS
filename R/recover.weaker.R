@@ -116,6 +116,16 @@ compute_breaks_2 <- function(data_table, orig.tol) {
   return(breaks)
 }
 
+get_found_ftrs <- function(aligned.ftrs, masses, breaks, i, custom.mz.tol) {
+  if (aligned.ftrs[i, "mz"] <= masses[breaks[2]]) {
+    this.found <- c(1, 2)
+  } else {
+    this.found <- c(which(abs(masses[breaks] - aligned.ftrs[i, "mz"]) < custom.mz.tol[i]), min(which(masses[breaks] > aligned.ftrs[i, "mz"])), max(which(masses[breaks] < aligned.ftrs[i, "mz"]))) + 1
+    this.found <- c(min(this.found), max(this.found))
+  }
+  return(this.found)
+}
+
 recover.weaker <- function(filename,
                            sample_name,
                            aligned.ftrs,
@@ -174,25 +184,19 @@ recover.weaker <- function(filename,
 
   this.mz <- rep(NA, length(this.ftrs))
 
-  for (i in 1:length(this.ftrs))
+  for (i in seq_along(this.ftrs))
   {
     if (this.ftrs[i] == 0 & aligned.ftrs[i, 1] < masses[breaks[length(breaks)]]) {
-      if (aligned.ftrs[i, 1] <= masses[breaks[2]]) {
-        this.found <- c(1, 2)
-      } else {
-        this.found <- c(which(abs(masses[breaks] - aligned.ftrs[i, 1]) < custom.mz.tol[i]), min(which(masses[breaks] > aligned.ftrs[i, 1])), max(which(masses[breaks] < aligned.ftrs[i, 1]))) + 1
-        this.found <- c(min(this.found), max(this.found))
-      }
+      
+      this.found <- get_found_ftrs(aligned.ftrs, masses, breaks, i, custom.mz.tol)
 
       if (length(this.found) > 1) {
         this.sel <- (breaks[this.found[1]] + 1):breaks[this.found[2]]
-        this.masses <- masses[this.sel]
-        this.labels <- data_table$labels[this.sel]
-        this.intensi <- data_table$intensities[this.sel]
+        this <- data_table |> dplyr::slice(this.sel)
 
         mass.den <- compute_mass_density(
-          mz = this.masses,
-          intensities = this.intensi,
+          mz = this$mz,
+          intensities = this$intensities,
           bandwidth = 0.5 * orig.tol * aligned.ftrs[i, 1],
           intensity_weighted = intensity.weighted
         )
@@ -209,27 +213,21 @@ recover.weaker <- function(filename,
             mass.lower <- max(mass.vlys[mass.vlys < mass.pks[k]])
             mass.upper <- min(mass.vlys[mass.vlys > mass.pks[k]])
 
-            that.sel <- which(this.masses > mass.lower & this.masses <= mass.upper)
-            if (length(that.sel) > recover.min.count) {
-              that.labels <- this.labels[that.sel]
-              that.masses <- this.masses[that.sel]
-              that.intensi <- this.intensi[that.sel]
+            that <- this |> dplyr::filter(mz > mass.lower & mz <= mass.upper) |> dplyr::arrange_at("labels")
 
-              that.order <- order(that.labels)
-              that.labels <- that.labels[that.order]
-              that.masses <- that.masses[that.order]
-              that.intensi <- that.intensi[that.order]
-
-              that.prof <- combine.seq.3(that.labels, that.masses, that.intensi)
-
+            if (nrow(that) > recover.min.count) {
+              that.prof <- combine.seq.3(that$labels, that$mz, that$intensities)
               that.mass <- sum(that.prof[, 1] * that.prof[, 3]) / sum(that.prof[, 3])
               curr.rec <- c(that.mass, NA, NA)
+
               if (nrow(that.prof) < 10) {
+
                 if (!is.na(target.time[i])) {
                   thee.sel <- which(abs(that.prof[, 2] - target.time[i]) < custom.chr.tol[i] * 2)
                 } else {
                   thee.sel <- 1:nrow(that.prof)
                 }
+
                 if (length(thee.sel) > recover.min.count) {
                   if (length(thee.sel) > 1) {
                     that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], base.curve[, 1], all.times)
