@@ -80,6 +80,27 @@ get_custom_chr_tol <- function(use.observed.range,
   return(custom.chr.tol)
 }
 
+compute_target_time <- function(aligned_rts, orig.time, adjusted.time) {
+  to.use <- get_times_to_use(orig.time, adjusted.time)
+  orig.time <- orig.time[to.use]
+  adjusted.time <- adjusted.time[to.use]
+
+  sel.non.na <- which(!is.na(aligned_rts))
+  if (length(adjusted.time) >= 4) {
+    sp <- interpSpline(orig.time ~ adjusted.time, na.action = na.omit)
+    aligned_rts[sel.non.na] <- predict(sp, aligned_rts[sel.non.na])$y
+  }
+}
+
+get_times_to_use <- function(orig.time, adjusted.time) {
+  ttt.0 <- table(orig.time)
+  ttt <- table(adjusted.time)
+  to.use <- which(adjusted.time %in% as.numeric(names(ttt)[ttt == 1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0 == 1]))
+  if (length(to.use) > 2000)
+    to.use <- sample(to.use, 2000, replace = FALSE)
+  return(to.use)
+}
+
 recover.weaker <- function(filename,
                            sample_name,
                            aligned.ftrs,
@@ -128,24 +149,11 @@ recover.weaker <- function(filename,
     aligned.ftrs
   )
 
-  orig.time <- round(this.f1[, 2], 5)
-  adjusted.time <- round(this.f2[, 2], 5)
-  ttt.0 <- table(orig.time)
-  ttt <- table(adjusted.time)
-
-  to.use <- which(adjusted.time %in% as.numeric(names(ttt)[ttt == 1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0 == 1]))
-  if (length(to.use) > 2000) to.use <- sample(to.use, 2000, replace = FALSE)
-
-  sel.non.na <- which(!is.na(aligned.ftrs[, "rt"]))
-  target.time <- aligned.ftrs[, "rt"]
-
-  orig.time <- orig.time[to.use]
-  adjusted.time <- adjusted.time[to.use]
-
-  if (length(adjusted.time) >= 4) {
-    sp <- interpSpline(orig.time ~ adjusted.time, na.action = na.omit)
-    target.time[sel.non.na] <- predict(sp, aligned.ftrs[sel.non.na, 2])$y
-  }
+  target.time <- compute_target_time(
+    aligned.ftrs[, "rt"],
+    round(this.f1[, "pos"], 5),
+    round(this.f2[, "pos"], 5)
+  )
 
   all.mass.den <- density(
     masses,
