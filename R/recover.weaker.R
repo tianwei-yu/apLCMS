@@ -6,7 +6,7 @@ duplicate.row.remove <- function(new.table) {
 
   while (m <= nrow(new.table)) {
     if (abs(new.table[m, 1] - new.table[n, 1]) < 1e-10 &
-     abs(new.table[m, 2] - new.table[n, 2]) < 1e-10 &
+      abs(new.table[m, 2] - new.table[n, 2]) < 1e-10 &
       abs(new.table[m, 5] - new.table[n, 5]) < 1e-10) {
       to.remove[m] <- 1
       m <- m + 1
@@ -46,32 +46,58 @@ l2normalize <- function(x) {
   x / sum(x)
 }
 
-compute_mass_density <- function(mz, intensities, bandwidth, intensity_weighted) {
+compute_mass_density <- function(mz,
+                                 intensities,
+                                 bandwidth,
+                                 intensity_weighted) {
   if (intensity_weighted) {
-    mass_density <- density(mz, weights = l2normalize(intensities), bw = bandwidth)
+    mass_density <- density(
+      mz,
+      weights = l2normalize(intensities),
+      bw = bandwidth
+    )
   } else {
     mass_density <- density(mz, bw = bandwidth)
   }
   return(mass_density)
 }
 
-compute_chromatographic_tolerance <- function(use.observed.range, pk.times, chr.range, aligned.ftrs) {
+get_custom_chr_tol <- function(use.observed.range,
+                                              pk.times,
+                                              chr.range,
+                                              aligned.ftrs) {
   custom.chr.tol <- rep(chr.range, nrow(aligned.ftrs))
 
   if (use.observed.range) {
     # check observed rt range across ALL SAMPLES
     all_peak_rts <- pk.times[, 5:ncol(pk.times)]
     observed.chr.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
-    num.present <- apply(!is.na(all_peak_rts), 1, sum)
-    custom.chr.tol[which(num.present >= 5 & custom.chr.tol > observed.chr.range)] <- observed.chr.range[which(num.present >= 5 & custom.chr.tol > observed.chr.range)]
+    sufficient_rts <- apply(!is.na(all_peak_rts), 1, sum) >= 5
+    selection <- which(sufficient_rts & custom.chr.tol > observed.chr.range)
+    custom.chr.tol[selection] <- observed.chr.range[selection]
   }
 
   return(custom.chr.tol)
 }
 
-recover.weaker <- function(
-  filename, sample_name, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range = NA, chr.range = NA, use.observed.range = TRUE, orig.tol = 1e-5, min.bw = NA, max.bw = NA, bandwidth = .5, recover.min.count = 3, intensity.weighted = FALSE) {
-  
+recover.weaker <- function(filename,
+                           sample_name,
+                           aligned.ftrs,
+                           pk.times,
+                           align.mz.tol,
+                           align.chr.tol,
+                           this.f1,
+                           this.f2,
+                           mz.range = NA,
+                           chr.range = NA,
+                           use.observed.range = TRUE,
+                           orig.tol = 1e-5,
+                           min.bw = NA,
+                           max.bw = NA,
+                           bandwidth = .5,
+                           recover.min.count = 3,
+                           intensity.weighted = FALSE) {
+
   # load raw data
   this.raw <- load_file(filename)
   times <- this.raw$times
@@ -88,20 +114,25 @@ recover.weaker <- function(
 
 
   base.curve <- compute_base_curve(sort(times))
-  aver.diff <- mean(diff(base.curve[,1]))
+  aver.diff <- mean(diff(base.curve[, 1]))
   all.times <- compute_all_times(base.curve)
 
   this.ftrs <- aligned.ftrs[, sample_name]
   this.times <- pk.times[, sample_name]
 
   custom.mz.tol <- mz.range * aligned.ftrs$mz
-  custom.chr.tol <- compute_chromatographic_tolerance(use.observed.range, pk.times, chr.range, aligned.ftrs)
+  custom.chr.tol <- get_custom_chr_tol(
+    use.observed.range,
+    pk.times,
+    chr.range,
+    aligned.ftrs
+  )
 
   orig.time <- round(this.f1[, 2], 5)
   adjusted.time <- round(this.f2[, 2], 5)
   ttt.0 <- table(orig.time)
   ttt <- table(adjusted.time)
-  
+
   to.use <- which(adjusted.time %in% as.numeric(names(ttt)[ttt == 1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0 == 1]))
   if (length(to.use) > 2000) to.use <- sample(to.use, 2000, replace = FALSE)
 
