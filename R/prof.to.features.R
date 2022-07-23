@@ -602,9 +602,8 @@ prof.to.features <- function(a,
     if (is.na(max.bw)) max.bw <- diff(range(a[, 2], na.rm = TRUE)) / 15
     if (min.bw >= max.bw) min.bw <- max.bw / 4
 
-    result <- get_all_times(a[, 2])
-    all.times <- result$all.times
-    base.curve <- result$base.curve
+    base.curve <- compute_base_curve(a[, 2])
+    all.times <- compute_all_times(base.curve)
 
     this.features <- matrix(0, nrow = 1, ncol = 5)
     colnames(this.features) <- c("mz", "pos", "sd1", "sd2", "area")
