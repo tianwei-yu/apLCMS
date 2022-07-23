@@ -55,8 +55,22 @@ compute_mass_density <- function(mz, intensities, bandwidth, intensity_weighted)
   return(mass_density)
 }
 
+compute_chromatographic_tolerance <- function(use.observed.range, pk.times, chr.range, aligned.ftrs) {
+  custom.chr.tol <- rep(chr.range, nrow(aligned.ftrs))
+
+  if (use.observed.range) {
+    # check observed rt range across ALL SAMPLES
+    all_peak_rts <- pk.times[, 5:ncol(pk.times)]
+    observed.chr.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
+    num.present <- apply(!is.na(all_peak_rts), 1, sum)
+    custom.chr.tol[which(num.present >= 5 & custom.chr.tol > observed.chr.range)] <- observed.chr.range[which(num.present >= 5 & custom.chr.tol > observed.chr.range)]
+  }
+
+  return(custom.chr.tol)
+}
+
 recover.weaker <- function(
-  filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range = NA, chr.range = NA, use.observed.range = TRUE, orig.tol = 1e-5, min.bw = NA, max.bw = NA, bandwidth = .5, recover.min.count = 3, intensity.weighted = FALSE) {
+  filename, sample_name, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range = NA, chr.range = NA, use.observed.range = TRUE, orig.tol = 1e-5, min.bw = NA, max.bw = NA, bandwidth = .5, recover.min.count = 3, intensity.weighted = FALSE) {
   
   # load raw data
   this.raw <- load_file(filename)
@@ -87,17 +101,12 @@ recover.weaker <- function(
   aver.diff <- mean(diff(base.curve[,1]))
   all.times <- compute_all_times(base.curve)
 
-  this.ftrs <- aligned.ftrs[, (loc + 4)]
-  this.times <- pk.times[, (loc + 4)]
+  this.ftrs <- aligned.ftrs[, sample_name]
+  this.times <- pk.times[, sample_name]
 
-  custom.mz.tol <- mz.range * aligned.ftrs[, 1]
-  custom.chr.tol <- rep(chr.range, nrow(aligned.ftrs))
+  custom.mz.tol <- mz.range * aligned.ftrs$mz
+  custom.chr.tol <- compute_chromatographic_tolerance(use.observed.range, pk.times, chr.range, aligned.ftrs)
 
-  if (use.observed.range) {
-    observed.chr.range <- (apply(pk.times[, 5:ncol(pk.times)], 1, max) - apply(pk.times[, 5:ncol(pk.times)], 1, min)) / 2
-    num.present <- apply(!is.na(pk.times[, 5:ncol(pk.times)]), 1, sum)
-    custom.chr.tol[which(num.present >= 5 & custom.chr.tol > observed.chr.range)] <- observed.chr.range[which(num.present >= 5 & custom.chr.tol > observed.chr.range)]
-  }
   orig.time <- round(this.f1[, 2], 5)
   adjusted.time <- round(this.f2[, 2], 5)
   ttt.0 <- table(orig.time)
@@ -106,8 +115,8 @@ recover.weaker <- function(
   to.use <- which(adjusted.time %in% as.numeric(names(ttt)[ttt == 1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0 == 1]))
   if (length(to.use) > 2000) to.use <- sample(to.use, 2000, replace = FALSE)
 
-  sel.non.na <- which(!is.na(aligned.ftrs[, 2]))
-  target.time <- aligned.ftrs[, 2]
+  sel.non.na <- which(!is.na(aligned.ftrs[, "rt"]))
+  target.time <- aligned.ftrs[, "rt"]
 
   orig.time <- orig.time[to.use]
   adjusted.time <- adjusted.time[to.use]
@@ -117,18 +126,16 @@ recover.weaker <- function(
     target.time[sel.non.na] <- predict(sp, aligned.ftrs[sel.non.na, 2])$y
   }
 
-  l <- length(masses)
-  curr.bw <- 0.5 * orig.tol * max(masses)
   all.mass.den <- density(
     masses,
     weights = l2normalize(data_table$intensities),
-    bw = curr.bw,
-    n = 2^min(15, floor(log2(l)) - 2)
+    bw = 0.5 * orig.tol * max(masses),
+    n = 2^min(15, floor(log2(length(masses))) - 2)
   )
 
   all.mass.turns <- find.turn.point(all.mass.den$y)
   all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
-  breaks <- c(0, unique(round(approx(masses, 1:l, xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
+  breaks <- c(0, unique(round(approx(masses, seq_along(masses), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
   this.mz <- rep(NA, length(this.ftrs))
 
   for (i in 1:length(this.ftrs))
@@ -292,7 +299,18 @@ recover.weaker <- function(
             this.pos.diff <- which(this.pos.diff == min(this.pos.diff))[1]
             this.f1 <- rbind(this.f1, c(this.rec[this.sel, 1], this.rec[this.sel, 2], NA, NA, this.rec[this.sel, 3]))
             this.time.adjust <- (-this.f1[this.pos.diff, 2] + this.f2[this.pos.diff, 2])
-            this.f2 <- rbind(this.f2, c(this.rec[this.sel, 1], this.rec[this.sel, 2] + this.time.adjust, NA, NA, this.rec[this.sel, 3], loc, NA))
+            this.f2 <- rbind(
+              this.f2,
+              c(
+                this.rec[this.sel, 1],
+                this.rec[this.sel, 2] + this.time.adjust,
+                NA,
+                NA,
+                this.rec[this.sel, 3],
+                grep(sample_name, colnames(aligned.ftrs)),
+                NA
+              )
+            )
             this.ftrs[i] <- this.rec[this.sel, 3]
             this.times[i] <- this.rec[this.sel, 2] + this.time.adjust
             this.mz[i] <- this.rec[this.sel, 1]

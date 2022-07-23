@@ -51,8 +51,8 @@ patrick::with_parameters_test_that(
 
     recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
-        loc = i,
         filename = ms_files[[i]],
+        sample_name = files[i],
         this.f1 = extracted[[i]],
         this.f2 = adjusted[[i]],
         pk.times = aligned$rt_crosstab,
@@ -177,10 +177,10 @@ patrick::with_parameters_test_that(
 )
 
 files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened")
-      mz_tol = 1e-05
-      recover_mz_range = NA
-      recover_chr_range = NA
-      use_observed_range = TRUE
-      min_bandwidth = NA
-      max_bandwidth = NA
-      recover_min_count = 3
+mz_tol = 1e-05
+recover_mz_range = NA
+recover_chr_range = NA
+use_observed_range = TRUE
+min_bandwidth = NA
+max_bandwidth = NA
+recover_min_count = 3
