@@ -74,11 +74,10 @@ recover.weaker <- function(
   
   # load raw data
   this.raw <- load_file(filename)
-  masses <- this.raw$masses
-  intensi <- this.raw$intensi
-  labels <- this.raw$labels
   times <- this.raw$times
+  data_table <- tibble::tibble(mz = this.raw$masses, labels = this.raw$labels, intensities = this.raw$intensi) |> dplyr::arrange_at("mz")
   rm(this.raw)
+  masses <- data_table$mz
 
   # Initialize parameters with default values
   if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
@@ -87,15 +86,6 @@ recover.weaker <- function(
   if (is.na(max.bw)) max.bw <- diff(range(times, na.rm = TRUE)) / 15
   if (min.bw >= max.bw) min.bw <- max.bw / 4
 
-
-  masses <- c(masses, -100000)
-  mass.breaks <- which(masses[1:(length(masses) - 1)] > masses[2:length(masses)])
-  mass.breaks <- c(0, mass.breaks)
-  masses <- masses[1:(length(masses) - 1)]
-
-  data_table <- tibble::tibble(mz = masses, labels = labels, intensities = intensi) |> dplyr::arrange_at("mz")
-
-  masses <- data_table$mz
 
   base.curve <- compute_base_curve(sort(times))
   aver.diff <- mean(diff(base.curve[,1]))
