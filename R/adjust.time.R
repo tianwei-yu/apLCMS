@@ -85,8 +85,8 @@ adjust.time <- function(features,
 
         values <- get_feature_values(features, rt_colname)
         mz <- values$mz
-        chr <- values$chr
-        lab <- values$lab
+        chr <- values$rt
+        lab <- values$sample_id
 
         if(is.na(mz_tol_relative)) {
             mz_tol_relative <- find.tol(mz, mz_max_diff = mz_max_diff, do.plot = do.plot)

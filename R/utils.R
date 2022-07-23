@@ -1,14 +1,14 @@
 get_feature_values <- function(features, rt_colname) {
     mz <- c()
-    chr <- c()
-    lab <- c()
+    rt <- c()
+    sample_id <- c()
     for (i in 1:length(features)) {
-        features_batch <- dplyr::as_tibble(features[[i]])
-        mz <- c(mz, features_batch$mz)
-        chr <- c(chr, features_batch[[rt_colname]])
-        lab <- c(lab, rep(i, nrow(features_batch)))
+        sample_features <- dplyr::as_tibble(features[[i]])
+        mz <- c(mz, sample_features$mz)
+        rt <- c(rt, sample_features[[rt_colname]])
+        sample_id <- c(sample_id, rep(i, nrow(sample_features)))
     }
-    return(list(mz = mz, chr = chr, lab = lab))
+    return(list(mz = mz, rt = rt, sample_id = sample_id))
 }
 
 extract_pattern_colnames <- function(dataframe, pattern) {

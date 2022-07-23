@@ -34,8 +34,8 @@ feature.align <- function(features,
     if (number_of_samples > 1) {
         values <- get_feature_values(features, rt_colname)
         mz_values <- values$mz
-        chr <- values$chr
-        lab <- values$lab
+        chr <- values$rt
+        lab <- values$sample_id
         
         o <- order(mz_values, chr)
         mz_values <- mz_values[o]
