@@ -5,7 +5,9 @@ duplicate.row.remove <- function(new.table) {
   to.remove <- rep(0, nrow(new.table))
 
   while (m <= nrow(new.table)) {
-    if (abs(new.table[m, 1] - new.table[n, 1]) < 1e-10 & abs(new.table[m, 2] - new.table[n, 2]) < 1e-10 & abs(new.table[m, 5] - new.table[n, 5]) < 1e-10) {
+    if (abs(new.table[m, 1] - new.table[n, 1]) < 1e-10 &
+     abs(new.table[m, 2] - new.table[n, 2]) < 1e-10 &
+      abs(new.table[m, 5] - new.table[n, 5]) < 1e-10) {
       to.remove[m] <- 1
       m <- m + 1
     } else {
@@ -31,39 +33,45 @@ compute_all_times <- function(base_curve) {
   return(all_times)
 }
 
-#' Get all times, average difference and span for retention times.
-#' @export
-get_all_times <- function(times) {
-  base.curve <- unique(times)
-  all.span <- range(base.curve)
-
-  base.curve <- base.curve[order(base.curve)]
-  aver.diff <- mean(diff(base.curve))
-
-  base.curve <- cbind(base.curve, base.curve * 0)
-
-  all.times <- compute_all_times(base.curve)
-
-  return(list(all.times = all.times, base.curve = base.curve, aver.diff = aver.diff, all,span = all.span))
+compute_base_curve <- function(x) {
+  base_curve <- unique(x)
+  base_curve <- base_curve[order(base_curve)]
+  base_curve <- cbind(base_curve, base_curve * 0)
+  return(base_curve)
 }
 
-recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range = NA, chr.range = NA, use.observed.range = TRUE, orig.tol = 1e-5, min.bw = NA, max.bw = NA, bandwidth = .5, recover.min.count = 3, intensity.weighted = FALSE) {
-  if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
-  if (is.na(chr.range)) chr.range <- align.chr.tol / 2
 
-  this.raw <- load.lcms(filename)
-  na.sel <- c(which(is.na(this.raw$masses)), which(is.na(this.raw$labels)), which(is.na(this.raw$intensi)))
-  if (length(na.sel) > 0) {
-    na.sel <- unique(na.sel)
-    this.raw$masses <- this.raw$masses[-na.sel]
-    this.raw$labels <- this.raw$labels[-na.sel]
-    this.raw$intensi <- this.raw$intensi[-na.sel]
+#' Normalize vector so that sum(vec) = 1
+l2normalize <- function(x) {
+  x / sum(x)
+}
+
+compute_mass_density <- function(mz, intensities, bandwidth, intensity_weighted) {
+  if (intensity_weighted) {
+    mass_density <- density(mz, weights = l2normalize(intensities), bw = bandwidth)
+  } else {
+    mass_density <- density(mz, bw = bandwidth)
   }
+  return(mass_density)
+}
+
+recover.weaker <- function(
+  filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range = NA, chr.range = NA, use.observed.range = TRUE, orig.tol = 1e-5, min.bw = NA, max.bw = NA, bandwidth = .5, recover.min.count = 3, intensity.weighted = FALSE) {
+  
+  # load raw data
+  this.raw <- load_file(filename)
   masses <- this.raw$masses
   intensi <- this.raw$intensi
   labels <- this.raw$labels
   times <- this.raw$times
   rm(this.raw)
+
+  # Initialize parameters with default values
+  if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
+  if (is.na(chr.range)) chr.range <- align.chr.tol / 2
+  if (is.na(min.bw)) min.bw <- diff(range(times, na.rm = TRUE)) / 60
+  if (is.na(max.bw)) max.bw <- diff(range(times, na.rm = TRUE)) / 15
+  if (min.bw >= max.bw) min.bw <- max.bw / 4
 
 
   masses <- c(masses, -100000)
@@ -71,28 +79,18 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
   mass.breaks <- c(0, mass.breaks)
   masses <- masses[1:(length(masses) - 1)]
 
-  curr.order <- order(masses)
-  intensi <- intensi[curr.order]
-  labels <- labels[curr.order]
-  masses <- masses[curr.order]
+  data_table <- tibble::tibble(mz = masses, labels = labels, intensities = intensi) |> dplyr::arrange_at("mz")
 
+  masses <- data_table$mz
 
-  if (is.na(min.bw)) min.bw <- diff(range(times, na.rm = TRUE)) / 60
-  if (is.na(max.bw)) max.bw <- diff(range(times, na.rm = TRUE)) / 15
-  if (min.bw >= max.bw) min.bw <- max.bw / 4
-
-  times <- times[order(times)]
-  result <- get_all_times(times)
-  aver.diff <- result$aver.diff
-  all.times <- result$all.times
-  base.curve <- result$base.curve
+  base.curve <- compute_base_curve(sort(times))
+  aver.diff <- mean(diff(base.curve[,1]))
+  all.times <- compute_all_times(base.curve)
 
   this.ftrs <- aligned.ftrs[, (loc + 4)]
   this.times <- pk.times[, (loc + 4)]
-  custom.mz.tol <- mz.range * aligned.ftrs[, 1]
-  observed.mz.range <- (aligned.ftrs[, 4] - aligned.ftrs[, 3]) / 2
-  # 	if(use.observed.range) custom.mz.tol[which(custom.mz.tol < observed.mz.range)]<-observed.mz.range[which(custom.mz.tol < observed.mz.range)]
 
+  custom.mz.tol <- mz.range * aligned.ftrs[, 1]
   custom.chr.tol <- rep(chr.range, nrow(aligned.ftrs))
 
   if (use.observed.range) {
@@ -104,6 +102,7 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
   adjusted.time <- round(this.f2[, 2], 5)
   ttt.0 <- table(orig.time)
   ttt <- table(adjusted.time)
+  
   to.use <- which(adjusted.time %in% as.numeric(names(ttt)[ttt == 1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0 == 1]))
   if (length(to.use) > 2000) to.use <- sample(to.use, 2000, replace = FALSE)
 
@@ -112,6 +111,7 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
 
   orig.time <- orig.time[to.use]
   adjusted.time <- adjusted.time[to.use]
+
   if (length(adjusted.time) >= 4) {
     sp <- interpSpline(orig.time ~ adjusted.time, na.action = na.omit)
     target.time[sel.non.na] <- predict(sp, aligned.ftrs[sel.non.na, 2])$y
@@ -119,7 +119,13 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
 
   l <- length(masses)
   curr.bw <- 0.5 * orig.tol * max(masses)
-  all.mass.den <- density(masses, weights = intensi / sum(intensi), bw = curr.bw, n = 2^min(15, floor(log2(l)) - 2))
+  all.mass.den <- density(
+    masses,
+    weights = l2normalize(data_table$intensities),
+    bw = curr.bw,
+    n = 2^min(15, floor(log2(l)) - 2)
+  )
+
   all.mass.turns <- find.turn.point(all.mass.den$y)
   all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
   breaks <- c(0, unique(round(approx(masses, 1:l, xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
@@ -138,16 +144,16 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
       if (length(this.found) > 1) {
         this.sel <- (breaks[this.found[1]] + 1):breaks[this.found[2]]
         this.masses <- masses[this.sel]
-        this.labels <- labels[this.sel]
-        this.intensi <- intensi[this.sel]
+        this.labels <- data_table$labels[this.sel]
+        this.intensi <- data_table$intensities[this.sel]
 
-        this.bw <- 0.5 * orig.tol * aligned.ftrs[i, 1]
-        if (intensity.weighted) {
-          mass.den <- density(this.masses, weights = this.intensi / sum(this.intensi), bw = this.bw)
-        } else {
-          mass.den <- density(this.masses, bw = this.bw)
-        }
-        # mass.den$y[mass.den$y < min(this.intensi)/10]<-0
+        mass.den <- compute_mass_density(
+          mz = this.masses,
+          intensities = this.intensi,
+          bandwidth = 0.5 * orig.tol * aligned.ftrs[i, 1],
+          intensity_weighted = intensity.weighted
+        )
+
         mass.turns <- find.turn.point(mass.den$y)
         mass.pks <- mass.den$x[mass.turns$pks]
         mass.vlys <- c(-Inf, mass.den$x[mass.turns$vlys], Inf)
@@ -165,6 +171,7 @@ recover.weaker <- function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, 
               that.labels <- this.labels[that.sel]
               that.masses <- this.masses[that.sel]
               that.intensi <- this.intensi[that.sel]
+
               that.order <- order(that.labels)
               that.labels <- that.labels[that.order]
               that.masses <- that.masses[that.order]
