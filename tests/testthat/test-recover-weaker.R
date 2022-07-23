@@ -45,11 +45,11 @@ patrick::with_parameters_test_that(
 
     clusterExport(cluster, c(
       "recover.weaker", "load.lcms", "find.turn.point",
-      "combine.seq.3", "interpol.area", "get_all_times", "duplicate.row.remove", "compute_all_times"
+      "combine.seq.3", "interpol.area", "duplicate.row.remove", "compute_all_times", "load_file"
     ))
     clusterEvalQ(cluster, library("splines"))
 
-    recovered <- parLapply(cluster, seq_along(ms_files), function(i) {
+    recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
         loc = i,
         filename = ms_files[[i]],
@@ -175,3 +175,12 @@ patrick::with_parameters_test_that(
     )
   )
 )
+
+files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened")
+      mz_tol = 1e-05
+      recover_mz_range = NA
+      recover_chr_range = NA
+      use_observed_range = TRUE
+      min_bandwidth = NA
+      max_bandwidth = NA
+      recover_min_count = 3
