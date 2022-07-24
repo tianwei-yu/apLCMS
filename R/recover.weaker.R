@@ -1,3 +1,9 @@
+#' Recover weak signals in some profiles that is not identified as a peak, but corresponds to identified peaks in other spectra.
+#' 
+#' @description
+#' Given the aligned feature table, some features are identified in a subgroup of spectra. This doesn't mean they don't exist in the other spectra. 
+#' The signal could be too low to pass the run filter. Thus after obtaining the aligned feature table, this function re-analyzes each spectrum to 
+#' try and fill in the holes in the aligned feature table.
 #' @export
 #' @examples
 #' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2)
