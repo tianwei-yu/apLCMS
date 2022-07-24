@@ -15,7 +15,7 @@ adjust.time(features, mz_tol_relative = NA, rt_tol_relative = NA, colors=NA,
   \item{mz_tol_relative}{ The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.}
   \item{rt_tol_relative}{ The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for the tolerance level based on the data. }
   \item{colors}{ The vector of colors to be used for the line plots of time adjustments. The default is NA, in which case the program uses a set of default color set. }
-  \item{mz_max_diff}{Argument passed to find.tol(). Consider only m/z diffs smaller than this value. This is only used when the mz.tol is NA. }
+  \item{mz_max_diff}{Argument passed to find.tol(). Consider only m/z diffs smaller than this value. This is only used when the mz_tol_relative is NA. }
   \item{mz_tol_absolute}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{do.plot}{Indicates whether plot should be drawn.}
 }
