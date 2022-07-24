@@ -65,6 +65,10 @@ fill_missing_values <- function(orig.feature, this.feature) {
     return(this.feature)
 }
 
+#' Adjust retention time across spectra.
+#' 
+#' This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
+#' 
 #' @param features A list object. Each component is a matrix which is the output from proc.to.feature()
 #' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
 #'  program to search for the tolerance level based on the data. This value is expressed as the 
