@@ -15,6 +15,10 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
     }
 }
 
+#' Align peaks from spectra into a feature table.
+#' 
+#' Identifies which of the peaks from the profiles correspond to the same feature.
+#' 
 #' @param features A list object. Each component is a matrix which is the output from proc.to.feature().
 #' @param min_occurrence  A feature has to show up in at least this number of profiles to be included in the final result.
 #' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
