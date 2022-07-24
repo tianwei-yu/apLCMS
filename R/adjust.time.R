@@ -84,6 +84,9 @@ fill_missing_values <- function(orig.feature, this.feature) {
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
 #' @param rt_colname rt_colname
+#' @return A list object with the exact same structure as the input object features, i.e. one matrix per profile 
+#'  being processed. The only difference this output object has with the input object is that the retention time 
+#'  column in each of the matrices is changed to new adjusted values.
 #' @export
 #' @examples
 #' adjust.time(extracted_features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
