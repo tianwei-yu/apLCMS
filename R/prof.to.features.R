@@ -1,3 +1,22 @@
+#' @param a The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
+#' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps 
+#'  determine the bandwidth in the kernel smoother used for peak identification. See the details section.
+#' @param min.bw The minimum bandwidth to use in the kernel smoother.
+#' @param max.bw The maximum bandwidth to use in the kernel smoother.
+#' @param sd.cut A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
+#'  and the righ-standard deviation of the bi-Gaussian fuction used to fit the data.
+#' @param shape.model The mathematical model for the shape of a peak. There are two choices - “bi-Gaussian” and “Gaussian”. 
+#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is “bi-Gaussian”.
+#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
+#' @param do.plot Whether to generate diagnostic plots.
+#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param component.eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a 
+#'  proportion of intensities less than this value, the component will be ignored.
+#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1, 
+#'  models with more peaks are penalized more.
+#' @return A matrix is returned. The columns are: m/z value, retention time, spread (standard deviation of the estimated normal 
+#'  curve), and estimated total signal strength (total area of the estimated normal curve).
 #' @export
 #' @examples
 #' prof.to.features(extracted_features, sd.cut = sd_cut, sigma.ratio.lim = sigma_ratio_lim, do.plot = FALSE)
