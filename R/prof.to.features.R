@@ -1,3 +1,10 @@
+#' Generate feature table from noise-removed LC/MS profile
+#' 
+#' @description
+#' Each LC/MS profile is first processed by the function proc.cdf() to remove noise and reduce data size. A matrix containing m/z 
+#' value, retention time, intensity, and group number is output from proc.cdf(). This matrix is then fed to the function 
+#' prof.to.features() to generate a feature list. Every detected feature is summarized into a single row in the output matrix from this function.
+#' 
 #' @param a The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
 #' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps 
 #'  determine the bandwidth in the kernel smoother used for peak identification. See the details section.
