@@ -117,6 +117,8 @@ recover_weaker_signals <- function(
   )
 }
 
+#' Runs features extraction in unsupervised mode.
+#' 
 #' @param filenames The CDF file names.
 #' @param min_exp A feature has to show up in at least this number of profiles to be included in the final result.
 #' @param min_pres This is a parameter of thr run filter, to be passed to the function proc.cdf().
