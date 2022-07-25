@@ -1,3 +1,9 @@
+#' Removing long ridges at the same m/z.
+#' 
+#' @description
+#' This is an internal function. It substracts a background estimated through kernel smoothing when an EIC continuously 
+#' span more than half the retention time range.
+#' 
 #' @export
 #' @examples
 #' rm.ridge(rt, intensi, bw)
