@@ -2,6 +2,21 @@
 #' 
 #' This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
 #' 
+#' @param mz mz value of all peaks in all profiles in the study.
+#' @param chr retention time of all peaks in all profiles in the study.
+#' @param lab label of all peaks in all profiles in the study.
+#' @param number_of_samples The number of spectra in this analysis.
+#' @param mz_tol_relative m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value. 
+#'  This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param rt_tol_relative the elution time tolerance. If NA, the function finds the tolerance level first. If a numerical value is given, 
+#'  the function directly goes to the second step - grouping peaks based on the tolerance.
+#' @param aver.bin.size The average bin size to determine the number of equally spaced points in the kernel density estimation.
+#' @param min.bins the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.
+#' @param max.bins the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.
+#' @param mz_tol_absolute As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. 
+#'  This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.
+#' @param max.num.segments the maximum number of segments.
+#' @param do.plot Indicates whether plot should be drawn.
 #' @examples
 #' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
 find.tol.time <- function(mz,
