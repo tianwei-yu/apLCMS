@@ -1,3 +1,7 @@
+#' An internal function that find elution time tolerance level. 
+#' 
+#' This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
+#' 
 #' @examples
 #' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
 find.tol.time <- function(mz,
