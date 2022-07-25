@@ -3,7 +3,10 @@
 #' @description
 #' This is an internal function. It substracts a background estimated through kernel smoothing when an EIC continuously 
 #' span more than half the retention time range.
-#' 
+#' @param x Retention time vector.
+#' @param y2 Intensity vector.
+#' @param bw Bandwidth for the kernel smoother. A very wide one is used here.
+#' @return A vector of intensity value is returned.
 #' @export
 #' @examples
 #' rm.ridge(rt, intensi, bw)
