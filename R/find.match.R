@@ -1,3 +1,7 @@
+#' Internal function: finding the best match between a set of detected features and a set of known features.
+#' 
+#' Given a small matrix of distances, find the best column-row pairing that minimize the sum of distances of the matched pairs.
+#' 
 #' @examples
 #' find.match(time.matched, unacceptable=aligned$chr.tol/2)
 find.match <-
