@@ -43,7 +43,10 @@ load_data <- function(filename,
   return(raw.prof)
 }
 
-#' Process file and return the profile.
+#' Filter noise and detect peaks from LC/MS data in CDF format
+#' 
+#' This function applies the run filter to remove noise. Data points are grouped into EICs in this step.
+#' 
 #' @export
 #' @examples
 #' proc.cdf(input_path, min_pres, min_run, tol, intensity.weighted = intensity_weighted)
