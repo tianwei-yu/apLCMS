@@ -249,6 +249,10 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
   return(batchwise)
 }
 
+#' Two step hybrid feature detection.
+#' 
+#' A two-stage hybrid feature detection and alignment procedure, for data generated in multiple batches.
+#' 
 #' @param filenames file names
 #' @param metadata the batch label of each file.
 #' @param work_dir The folder where all CDF files to be processed are located.
