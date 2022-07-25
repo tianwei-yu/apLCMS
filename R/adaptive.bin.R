@@ -28,6 +28,10 @@ compute_breaks <- function(tol, masses, intensi, weighted) {
   return(breaks)
 }
 
+#' Adaptive binning
+#' 
+#' This is an internal function. It creates EICs using adaptive binning procedure
+#' 
 #' @export
 #' @examples
 #' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
