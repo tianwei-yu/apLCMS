@@ -2,6 +2,14 @@
 #' 
 #' This is an internal function. It loads LC/MS data into memory.
 #' 
+#' @param filename The CDF file name.
+#' @return A list is returned.
+#' \itemize{
+#'   \item masses - The vector of m/z values.
+#'   \item labels - The vector of retention times.
+#'   \item intensi - The vector of intensity values.
+#'   \item times - The vector of unique time points.
+#' }
 #' @export
 #' @examples
 #' load.lcms(filename)
