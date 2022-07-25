@@ -1,3 +1,7 @@
+#' Find peaks and valleys of a curve.
+#' 
+#' This is an internal function which finds the peaks and valleys of a smooth curve.
+#' 
 #' @export
 #' @examples
 #' find.turn.point(y)
