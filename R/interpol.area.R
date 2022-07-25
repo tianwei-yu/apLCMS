@@ -1,3 +1,7 @@
+#' Interpolate missing intensities and calculate the area for a single EIC.
+#' 
+#' This is an internal function.
+#' 
 #' @export
 #' @examples
 #' interpol.area(x, y, all.x, all.w)
