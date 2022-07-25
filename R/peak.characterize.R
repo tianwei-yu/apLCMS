@@ -1,3 +1,8 @@
+#' Internal function: Updates the information of a feature for the known feature table.
+#' 
+#' @description
+#' The function takes the information about the feature in the known feature table (if available), and updates it using the 
+#' information found in the current dataset.
 #' @examples
 #' peak.characterize(existing.row = NA, ftrs.row, chr.row)
 peak.characterize <-
