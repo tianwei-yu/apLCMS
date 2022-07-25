@@ -249,6 +249,70 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
   return(batchwise)
 }
 
+#' @param filenames file names
+#' @param metadata the batch label of each file.
+#' @param work_dir The folder where all CDF files to be processed are located.
+#' @param min.within.batch.prop.detect A feature needs to be present in at least this proportion of the files, 
+#'  for it to be initially detected as a feature for a batch. This parameter replaces the "min.exp" parameter in semi.sup().
+#' @param min.within.batch.prop.report A feature needs to be present in at least this proportion of the files, 
+#'  in a proportion of batches controlled by "min.batch.prop", to be included in the final feature table. This parameter 
+#'  replaces the "min.exp" parameter in semi.sup().
+#' @param min.batch.prop A feature needs to be present in at least this proportion of the batches, for it to be 
+#'  considered in the entire data.
+#' @param batch.align.mz.tol The m/z tolerance in ppm for between-batch alignment.
+#' @param batch.align.chr.tol The RT tolerance for between-batch alignment.
+#' @param known.table A data frame containing the known metabolite ions and previously found features.
+#' @param cluster The number of CPU cores to be used
+#' @param min.pres This is a parameter of thr run filter, to be passed to the function proc.cdf().
+#' @param min.run This is a parameter of thr run filter, to be passed to the function proc.cdf().
+#' @param mz.tol The user can provide the m/z tolerance level for peak identification. This value is expressed as the 
+#'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param baseline.correct.noise.percentile The perenctile of signal strength of those EIC that don't pass the run filter, 
+#'  to be used as the baseline threshold of signal strength. This parameter is passed to proc.cdf()
+#' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian". 
+#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
+#' @param baseline.correct This is a parameter in peak detection. After grouping the observations, the highest observation 
+#'  in each group is found. If the highest is lower than this value, the entire group will be deleted. The default value is NA, 
+#'  which allows the program to search for the cutoff level.
+#' @param peak.estim.method the bi-Gaussian peak parameter estimation method, to be passed to subroutine prof.to.features. 
+#'  Two possible values: moment and EM.
+#' @param min.bw The minimum bandwidth in the smoother in prof.to.features().
+#' @param max.bw The maximum bandwidth in the smoother in prof.to.features().
+#' @param sd.cut A parameter for the prof.to.features() function. A vector of two. Features with standard deviation outside 
+#'  the range defined by the two numbers are eliminated.
+#' @param sigma.ratio.lim A parameter for the prof.to.features() function. A vector of two. It enforces the belief of the 
+#'  range of the ratio between the left-standard deviation and the righ-standard deviation of the bi-Gaussian fuction used 
+#'  to fit the data.
+#' @param component.eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts 
+#'  for a proportion of intensities less than this value, the component will be ignored.
+#' @param moment.power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param align.mz.tol The user can provide the m/z tolerance level for peak alignment to override the program's selection. 
+#'  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param align.chr.tol The user can provide the elution time tolerance level to override the program's selection. This value 
+#'  is in the same unit as the elution time, normaly seconds.
+#' @param max.align.mz.diff {As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable 
+#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
+#'  in higher m/z range.
+#' @param pre.process Logical. If true, the program will not perform time correction and alignment. It will only generate peak tables 
+#'  for each spectra and save the files. It allows manually dividing the task to multiple machines.
+#' @param recover.mz.range A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. 
+#'  The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
+#' @param recover.chr.range A parameter of the recover.weaker() function. The retention time around the feature retention time to 
+#'  search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned 
+#'  object will be used.
+#' @param use.observed.range A parameter of the recover.weaker() function. If the value is TRUE, the actual range of the observed 
+#'  locations of the feature in all the spectra will be used.
+#' @param match.tol.ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param new.feature.min.count The number of profiles a new feature must be present for it to be added to the database.
+#' @param recover.min.count The minimum time point count for a series of point in the EIC for it to be considered a true feature.
+#' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1, 
+#'  models with more peaks are penalized more.
+#' @return A list is returned.
+#' \itemize{
+#'   \item batchwise.results - A list. Each item in the list is the product of semi.sup() from a single batch.
+#'   \item final.ftrs - Feature table. This is the end product of the function.
+#' }
 #' @export
 #' @examples
 #' two.step.hybrid(test_names, metadata, tempdir, known.table = known_table, cluster = num_workers)
