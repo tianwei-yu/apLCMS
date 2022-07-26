@@ -29,6 +29,8 @@
 #'  model in an EIC.
 #' @param BIC_factor The factor that is multiplied on the number of parameters to modify the BIC criterion. 
 #'  If larger than 1, models with more peaks are penalized more.
+#' @examples
+#' extract_features(cluster, filenames, min_pres, min_run, mz_tol, 0, 0.05, intensity_weighted, NA, NA, sd_cut, sigma_ratio_lim, "bi-Gaussian", "moment", 0.01, 1, 2.0)
 extract_features <- function(
   cluster,
   filenames,
