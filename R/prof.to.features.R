@@ -13,8 +13,8 @@
 #' @param sd.cut A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
 #'  and the righ-standard deviation of the bi-Gaussian fuction used to fit the data.
-#' @param shape.model The mathematical model for the shape of a peak. There are two choices - “bi-Gaussian” and “Gaussian”. 
-#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is “bi-Gaussian”.
+#' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian". 
+#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
 #' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
 #' @param do.plot Whether to generate diagnostic plots.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
