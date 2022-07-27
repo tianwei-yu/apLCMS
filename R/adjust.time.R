@@ -83,7 +83,7 @@ fill_missing_values <- function(orig.feature, this.feature) {
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly 
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @param rt_colname rt_colname
+#' @param rt_colname contains the retention time information
 #' @return A list object with the exact same structure as the input object features, i.e. one matrix per profile 
 #'  being processed. The only difference this output object has with the input object is that the retention time 
 #'  column in each of the matrices is changed to new adjusted values.

@@ -18,6 +18,7 @@ adjust.time(features, mz_tol_relative = NA, rt_tol_relative = NA, colors=NA,
   \item{mz_max_diff}{Argument passed to find.tol(). Consider only m/z diffs smaller than this value. This is only used when the mz_tol_relative is NA. }
   \item{mz_tol_absolute}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{do.plot}{Indicates whether plot should be drawn.}
+  \item{rt_colname}{contains the retention time information}
 }
 \details{
   The function first searches for the m/z tolerance level using a mixture model. After the mz.tol is obtained, the peaks are grouped based on it. The function then searches for the retention time tolerance level. Because the peaks are grouped using m/z, only metabolites that share m/z require this parameter. A rather lenient retention time tolerance level is found using a mixture model. 
