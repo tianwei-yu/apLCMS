@@ -141,10 +141,12 @@ augment_known_table <- function(
 
 #' Runs features extraction in hybrid mode.
 #' 
+#' features extraction in hybrid mode.
+#' 
 #' @param filenames The CDF file names.
 #' @param known_table Table of known chemicals.
 #' @param min_exp A feature has to show up in at least this number of profiles to be included in the final result.
-#' @param min_pres This is a parameter of thr run filter, to be passed to the function proc.cdf().
+#' @param min_pres This is a parameter of the run filter, to be passed to the function proc.cdf().
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
 #'  This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is the machine's nominal accuracy level. 
@@ -163,7 +165,7 @@ augment_known_table <- function(
 #' @param max_bandwidth The maximum bandwidth to use in the kernel smoother.
 #' @param sd_cut A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.
 #' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation and 
-#'  the righ-standard deviation of the bi-Gaussian fuction used to fit the data.
+#'  the righ-standard deviation of the bi-Gaussian function used to fit the data.
 #' @param component_eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a 
 #'  proportion of intensities less than this value, the component will be ignored.
 #' @param moment_power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
