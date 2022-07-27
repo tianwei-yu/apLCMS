@@ -66,7 +66,7 @@
 #'   \item align.chr.tol - The retention time tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.
 #'   \item mz.tol - The input mz.tol value by the user.
 #'   \item updated.known.table - The known table updated using the newly processed data. It should be used for future datasets generated using the same machine and LC column.
-#'   \item ftrs.known.table.pairing - The paring information between the feature table of the current dataset and the known feature tabel.
+#'   \item ftrs.known.table.pairing - The paring information between the feature table of the current dataset and the known feature table.
 #' }
 #' @export
 #' @examples
