@@ -285,7 +285,7 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #' @param sd.cut A parameter for the prof.to.features() function. A vector of two. Features with standard deviation outside 
 #'  the range defined by the two numbers are eliminated.
 #' @param sigma.ratio.lim A parameter for the prof.to.features() function. A vector of two. It enforces the belief of the 
-#'  range of the ratio between the left-standard deviation and the righ-standard deviation of the bi-Gaussian fuction used 
+#'  range of the ratio between the left-standard deviation and the right-standard deviation of the bi-Gaussian function used 
 #'  to fit the data.
 #' @param component.eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts 
 #'  for a proportion of intensities less than this value, the component will be ignored.
