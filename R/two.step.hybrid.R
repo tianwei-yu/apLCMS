@@ -267,8 +267,8 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #' @param batch.align.chr.tol The RT tolerance for between-batch alignment.
 #' @param known.table A data frame containing the known metabolite ions and previously found features.
 #' @param cluster The number of CPU cores to be used
-#' @param min.pres This is a parameter of thr run filter, to be passed to the function proc.cdf().
-#' @param min.run This is a parameter of thr run filter, to be passed to the function proc.cdf().
+#' @param min.pres This is a parameter of the run filter, to be passed to the function proc.cdf().
+#' @param min.run This is a parameter of the run filter, to be passed to the function proc.cdf().
 #' @param mz.tol The user can provide the m/z tolerance level for peak identification. This value is expressed as the 
 #'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
 #' @param baseline.correct.noise.percentile The perenctile of signal strength of those EIC that don't pass the run filter, 
@@ -294,7 +294,7 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #'  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
 #' @param align.chr.tol The user can provide the elution time tolerance level to override the program's selection. This value 
 #'  is in the same unit as the elution time, normaly seconds.
-#' @param max.align.mz.diff {As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable 
+#' @param max.align.mz.diff As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable 
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
 #'  in higher m/z range.
 #' @param pre.process Logical. If true, the program will not perform time correction and alignment. It will only generate peak tables 
