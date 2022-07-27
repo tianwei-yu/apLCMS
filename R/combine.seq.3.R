@@ -4,7 +4,13 @@
 #' 
 #' @param a vector of retention time.
 #' @param mz vector of m/z ratio.
-#' @param inte vector of signal strength. 
+#' @param inte vector of signal strength.
+#' @return returns
+#' \itemize{
+#'   \item mz - m/z ratio
+#'   \item a - retention time
+#'   \item int - signal strength
+#' }
 #' @export
 #' @examples
 #' combine.seq.3(retention_time_vector, masses, intensi)
