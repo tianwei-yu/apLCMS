@@ -33,7 +33,13 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
 #' @param rt_colname contains the retention time information
-#' @return returns a list of aligned features and original peak times
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
+#'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
+#'   \item mz.tol - The m/z tolerance used in the alignment.
+#'   \item chr.tol - The elution time tolerance in the alignment.
+#' }
 #' @export
 #' @examples
 #' feature.align(features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
