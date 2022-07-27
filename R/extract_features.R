@@ -1,5 +1,7 @@
 #' feature extraction
 #' 
+#' extract feature
+#' 
 #' @param cluster The number of CPU cores to be used
 #' @param filenames The CDF file names.
 #' @param min_pres This is a parameter of thr run filter, to be passed to the function proc.cdf().
