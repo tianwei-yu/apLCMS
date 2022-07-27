@@ -19,12 +19,12 @@ prof.to.features(a, bandwidth=0.5, min.bw=NA, max.bw=NA, sd.cut=c(0.1,100),
   \item{min.bw}{The minimum bandwidth to use in the kernel smoother. See the details section.}
   \item{max.bw}{The maximum bandwidth to use in the kernel smoother. See the details section.}
   \item{sd.cut}{A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.}
-  \item{sigma.ratio.lim}{A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation and the righ-standard deviation of the bi-Gaussian fuction used to fit the data.}
-  \item{shape.model}{ The mathematical model for the shape of a peak. There are two choices - “bi-Gaussian” and “Gaussian”. When the peaks are asymmetric, the bi-Gaussian is better. The default is “bi-Gaussian”.}
+  \item{sigma.ratio.lim}{A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation and the right-standard deviation of the bi-Gaussian function used to fit the data.}
+  \item{shape.model}{ The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian". When the peaks are asymmetric, the bi-Gaussian is better. The default is “bi-Gaussian”.}
   \item{estim.method}{The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.}
   \item{do.plot}{Whether to generate diagnostic plots.}
-  \item{component.eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a proportion of intensities less than this value, the component will be ignored.}
   \item{power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
+  \item{component.eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a proportion of intensities less than this value, the component will be ignored.}
   \item{BIC.factor}{the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1, models with more peaks are penalized more.}
 }
 \details{
