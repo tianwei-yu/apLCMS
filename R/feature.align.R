@@ -32,7 +32,7 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly 
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @param rt_colname rt_colname
+#' @param rt_colname contains the retention time information
 #' @return returns a list of aligned features and original peak times
 #' @export
 #' @examples
