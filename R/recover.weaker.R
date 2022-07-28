@@ -1,3 +1,4 @@
+#' @export
 duplicate.row.remove <- function(new.table) {
   new.table <- new.table[order(new.table[, 1], new.table[, 2], new.table[, 5]), ]
   n <- 1
@@ -33,6 +34,7 @@ compute_all_times <- function(base_curve) {
   return(all_times)
 }
 
+#' @export
 compute_base_curve <- function(x) {
   base_curve <- unique(x)
   base_curve <- base_curve[order(base_curve)]
@@ -46,6 +48,7 @@ l2normalize <- function(x) {
   x / sum(x)
 }
 
+#' @export
 compute_mass_density <- function(mz,
                                  intensities,
                                  bandwidth,
@@ -62,6 +65,7 @@ compute_mass_density <- function(mz,
   return(mass_density)
 }
 
+#' @export
 get_custom_chr_tol <- function(use.observed.range,
                                pk.times,
                                chr.range,
@@ -80,6 +84,7 @@ get_custom_chr_tol <- function(use.observed.range,
   return(custom.chr.tol)
 }
 
+#' @export
 compute_target_time <- function(aligned_rts, orig.time, adjusted.time) {
   to.use <- get_times_to_use(orig.time, adjusted.time)
   orig.time <- orig.time[to.use]
@@ -92,6 +97,7 @@ compute_target_time <- function(aligned_rts, orig.time, adjusted.time) {
   }
 }
 
+#' @export
 get_times_to_use <- function(orig.time, adjusted.time) {
   ttt.0 <- table(orig.time)
   ttt <- table(adjusted.time)
@@ -102,6 +108,7 @@ get_times_to_use <- function(orig.time, adjusted.time) {
   return(to.use)
 }
 
+#' @export
 compute_breaks_2 <- function(data_table, orig.tol) {
   all.mass.den <- density(
     data_table$mz,
@@ -117,6 +124,7 @@ compute_breaks_2 <- function(data_table, orig.tol) {
   return(breaks)
 }
 
+#' @export
 get_mzrange_bound_indices <- function(aligned.ftrs, masses, breaks, i, custom.mz.tol) {
   if (aligned.ftrs[i, "mz"] <= masses[breaks[2]]) {
     this.found <- c(1, 2)
@@ -127,12 +135,15 @@ get_mzrange_bound_indices <- function(aligned.ftrs, masses, breaks, i, custom.mz
   return(this.found)
 }
 
+#' @export
 get_raw_features_in_mzrange <- function(data_table, aligned.ftrs, breaks, i, custom.mz.tol) {
   this.found <- get_mzrange_bound_indices(aligned.ftrs, data_table$mz, breaks, i, custom.mz.tol)
   this.sel <- (breaks[this.found[1]] + 1):breaks[this.found[2]]
-  return(data_table |> dplyr::slice(this.sel))
+  features <- data_table |> dplyr::slice(this.sel)
+  return(features)
 }
 
+#' @export
 recover.weaker <- function(filename,
                            sample_name,
                            aligned.ftrs,
@@ -194,11 +205,11 @@ recover.weaker <- function(filename,
   for (i in seq_along(this.ftrs))
   {
     if (this.ftrs[i] == 0 && aligned.ftrs[i, "mz"] < max(masses)) {
-      this <- get_raw_features_in_mzrange(data_table, aligned.ftrs, breaks, i, custom.mz.tol)
+      features <- get_raw_features_in_mzrange(data_table, aligned.ftrs, breaks, i, custom.mz.tol)
 
       mass.den <- compute_mass_density(
-        mz = this$mz,
-        intensities = this$intensities,
+        mz = features$mz,
+        intensities = features$intensities,
         bandwidth = 0.5 * orig.tol * aligned.ftrs[i, "mz"],
         intensity_weighted = intensity.weighted
       )
@@ -217,8 +228,8 @@ recover.weaker <- function(filename,
           mass.lower <- max(mass.vlys[mass.vlys < peak])
           mass.upper <- min(mass.vlys[mass.vlys > peak])
 
-          that <- this |>
-            dplyr::filter(mz > mass.lower & mz <= mass.upper) |>
+          that <- features |>
+            dplyr::filter(mz > mass.lower && mz <= mass.upper) |>
             dplyr::arrange_at("labels")
 
           if (nrow(that) > recover.min.count) {
