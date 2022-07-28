@@ -2,7 +2,7 @@ solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
 
-w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
+    w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
     return(sum(t * w) / sum(w))
 }
 
