@@ -80,9 +80,9 @@ recover_weaker_signals <- function(
   clusterExport(cluster, c('recover.weaker'))
   clusterEvalQ(cluster, library("splines"))
 
-  recovered <- parLapply(cluster, seq_along(filenames), function(i) {
+  recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
-      loc = i,
+      sample_name = basename(filenames[i]),
       filename = filenames[[i]],
       this.f1 = extracted_features[[i]],
       this.f2 = corrected_features[[i]],
