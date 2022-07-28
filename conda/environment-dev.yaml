@@ -32,4 +32,5 @@ dependencies:
   - r-styler
   - r-datacomparer
   - r-patrick
+  - r-tools
   - radian

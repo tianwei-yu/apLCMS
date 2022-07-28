@@ -82,7 +82,7 @@ recover_weaker_signals <- function(
 
   recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
-      sample_name = basename(filenames[i]),
+      sample_name = get_sample_name(filenames[i]),
       filename = filenames[[i]],
       this.f1 = extracted_features[[i]],
       this.f2 = corrected_features[[i]],
