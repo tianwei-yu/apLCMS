@@ -261,7 +261,7 @@ recover.weaker <- function(filename,
           mass.upper <- min(mass.vlys[mass.vlys > peak])
 
           that <- features |>
-            dplyr::filter(mz > mass.lower && mz <= mass.upper) |>
+            dplyr::filter(mz > mass.lower & mz <= mass.upper) |>
             dplyr::arrange_at("labels")
 
           if (nrow(that) > recover.min.count) {

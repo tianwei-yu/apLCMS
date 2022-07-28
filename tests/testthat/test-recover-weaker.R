@@ -52,7 +52,7 @@ patrick::with_parameters_test_that(
     recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
         filename = ms_files[[i]],
-        sample_name = files[i],
+        sample_name = get_sample_name(files[i]),
         this.f1 = extracted[[i]],
         this.f2 = adjusted[[i]],
         pk.times = aligned$rt_crosstab,
