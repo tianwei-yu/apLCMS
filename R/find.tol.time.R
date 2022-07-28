@@ -2,7 +2,7 @@
 #' 
 #' This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
 #' 
-#' @param mz mz value of all peaks in all profiles in the study.
+#' @param mz mz values of all peaks in all profiles in the study.
 #' @param chr retention time of all peaks in all profiles in the study.
 #' @param lab label of all peaks in all profiles in the study.
 #' @param number_of_samples The number of spectra in this analysis.

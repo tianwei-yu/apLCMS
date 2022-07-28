@@ -32,7 +32,7 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly 
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @param rt_colname contains the retention time information
+#' @param rt_colname Name of the column containing the retention time information.
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
