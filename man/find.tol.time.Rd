@@ -30,9 +30,7 @@ find.tol.time(mz, chr, lab, number_of_samples, mz_tol_relative = 2e-05, rt_tol_r
   The peaks are first ordered by m/z, and split into groups by the m/z tolerance. Then within every peak group, the pairwise elution time difference is calculated. All the pairwise elution time differences within groups are merged into a single vector. A mixture model (unknown distribution for distance between peaks from the same feature, and a triangle-shaped distribution for distance between peaks from different features) is fit to find the elution time tolerance level. The elution times within each peak group are then ordered. If a gap between consecutive retention times is larger than the elution time tolerance level, the group is further split at the gap. Grouping information is returned, as well as the elution time tolerance level. 
 }
 \value{
-  A list object is returned:
-  \item{rt_tol_relative}{ The elution time tolerance level.}
-  \item{comp2 }{A matrix with six columns. Every row corrsponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength, spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered by the elution time.}
+A matrix with six columns. Every row corrsponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength, spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered by the elution time.
 }
 \author{Tianwei Yu <tyu8@emory.edu>}
 \keyword{ models }

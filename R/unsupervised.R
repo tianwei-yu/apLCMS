@@ -42,6 +42,7 @@ get_sample_name <- function(filename) {
   tools::file_path_sans_ext(basename(filename))
 }
 
+#' @export
 sort_samples_by_acquisition_number <- function (filenames) {
   # assumes that the filenames contain an acquisition number
   # ideal solution would be to read the acquisition number directly from mzml
@@ -77,8 +78,8 @@ recover_weaker_signals <- function(
   max_bandwidth,
   recover_min_count
 ) {
-  clusterExport(cluster, c('recover.weaker'))
-  clusterEvalQ(cluster, library("splines"))
+  snow::clusterExport(cluster, c('recover.weaker'))
+  snow::clusterEvalQ(cluster, library("splines"))
 
   recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
@@ -116,6 +117,58 @@ recover_weaker_signals <- function(
   )
 }
 
+#' Runs features extraction in unsupervised mode.
+#' 
+#' features extraction in unsupervised mode.
+#' 
+#' @param filenames The CDF file names.
+#' @param min_exp A feature has to show up in at least this number of profiles to be included in the final result.
+#' @param min_pres This is a parameter of the run filter, to be passed to the function proc.cdf().
+#' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z 
+#'  to be considered a peak.
+#' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of 
+#'  the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is 
+#'  the machine's nominal accuracy level. Divide the ppm value by 1e6. For FTMS, 1e-5 is recommended.
+#' @param baseline_correct After grouping the observations, the highest intensity in each group is found. 
+#'  If the highest is lower than this value, the entire group will be deleted. The default value is NA, in 
+#'  which case the program uses the 75th percentile of the height of the noise groups.
+#' @param baseline_correct_noise_percentile The perenctile of signal strength of those EIC that don't pass the 
+#'  run filter, to be used as the baseline threshold of signal strength.
+#' @param shape_model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and 
+#'  "Gaussian". When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
+#' @param BIC_factor The factor that is multiplied on the number of parameters to modify the BIC criterion. 
+#'  If larger than 1, models with more peaks are penalized more.
+#' @param peak_estim_method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
+#' @param min_bandwidth The minimum bandwidth to use in the kernel smoother.
+#' @param max_bandwidth The maximum bandwidth to use in the kernel smoother.
+#' @param sd_cut A vector of two. Features with standard deviation outside the range defined by the two numbers 
+#'  are eliminated.
+#' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard 
+#'  deviation and the right-standard deviation of the bi-Gaussian function used to fit the data.
+#' @param component_eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts 
+#'  for a proportion of intensities less than this value, the component will be ignored.
+#' @param moment_power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture 
+#'  model in an EIC.
+#' @param align_mz_tol The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
+#'  for the tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, 
+#'  multiplied by the m/z value, becomes the cutoff level.
+#' @param align_chr_tol The retention time tolerance level for peak alignment. The default is NA, which allows the program 
+#'  to search for the tolerance level based on the data.
+#' @param max_align_mz_diff As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
+#'  m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
+#'  in higher m/z range.
+#' @param recover_mz_range The m/z around the feature m/z to search for observations. The default value is NA, in which 
+#'  case 1.5 times the m/z tolerance in the aligned object will be used.
+#' @param recover_chr_range The retention time around the feature retention time to search for observations. The default 
+#'  value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
+#' @param use_observed_range If the value is TRUE, the actual range of the observed locations of the feature in all 
+#'  the spectra will be used.
+#' @param recover_min_count Minimum number of raw data points to support a recovery.
+#' @param intensity_weighted Whether to use intensity to weight mass density estimation.
+#' @param cluster The number of CPU cores to be used
+#' @export
+#' @examples
+#' unsupervised(test_files, cluster = num_workers)
 unsupervised <- function(
   filenames,
   min_exp = 2,

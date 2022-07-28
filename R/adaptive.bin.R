@@ -1,3 +1,4 @@
+#' @export
 compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 512) {
   bandwidth <- 0.5 * tol * bw_func(masses)
   if (weighted) {
@@ -9,6 +10,7 @@ compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 5
   return(all.mass.den)
 }
 
+#' @export
 compute_mass_values <- function(tol, masses, intensi, weighted) {
   n <- 2^min(15, floor(log2(length(masses))) - 2)
 
@@ -19,12 +21,43 @@ compute_mass_values <- function(tol, masses, intensi, weighted) {
   return(all.mass.vlys)
 }
 
+#' @export
 compute_breaks <- function(tol, masses, intensi, weighted) {
   all.mass.vlys <- compute_mass_values(tol, masses, intensi, weighted)
   breaks <- c(0, unique(round(approx(masses, 1:length(masses), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
   return(breaks)
 }
 
+#' Adaptive binning
+#' 
+#' This is an internal function. It creates EICs using adaptive binning procedure
+#' 
+#' @param x A matrix with columns of m/z, retention time, intensity.
+#' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
+#'  considered a peak.
+#' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
+#'  by m/z to be considered a peak.
+#' @param tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
+#'  This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is the machine's nominal accuracy 
+#'  level. Divide the ppm value by 1e6. For FTMS, 1e-5 is recommended.
+#' @param baseline.correct After grouping the observations, the highest intensity in each group is found. If the highest 
+#'  is lower than this value, the entire group will be deleted. The default value is NA, in which case the program uses the 
+#'  75th percentile of the height of the noise groups.
+#' @param weighted Whether to weight the local density by signal intensities.
+#' @return A list is returned.
+#' \itemize{
+#'   \item height.rec - The records of the height of each EIC.
+#'   \item masses - The vector of m/z values after binning.
+#'   \item labels - The vector of retention time after binning.
+#'   \item intensi - The vector of intensity values after binning.
+#'   \item grps - The EIC labels, i.e. which EIC each observed data point belongs to.
+#'   \item times - All the unique retention time values, ordered.
+#'   \item tol - The m/z tolerance level.
+#'   \item min.count.run - The minimum number of elution time points for a series of signals grouped by m/z to be considered a peak.
+#' }
+#' @export
+#' @examples
+#' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
 adaptive.bin <- function(x,
                          min.run,
                          min.pres,

@@ -18,8 +18,8 @@ proc.cdf(filename, min.pres=0.5, min.run=12, tol=1e-5,
   \item{baseline.correct}{After grouping the observations, the highest intensity in each group is found. If the highest is lower than this value, the entire group will be deleted. The default value is NA, in which case the program uses the 75th percentile of the height of the noise groups. }
   \item{baseline.correct.noise.percentile}{ The perenctile of signal strength of those EIC that don't pass the run filter, to be used as the baseline threshold of signal strength. }
   \item{do.plot}{Indicates whether plot should be drawn.}
-  \item{intensity.weighted}{TBA}
-  \item{cache}{TBA}
+  \item{intensity.weighted}{Whether to use intensity to weight mass density estimation.}
+  \item{cache}{Whether to use cache}
 }
 \details{The m/z are grouped based on the tolerance level using multi-stage smoothing and peak finding. Non-parametric density estimation is used in both m/z dimension and elution time dimension to fine-tune the signal grouping. A run filter is applied, which requires a "true peak" to have a minimum length in the retention time dimension (parameter: min.run), as well as being detected at or higher than a proportion of the time points within the time period (parameter: min.pres). }
 \value{

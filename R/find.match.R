@@ -1,3 +1,12 @@
+#' Internal function: finding the best match between a set of detected features and a set of known features.
+#' 
+#' Given a small matrix of distances, find the best column-row pairing that minimize the sum of distances of the matched pairs.
+#' 
+#' @param a A matrix of distances.
+#' @param unacceptable A distance larger than which cannot be accepted as pairs.
+#' @return A matrix the same dimension as the input matrix, with matched position taking value 1, and all other positions taking value 0.
+#' @examples
+#' find.match(time.matched, unacceptable=aligned$chr.tol/2)
 find.match <-
 function(a, unacceptable=4)
 {

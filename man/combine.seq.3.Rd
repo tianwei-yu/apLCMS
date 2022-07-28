@@ -14,6 +14,12 @@ combine.seq.3(a, mz, inte)
   \item{mz}{vector of m/z ratio.}
   \item{inte}{vector of signal strength.}
 }
+\value{
+  Returns:
+  \item{mz}{m/z ratio}
+  \item{a}{retention time}
+  \item{int}{signal strength}
+}
 \references{
 Bioinformatics. 25(15):1930-36. 
 BMC Bioinformatics. 11:559.

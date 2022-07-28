@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [dev] - unreleased
 ### Added
+- added documentation from Rd files to code [#78](https://github.com/RECETOX/recetox-aplcms/pull/78)
 - added tests with realistic testdata for `extract_features.R` [#42](https://github.com/RECETOX/recetox-aplcms/pull/42), [#54](https://github.com/RECETOX/recetox-aplcms/pull/54)
 - added tests for `feature.align.R` ([#40](https://github.com/RECETOX/recetox-aplcms/pull/40)), and `adjust.time.R` ([#39](https://github.com/RECETOX/recetox-aplcms/pull/40))
 - added CI to repository's GitHub Actions [#45](https://github.com/RECETOX/recetox-aplcms/pull/45),[#49](https://github.com/RECETOX/recetox-aplcms/pull/49)

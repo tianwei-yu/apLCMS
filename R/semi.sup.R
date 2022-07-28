@@ -1,3 +1,76 @@
+#' Semi-supervised feature detection
+#' 
+#' @description
+#' The semi-supervised procedure utilizes a database of known metabolites and previously detected features to 
+#' identify features in a new dataset. It is recommended ONLY for experienced users. The user may need to construct 
+#' the known feature database.
+#' @param files The CDF file names
+#' @param folder The folder where all CDF files to be processed are located.
+#' @param known.table A data frame containing the known metabolite ions and previously found features.
+#' @param n.nodes The number of CPU cores to be used
+#' @param min.exp If a feature is to be included in the final feature table, it must be present in at least this number of spectra.
+#' @param min.pres This is a parameter of thr run filter, to be passed to the function proc.cdf().
+#' @param min.run This is a parameter of thr run filter, to be passed to the function proc.cdf().
+#' @param mz.tol The user can provide the m/z tolerance level for peak identification. This value is expressed 
+#'  as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param baseline.correct.noise.percentile The perenctile of signal strength of those EIC that don't pass the run filter, 
+#'  to be used as the baseline threshold of signal strength. This parameter is passed to proc.cdf()
+#' @param shape.model The mathematical model for the shape of a peak. There are two choices - bi-Gaussian and Gaussian. 
+#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is bi-Gaussian.
+#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If 
+#'  larger than 1, models with more peaks are penalized more.
+#' @param baseline.correct This is a parameter in peak detection. After grouping the observations, the highest observation in 
+#'  each group is found. If the highest is lower than this value, the entire group will be deleted. The default value is NA, 
+#'  which allows the program to search for the cutoff level.
+#' @param peak.estim.method the bi-Gaussian peak parameter estimation method, to be passed to subroutine prof.to.features. 
+#'  Two possible values: moment and EM.
+#' @param min.bw The minimum bandwidth in the smoother in prof.to.features().
+#' @param max.bw The maximum bandwidth in the smoother in prof.to.features().
+#' @param sd.cut A parameter for the prof.to.features() function. A vector of two. Features with standard deviation outside 
+#'  the range defined by the two numbers are eliminated.
+#' @param sigma.ratio.lim A parameter for the prof.to.features() function. A vector of two. It enforces the belief of 
+#'  the range of the ratio between the left-standard deviation and the right-standard deviation of the bi-Gaussian function 
+#'  used to fit the data.
+#' @param component.eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for 
+#'  a proportion of intensities less than this value, the component will be ignored.
+#' @param moment.power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param align.mz.tol The user can provide the m/z tolerance level for peak alignment to override the program's selection. 
+#'  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param align.chr.tol The user can provide the elution time tolerance level to override the program's selection. This value is 
+#'  in the same unit as the elution time, normaly seconds.
+#' @param max.align.mz.diff As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable 
+#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
+#'  in higher m/z range.
+#' @param pre.process Logical. If true, the program will not perform time correction and alignment. It will only generate peak 
+#'  tables for each spectra and save the files. It allows manually dividing the task to multiple machines.
+#' @param recover.mz.range A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. 
+#'  The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
+#' @param recover.chr.range A parameter of the recover.weaker() function. The retention time around the feature retention time to 
+#'  search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object 
+#'  will be used.
+#' @param use.observed.range A parameter of the recover.weaker() function. If the value is TRUE, the actual range of the observed 
+#'  locations of the feature in all the spectra will be used.
+#' @param match.tol.ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param new.feature.min.count The number of profiles a new feature must be present for it to be added to the database.
+#' @param recover.min.count The minimum time point count for a series of point in the EIC for it to be considered a true feature.
+#' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @return A list is returned.
+#' \itemize{
+#'   \item features - A list object, each component of which being the peak table from a single spectrum.
+#'   \item features2 - each component of which being the peak table from a single spectrum, after elution time correction.
+#'   \item aligned.ftrs - Feature table BEFORE weak signal recovery.
+#'   \item pk.times - Table of feature elution time BEFORE weak signal recovery.
+#'   \item final.ftrs - Feature table after weak signal recovery. This is the end product of the function.
+#'   \item final.times - Table of feature elution time after weak signal recovery.
+#'   \item align.mz.tol - The m/z tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.
+#'   \item align.chr.tol - The retention time tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.
+#'   \item mz.tol - The input mz.tol value by the user.
+#'   \item updated.known.table - The known table updated using the newly processed data. It should be used for future datasets generated using the same machine and LC column.
+#'   \item ftrs.known.table.pairing - The paring information between the feature table of the current dataset and the known feature table.
+#' }
+#' @export
+#' @examples
+#' semi.sup(files_batch, work_dir, sd.cut = sd.cut, sigma.ratio.lim = sigma.ratio.lim, moment.power = moment.power, min.exp = ceiling(min.within.batch.prop.detect * length(files_batch)))
 semi.sup <- function(
     files,
     folder,
@@ -49,13 +122,13 @@ semi.sup <- function(
         grps<-round(seq(0, length(to.do), length=n.nodes+1))
         grps<-unique(grps)
         
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         
-        features<-foreach(i=2:length(grps)) %dopar%
+        features<-foreach::foreach(i=2:length(grps)) %dopar%
         {
             this.subset<-to.do[(grps[i-1]+1):grps[i]]
             for(j in this.subset)
@@ -91,7 +164,7 @@ semi.sup <- function(
                 }
             }
         }
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }
 
     all.files<-dir()
@@ -117,10 +190,10 @@ semi.sup <- function(
 
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         cpu_time_adj_time <- system.time(
           f2 <- 
@@ -135,7 +208,7 @@ semi.sup <- function(
 
         message(c("** correction time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         
-        stopCluster(cl)
+        snow::stopCluster(cl)
         save(f2,file=this.name)
     }else{
         load(this.name)
@@ -153,10 +226,10 @@ semi.sup <- function(
 
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
         
         cpu_time <- system.time(
           aligned <-
@@ -172,7 +245,7 @@ semi.sup <- function(
         
         message(c("** aligned features, CPU time (seconds): ", as.vector(cpu_time)[1]))
         save(aligned,file=this.name)
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }else{
         load(this.name)
     }
@@ -295,10 +368,10 @@ semi.sup <- function(
         grps<-round(seq(0, length(to.do), length=n.nodes+1))
         grps<-unique(grps)
         
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         features.recov<-foreach(i=2:length(grps)) %dopar%
         {
@@ -310,7 +383,7 @@ semi.sup <- function(
                 save(this.recovered, file=this.name)
             }
         }
-        stopCluster(cl)
+        snow::stopCluster(cl)
         gc()
     }
     
@@ -336,10 +409,10 @@ semi.sup <- function(
     
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
 
         cpu_time_adj_time <- system.time(
           f2.recov <- 
@@ -354,7 +427,7 @@ semi.sup <- function(
 
         message(c("** correction time, CPU time (seconds) ",as.vector(cpu_time_adj_time)[1]))
         save(f2.recov,file=this.name)
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }else{
         load(this.name)
     }
@@ -367,10 +440,10 @@ semi.sup <- function(
     is.done<-all.files[which(all.files == this.name)]
     if(length(is.done)==0)
     {
-        cl <- makeCluster(n.nodes)
-        registerDoParallel(cl)
+        cl <- snow::makeCluster(n.nodes)
+        doParallel::registerDoParallel(cl)
         #clusterEvalQ(cl, source("~/Desktop/Dropbox/1-work/apLCMS_code/new_proc_cdf.r"))
-        clusterEvalQ(cl, library(recetox.aplcms))
+        snow::clusterEvalQ(cl, library(recetox.aplcms))
         
         cpu_time <- system.time(
           aligned.recov <-
@@ -386,7 +459,7 @@ semi.sup <- function(
         
         message(c("** aligned features, CPU time (seconds): ", as.vector(cpu_time)[1]))
         save(aligned.recov,file=this.name)
-        stopCluster(cl)
+        snow::stopCluster(cl)
     }else{
         load(this.name)
     }
