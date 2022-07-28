@@ -15,7 +15,34 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
     }
 }
 
-# returns a list of aligned features and original peak times
+#' Align peaks from spectra into a feature table.
+#' 
+#' Identifies which of the peaks from the profiles correspond to the same feature.
+#' 
+#' @param features A list object. Each component is a matrix which is the output from proc.to.feature().
+#' @param min_occurrence  A feature has to show up in at least this number of profiles to be included in the final result.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
+#'  program to search for the tolerance level based on the data. This value is expressed as the 
+#'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which 
+#'  allows the program to search for the tolerance level based on the data.
+#' @param mz_max_diff Argument passed to find.tol(). Consider only m/z diffs smaller than this value. 
+#'  This is only used when the mz_tol_relative is NA.
+#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable 
+#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly 
+#'  influences feature matching in higher m/z range.
+#' @param do.plot Indicates whether plot should be drawn.
+#' @param rt_colname Name of the column containing the retention time information.
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
+#'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
+#'   \item mz.tol - The m/z tolerance used in the alignment.
+#'   \item chr.tol - The elution time tolerance in the alignment.
+#' }
+#' @export
+#' @examples
+#' feature.align(features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
 feature.align <- function(features,
                           min_occurrence = 2,
                           mz_tol_relative = NA,

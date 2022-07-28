@@ -65,7 +65,31 @@ fill_missing_values <- function(orig.feature, this.feature) {
     return(this.feature)
 }
 
-# features is a list project, each sub-object is a matrix as identified by prof.to.features
+#' Adjust retention time across spectra.
+#' 
+#' This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
+#' 
+#' @param features A list object. Each component is a matrix which is the output from proc.to.feature()
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
+#'  program to search for the tolerance level based on the data. This value is expressed as the 
+#'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which 
+#'  allows the program to search for the tolerance level based on the data.
+#' @param colors The vector of colors to be used for the line plots of time adjustments. The default is NA, 
+#'  in which case the program uses a set of default color set.
+#' @param mz_max_diff Argument passed to find.tol(). Consider only m/z diffs smaller than this value. 
+#'  This is only used when the mz_tol_relative is NA.
+#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable 
+#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly 
+#'  influences feature matching in higher m/z range.
+#' @param do.plot Indicates whether plot should be drawn.
+#' @param rt_colname contains the retention time information
+#' @return A list object with the exact same structure as the input object features, i.e. one matrix per profile 
+#'  being processed. The only difference this output object has with the input object is that the retention time 
+#'  column in each of the matrices is changed to new adjusted values.
+#' @export
+#' @examples
+#' adjust.time(extracted_features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
 adjust.time <- function(features,
                         mz_tol_relative = NA,
                         rt_tol_relative = NA,
@@ -130,7 +154,7 @@ adjust.time <- function(features,
         
         candi <- features[[template]][, 1:2]
         
-        corrected_features <- foreach(j = 1:number_of_samples,.export = c("compute_corrected_features",
+        corrected_features <- foreach::foreach(j = 1:number_of_samples,.export = c("compute_corrected_features",
         "compute_template_adjusted_rt", "compute_comb", "compute_sel")) %dopar% {
             this.feature <- features[[j]]
             if(j != template) {

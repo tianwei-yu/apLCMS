@@ -1,3 +1,16 @@
+#' Find peaks and valleys of a curve.
+#' 
+#' This is an internal function which finds the peaks and valleys of a smooth curve.
+#' 
+#' @param y The y values of a curve in x-y plane.
+#' @return A list object:
+#' \itemize{
+#'   \item pks - The peak positions
+#'   \item vlys - The valley positions
+#' }
+#' @export
+#' @examples
+#' find.turn.point(y)
 find.turn.point <-
 function(y)
 {

@@ -1,3 +1,17 @@
+#' An internal function that is not supposed to be directly accessed by the user. Find m/z tolerance level.
+#' 
+#' The function finds the tolerance level in m/z from a given vector of observed m/z values.
+#' 
+#' @param mz_values The vector of observed m/z values.
+#' @param mz_max_diff Consider only m/z diffs smaller than this value.
+#' @param aver.bin.size The average bin size to determine the number of equally spaced points in the kernel density estimation.
+#' @param min.bins the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.
+#' @param max.bins the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.
+#' @param do.plot Indicates whether plot should be drawn.
+#' @return The tolerance level is returned.
+#' @export
+#' @examples
+#' find.tol(mz_values, mz_max_diff = mz_max_diff, do.plot = FALSE)
 find.tol <- function(mz_values,
                      mz_max_diff = 1e-4,
                      aver.bin.size = 4000,

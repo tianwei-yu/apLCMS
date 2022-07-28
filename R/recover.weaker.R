@@ -1,3 +1,36 @@
+#' Recover weak signals in some profiles that is not identified as a peak, but corresponds to identified peaks in other spectra.
+#' 
+#' @description
+#' Given the aligned feature table, some features are identified in a subgroup of spectra. This doesn't mean they don't exist in the other spectra. 
+#' The signal could be too low to pass the run filter. Thus after obtaining the aligned feature table, this function re-analyzes each spectrum to 
+#' try and fill in the holes in the aligned feature table.
+#' @param filename the cdf file name from which weaker signal is to be recovered.
+#' @param loc the location of the filename in the vector of filenames.
+#' @param aligned.ftrs matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
+#' @param pk.times matrix, with columns of m/z, median elution time, and elution times in each spectrum.
+#' @param align.mz.tol the m/z tolerance used in the alignment.
+#' @param align.chr.tol the elution time tolerance in the alignment.
+#' @param this.f1 The matrix which is the output from proc.to.feature().
+#' @param this.f2 The matrix which is the output from proc.to.feature(). The retention time in this object have been adjusted by the function adjust.time().
+#' @param mz.range The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
+#' @param chr.range The retention time around the feature retention time to search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
+#' @param use.observed.range If the value is TRUE, the actual range of the observed locations of the feature in all the spectra will be used.
+#' @param orig.tol The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.
+#' @param min.bw The minimum bandwidth to use in the kernel smoother.
+#' @param max.bw The maximum bandwidth to use in the kernel smoother.
+#' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps determine the bandwidth in the kernel smoother used for peak identification.
+#' @param recover.min.count minimum number of raw data points to support a recovery.
+#' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, and signal strengths in each spectrum.
+#'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
+#'   \item mz.tol - The m/z tolerance in the aligned object.
+#'   \item chr.tol - The elution time tolerance in the aligned object.
+#' }
+#' @export
+#' @examples
+#' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2)
 recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2, mz.range=NA, chr.range=NA, use.observed.range=TRUE, orig.tol=1e-5,min.bw=NA,max.bw=NA,bandwidth=.5, recover.min.count=3, intensity.weighted=FALSE)
 {
     duplicate.row.remove<-function(new.table)
@@ -98,7 +131,7 @@ recover.weaker<-function(filename, loc, aligned.ftrs, pk.times, align.mz.tol, al
     adjusted.time<-adjusted.time[to.use]
 	if(length(adjusted.time)>=4)
 	{
-		sp<-interpSpline(orig.time~adjusted.time, na.action = na.omit)
+		sp<-splines::interpSpline(orig.time~adjusted.time, na.action = na.omit)
 		target.time[sel.non.na]<-predict(sp,aligned.ftrs[sel.non.na,2])$y
     }
     
