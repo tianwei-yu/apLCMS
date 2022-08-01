@@ -465,6 +465,7 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
                 all.w <- all.w + dnorm(x, mean = miu[m], sd = sigma[m]) * sc[m]
             }
 
+            # when l is zero the iteration goes from 1 to 0 znd results in "index out of bound" error
             for (m in 1:l)
             {
                 w[m, ] <- dnorm(x, mean = miu[m], sd = sigma[m]) * sc[m] / all.w
