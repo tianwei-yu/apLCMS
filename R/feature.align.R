@@ -134,7 +134,7 @@ feature.align <- function(features,
         
         # retention time alignment
         aligned.ftrs <-
-            foreach(i = seq_along(sel.labels), .combine = rbind) %do% {
+            foreach::foreach(i = seq_along(sel.labels), .combine = rbind) %do% {
                 if (i %% 100 == 0)
                     gc()
                 this.return <- NULL

@@ -65,52 +65,44 @@ adaptive.bin <- function(x,
                          baseline.correct,
                          weighted = FALSE) {
   # order inputs after mz values
-  masses <- x$masses
-  labels <- x$labels
-  intensi <- x$intensi
-  times <- x$times
+  data_table <- tibble::tibble(masses = x$masses, labels = x$labels, intensi = x$intensi) |> dplyr::arrange_at("masses")
 
-  rm(x)
-
-  curr.order <- order(masses)
-  intensi <- intensi[curr.order]
-  labels <- labels[curr.order]
-  masses <- masses[curr.order]
-
-  rm(curr.order)
 
   cat(c("m/z tolerance is: ", tol, "\n"))
 
-  times <- unique(labels)
+  times <- x$times
+  times <- unique(data_table$labels)
   times <- times[order(times)]
+
+  rm(x)
 
   # calculate function parameters
   min.count.run <- min.run * length(times) / (max(times) - min(times))
   time.range <- diff(range(times))
-  aver.time.range <- (max(labels) - min(labels)) / length(times)
+  aver.time.range <- (max(data_table$labels) - min(data_table$labels)) / length(times)
 
   # init data
-  newprof <- matrix(0, nrow = length(masses), ncol = 4)
-  height.rec <- matrix(0, nrow = length(masses), ncol = 3)
+  newprof <- matrix(0, nrow = length(data_table$masses), ncol = 4)
+  height.rec <- matrix(0, nrow = length(data_table$masses), ncol = 3)
 
   # init counters
   curr.label <- 1
   prof.pointer <- 1
   height.pointer <- 1
 
-  breaks <- compute_breaks(tol, masses, intensi, weighted)
+  breaks <- compute_breaks(tol, data_table$masses, data_table$intensi, weighted)
 
   for (i in 1:(length(breaks) - 1))
   {
     start <- breaks[i] + 1
     end <- breaks[i + 1]
     # get number of scans in bin
-    this.labels <- labels[start: end]
+    this.labels <- data_table$labels[start: end]
 
     if (length(unique(this.labels)) >= min.count.run * min.pres) {
       # extract mz and intensity values for bin
-      this.masses <- masses[start:end]
-      this.intensi <- intensi[start:end]
+      this.masses <- data_table$masses[start:end]
+      this.intensi <- data_table$intensi[start:end]
 
       # reorder in order of labels (scan number)
       curr.order <- order(this.labels)
@@ -182,8 +174,8 @@ adaptive.bin <- function(x,
       if (runif(1) < 0.05) {
 
         # reassignment
-        this.masses <- masses[start:end]
-        this.intensi <- intensi[start:end]
+        this.masses <- data_table$masses[start:end]
+        this.intensi <- data_table$intensi[start:end]
 
         # reordering
         curr.order <- order(this.labels)
