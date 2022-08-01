@@ -143,11 +143,182 @@ get_raw_features_in_mzrange <- function(data_table, aligned.ftrs, breaks, i, cus
   return(features)
 }
 
+#' @export
+get_rt_region_indices <- function(retention_time, that.prof, chr_tol) {
+  if (!is.na(retention_time)) {
+    selection <- which(abs(that.prof[, 2] - retention_time) < chr_tol * 2)
+  } else {
+    selection <- seq_len(that.prof)
+  }
+  return(selection)
+}
+
+compute_EIC_area <- function(thee.sel, that.prof, base.curve, all.times, aver.diff) {
+  if (length(thee.sel) > 1) {
+    that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], base.curve[, 1], all.times)
+  } else {
+    that.inte <- that.prof[thee.sel, 3] * aver.diff
+  }
+  return(that.inte)
+}
+
+get_features_in_rt_range <- function(this, base.curve, bw) {
+  this.span <- range(this[, 1])
+  this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
+  this.curve[this.curve[, 1] %in% this[, 1], 2] <- this[, 2]
+
+  this.smooth <- ksmooth(this.curve[, 1], this.curve[, 2], kernel = "normal", bandwidth = bw)
+  smooth.y <- this.smooth$y
+  turns <- find.turn.point(smooth.y)
+  pks <- this.smooth$x[turns$pks]
+  vlys <- this.smooth$x[turns$vlys]
+  vlys <- c(-Inf, vlys, Inf)
+  return(list(pks = pks, vlys = vlys))
+}
+
+compute_pks_vlys_rt <- function(that.prof, base.curve, bandwidth, min.bw, max.bw, target_rt, recover.min.count) {
+  # extract rt labels and intensities
+  this <- that.prof[, 2:3]
+  this <- this[order(this[, 1]), ]
+
+  bw <- min(max(bandwidth * (max(this[, 1]) - min(this[, 1])), min.bw), max.bw)
+
+  roi <- get_features_in_rt_range(
+    this,
+    base.curve,
+    bw
+  )
+  pks <- roi$pks
+  vlys <- roi$vlys
+
+  pks.n <- pks
+  for (m in 1:length(pks))
+  {
+    this.vlys <- c(max(vlys[which(vlys < pks[m])]), min(vlys[which(vlys > pks[m])])) # same as upper part in function
+    pks.n[m] <- sum(this[, 1] >= this.vlys[1] & this[, 1] <= this.vlys[2])
+  }
+
+  if (!is.na(target_rt)) {
+    pks.d <- abs(pks - target_rt) # distance from the target peak location
+    pks.d[pks.n == 0] <- Inf
+    pks <- pks[which(pks.d == min(pks.d))[1]]
+  } else {
+    pks <- pks[pks.n > recover.min.count]
+  }
+  return(list(pks = pks, vlys = vlys, this = this))
+}
+
+compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, base.curve, all.times) {
+  curr.rec <- c(that.mass, NA, NA)
+
+  # same filtering of peaks as in compute_pks_vlyws and as above
+  vlys <- c(
+    max(all$vlys[which(all$vlys < pks)]),
+    min(all$vlys[which(all$vlys > pks)])
+  )
+
+  this <- all$this[which(all$this[, 1] >= vlys[1] & all$this[, 1] <= vlys[2]), ]
+
+  if (is.null(nrow(this))) {
+    curr.rec[3] <- this[2] * aver.diff
+    curr.rec[2] <- this[1]
+  } else {
+    x <- this[, 1]
+    y <- this[, 2]
+
+    if (nrow(this) >= 10) {
+      miu <- sum(x * y) / sum(y)
+      sigma <- sqrt(sum(y * (x - miu)^2) / sum(y))
+      if (sigma == 0) {
+        curr.rec[3] <- sum(y) * aver.diff
+        curr.rec[2] <- miu
+      } else {
+        fitted <- dnorm(x, mean = miu, sd = sigma)
+        this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > 1e-2
+        sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
+      }
+    } else {
+      sc <- interpol.area(x, y, base.curve[, 1], all.times)
+      miu <- median(x)
+    }
+    curr.rec[3] <- sc
+    curr.rec[2] <- miu
+  }
+  return(curr.rec)
+}
+
+compute_rectangle <- function(data_table,
+                              aligned.ftrs,
+                              breaks,
+                              i,
+                              custom.mz.tol,
+                              orig.tol, intensity.weighted,
+                              recover.min.count,
+                              target.time,
+                              custom.chr.tol,
+                              base.curve,
+                              all.times,
+                              aver.diff,
+                              bandwidth,
+                              min.bw,
+                              max.bw) {
+  features <- get_raw_features_in_mzrange(data_table, aligned.ftrs, breaks, i, custom.mz.tol)
+
+  mass.den <- compute_mass_density(
+    mz = features$mz,
+    intensities = features$intensities,
+    bandwidth = 0.5 * orig.tol * aligned.ftrs[i, "mz"],
+    intensity_weighted = intensity.weighted
+  )
+
+  # find peaks in mz range in raw data
+  mass.turns <- find.turn.point(mass.den$y)
+  mass.pks <- mass.den$x[mass.turns$pks] # mz values with highest density
+  mass.vlys <- c(-Inf, mass.den$x[mass.turns$vlys], Inf) # masses with lowest densities values -> valley
+  mass.pks <- mass.pks[which(abs(mass.pks - aligned.ftrs[i, "mz"]) < custom.mz.tol[i] / 1.5)]
+
+  this.rec <- matrix(c(Inf, Inf, Inf), nrow = 1)
+  for (peak in mass.pks) {
+    # get mass values of valleys the closest to the peak
+    mass.lower <- max(mass.vlys[mass.vlys < peak])
+    mass.upper <- min(mass.vlys[mass.vlys > peak])
+
+    that <- features |>
+      dplyr::filter(mz > mass.lower & mz <= mass.upper) |>
+      dplyr::arrange_at("labels")
+
+    # get values in RT region of interest?
+    if (nrow(that) > recover.min.count) {
+      that.prof <- combine.seq.3(that$labels, that$mz, that$intensities)
+      that.mass <- sum(that.prof[, 1] * that.prof[, 3]) / sum(that.prof[, 3])
+      curr.rec <- c(that.mass, NA, NA)
+
+      if (nrow(that.prof) < 10) {
+        thee.sel <- get_rt_region_indices(target.time[i], that.prof, custom.chr.tol[i])
+
+        if (length(thee.sel) > recover.min.count) {
+          curr.rec[3] <- compute_EIC_area(thee.sel, that.prof, base.curve, all.times, aver.diff)
+          curr.rec[2] <- median(that.prof[thee.sel, 2])
+          this.rec <- rbind(this.rec, curr.rec)
+        }
+      } else {
+        all <- compute_pks_vlys_rt(that.prof, base.curve, bandwidth, min.bw, max.bw, target.time[i], recover.min.count)
+
+        for (pks in all$pks) {
+          curr.rec <- compute_curr_rec_with_enough_peaks(that.mass, pks, all, aver.diff, base.curve, all.times)
+          this.rec <- rbind(this.rec, curr.rec)
+        }
+      }
+    }
+  }
+  return(this.rec)
+}
+
 #' Recover weak signals in some profiles that is not identified as a peak, but corresponds to identified peaks in other spectra.
-#' 
+#'
 #' @description
-#' Given the aligned feature table, some features are identified in a subgroup of spectra. This doesn't mean they don't exist in the other spectra. 
-#' The signal could be too low to pass the run filter. Thus after obtaining the aligned feature table, this function re-analyzes each spectrum to 
+#' Given the aligned feature table, some features are identified in a subgroup of spectra. This doesn't mean they don't exist in the other spectra.
+#' The signal could be too low to pass the run filter. Thus after obtaining the aligned feature table, this function re-analyzes each spectrum to
 #' try and fill in the holes in the aligned feature table.
 #' @param filename the cdf file name from which weaker signal is to be recovered.
 #' @param loc the location of the filename in the vector of filenames.
@@ -237,166 +408,62 @@ recover.weaker <- function(filename,
   for (i in seq_along(this.ftrs))
   {
     if (this.ftrs[i] == 0 && aligned.ftrs[i, "mz"] < max(masses)) {
-      features <- get_raw_features_in_mzrange(data_table, aligned.ftrs, breaks, i, custom.mz.tol)
-
-      mass.den <- compute_mass_density(
-        mz = features$mz,
-        intensities = features$intensities,
-        bandwidth = 0.5 * orig.tol * aligned.ftrs[i, "mz"],
-        intensity_weighted = intensity.weighted
+      this.rec <- compute_rectangle(
+        data_table,
+        aligned.ftrs,
+        breaks,
+        i,
+        custom.mz.tol,
+        orig.tol, intensity.weighted,
+        recover.min.count,
+        target.time,
+        custom.chr.tol,
+        base.curve,
+        all.times,
+        aver.diff,
+        bandwidth,
+        min.bw,
+        max.bw
       )
 
-      # find peaks in mz range in raw data
-      mass.turns <- find.turn.point(mass.den$y)
-      mass.pks <- mass.den$x[mass.turns$pks] # mz values with highest density
-      mass.vlys <- c(-Inf, mass.den$x[mass.turns$vlys], Inf) # masses with lowest densities values -> valley
-      mass.pks <- mass.pks[which(abs(mass.pks - aligned.ftrs[i, "mz"]) < custom.mz.tol[i] / 1.5)]
+      if (!is.na(target.time[i])) {
+        this.sel <- which(abs(this.rec[, 2] - target.time[i]) < custom.chr.tol[i])
+      } else {
+        this.sel <- seq_len(this.rec)
+        this.sel <- this.sel[this.sel != 1]
+      }
 
-      if (length(mass.pks) > 0) {
-        this.rec <- matrix(c(Inf, Inf, Inf), nrow = 1)
-        for (peak in mass.pks)
-        {
-          # get mass values of valleys the closest to the peak
-          mass.lower <- max(mass.vlys[mass.vlys < peak])
-          mass.upper <- min(mass.vlys[mass.vlys > peak])
 
-          that <- features |>
-            dplyr::filter(mz > mass.lower & mz <= mass.upper) |>
-            dplyr::arrange_at("labels")
-
-          if (nrow(that) > recover.min.count) {
-            that.prof <- combine.seq.3(that$labels, that$mz, that$intensities)
-            that.mass <- sum(that.prof[, 1] * that.prof[, 3]) / sum(that.prof[, 3])
-            curr.rec <- c(that.mass, NA, NA)
-
-            if (nrow(that.prof) < 10) {
-              if (!is.na(target.time[i])) {
-                thee.sel <- which(abs(that.prof[, 2] - target.time[i]) < custom.chr.tol[i] * 2)
-              } else {
-                thee.sel <- 1:nrow(that.prof)
-              }
-
-              if (length(thee.sel) > recover.min.count) {
-                if (length(thee.sel) > 1) {
-                  that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], base.curve[, 1], all.times)
-                } else {
-                  that.inte <- that.prof[thee.sel, 3] * aver.diff
-                }
-                curr.rec[3] <- that.inte
-                curr.rec[2] <- median(that.prof[thee.sel, 2])
-                this.rec <- rbind(this.rec, curr.rec)
-              }
-            } else {
-              this <- that.prof[, 2:3]
-              this <- this[order(this[, 1]), ]
-              this.span <- range(this[, 1])
-              this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
-              this.curve[this.curve[, 1] %in% this[, 1], 2] <- this[, 2]
-
-              bw <- min(max(bandwidth * (max(this[, 1]) - min(this[, 1])), min.bw), max.bw)
-              this.smooth <- ksmooth(this.curve[, 1], this.curve[, 2], kernel = "normal", bandwidth = bw)
-              smooth.y <- this.smooth$y
-              turns <- find.turn.point(smooth.y)
-              pks <- this.smooth$x[turns$pks]
-              vlys <- this.smooth$x[turns$vlys]
-              vlys <- c(-Inf, vlys, Inf)
-
-              pks.n <- pks
-              for (m in 1:length(pks))
-              {
-                this.vlys <- c(max(vlys[which(vlys < pks[m])]), min(vlys[which(vlys > pks[m])]))
-                pks.n[m] <- sum(this[, 1] >= this.vlys[1] & this[, 1] <= this.vlys[2])
-              }
-
-              if (!is.na(target.time[i])) {
-                pks.d <- abs(pks - target.time[i]) # distance from the target peak location
-                pks.d[pks.n == 0] <- Inf
-                pks <- pks[which(pks.d == min(pks.d))[1]]
-              } else {
-                pks <- pks[pks.n > recover.min.count]
-              }
-
-              all.pks <- pks
-              all.vlys <- vlys
-              all.this <- this
-
-              if (length(all.pks) > 0) {
-                for (pks.i in 1:length(all.pks))
-                {
-                  pks <- all.pks[pks.i]
-                  vlys <- c(max(all.vlys[which(all.vlys < pks)]), min(all.vlys[which(all.vlys > pks)]))
-
-                  this <- all.this[which(all.this[, 1] >= vlys[1] & all.this[, 1] <= vlys[2]), ]
-                  if (is.null(nrow(this))) {
-                    curr.rec[3] <- this[2] * aver.diff
-                    curr.rec[2] <- this[1]
-                  } else {
-                    x <- this[, 1]
-                    y <- this[, 2]
-
-                    if (nrow(this) >= 10) {
-                      miu <- sum(x * y) / sum(y)
-                      sigma <- sqrt(sum(y * (x - miu)^2) / sum(y))
-                      if (sigma == 0) {
-                        curr.rec[3] <- sum(y) * aver.diff
-                        curr.rec[2] <- miu
-                      } else {
-                        fitted <- dnorm(x, mean = miu, sd = sigma)
-                        this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > 1e-2
-                        sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
-                      }
-                    } else {
-                      sc <- interpol.area(x, y, base.curve[, 1], all.times)
-                      miu <- median(x)
-                    }
-                    curr.rec[3] <- sc
-                    curr.rec[2] <- miu
-                  }
-                  this.rec <- rbind(this.rec, curr.rec)
-                }
-              }
-            }
+      if (length(this.sel) > 0) {
+        if (length(this.sel) > 1) {
+          if (!is.na(target.time[i])) {
+            this.d <- (this.rec[, 2] - target.time[i])^2 / custom.chr.tol[i]^2 + (this.rec[, 1] - aligned.ftrs[i, 1])^2 / custom.mz.tol[i]^2
+            this.sel <- which(this.d == min(this.d))[1]
+          } else {
+            this.d <- abs(this.rec[, 1] - aligned.ftrs[i, 1])
+            this.sel <- which(this.d == min(this.d))[1]
           }
         }
-
-        if (!is.na(target.time[i])) {
-          this.sel <- which(abs(this.rec[, 2] - target.time[i]) < custom.chr.tol[i])
-        } else {
-          this.sel <- 1:nrow(this.rec)
-          this.sel <- this.sel[this.sel != 1]
-        }
-
-
-        if (length(this.sel) > 0) {
-          if (length(this.sel) > 1) {
-            if (!is.na(target.time[i])) {
-              this.d <- (this.rec[, 2] - target.time[i])^2 / custom.chr.tol[i]^2 + (this.rec[, 1] - aligned.ftrs[i, 1])^2 / custom.mz.tol[i]^2
-              this.sel <- which(this.d == min(this.d))[1]
-            } else {
-              this.d <- abs(this.rec[, 1] - aligned.ftrs[i, 1])
-              this.sel <- which(this.d == min(this.d))[1]
-            }
-          }
-          this.pos.diff <- abs(this.f1[, 2] - this.rec[this.sel, 2])
-          this.pos.diff <- which(this.pos.diff == min(this.pos.diff))[1]
-          this.f1 <- rbind(this.f1, c(this.rec[this.sel, 1], this.rec[this.sel, 2], NA, NA, this.rec[this.sel, 3]))
-          this.time.adjust <- (-this.f1[this.pos.diff, 2] + this.f2[this.pos.diff, 2])
-          this.f2 <- rbind(
-            this.f2,
-            c(
-              this.rec[this.sel, 1],
-              this.rec[this.sel, 2] + this.time.adjust,
-              NA,
-              NA,
-              this.rec[this.sel, 3],
-              grep(sample_name, colnames(aligned.ftrs)),
-              NA
-            )
+        
+        this.pos.diff <- abs(this.f1[, 2] - this.rec[this.sel, 2])
+        this.pos.diff <- which(this.pos.diff == min(this.pos.diff))[1]
+        this.f1 <- rbind(this.f1, c(this.rec[this.sel, 1], this.rec[this.sel, 2], NA, NA, this.rec[this.sel, 3]))
+        this.time.adjust <- (-this.f1[this.pos.diff, 2] + this.f2[this.pos.diff, 2])
+        this.f2 <- rbind(
+          this.f2,
+          c(
+            this.rec[this.sel, 1],
+            this.rec[this.sel, 2] + this.time.adjust,
+            NA,
+            NA,
+            this.rec[this.sel, 3],
+            grep(sample_name, colnames(aligned.ftrs)),
+            NA
           )
-          this.ftrs[i] <- this.rec[this.sel, 3]
-          this.times[i] <- this.rec[this.sel, 2] + this.time.adjust
-          this.mz[i] <- this.rec[this.sel, 1]
-        }
+        )
+        this.ftrs[i] <- this.rec[this.sel, 3]
+        this.times[i] <- this.rec[this.sel, 2] + this.time.adjust
+        this.mz[i] <- this.rec[this.sel, 1]
       }
     }
   }
