@@ -652,9 +652,9 @@ prof.to.features <- function(a,
     a.breaks <- c(0, which(a[1:(nrowa - 1), 4] != a[2:nrowa, 4]), nrowa)
     mz.sd.rec <- NA
 
-    for (nnn in 1:(length(a.breaks) - 1))
+    for (i in 1:(length(a.breaks) - 1))
     {
-        this <- a[(a.breaks[nnn] + 1):a.breaks[nnn + 1], ]
+        this <- a[(a.breaks[i] + 1):a.breaks[i + 1], ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
         this <- this[order(this[, 2]), ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
@@ -701,7 +701,7 @@ prof.to.features <- function(a,
             }
         }
 
-        # message(nnn)
+        # message(i)
     }
     this.features <- this.features[-1, ]
     this.features <- this.features[order(this.features[, 1], this.features[, 2]), ]
