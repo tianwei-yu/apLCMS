@@ -660,23 +660,27 @@ prof.to.features <- function(a,
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
         mz.sd.rec <- c(mz.sd.rec, sd(this[, 1]))
 
-        this.count.1 <- nrow(this)
-        if (this.count.1 <= 10) {
-            if (this.count.1 > 1) {
-                this.inte <- interpol.area(this[, 2], this[, 3], base.curve[, 1], all.times)
-                xxx <- c(median(this[, 1]), median(this[, 2]), sd(this[, 2]), sd(this[, 2]), this.inte)
-            } else {
-                this.time.weights <- all.times[which(base.curve[, 1] %in% this[2])]
-                xxx <- c(this[1], this[2], NA, NA, this[3] * this.time.weights)
-            }
+        nrow_this <- nrow(this)
+        if (between(nrow_this, 2, 10)) {
+            this.inte <- interpol.area(this[, 2], this[, 3], base.curve[, 1], all.times)
+            xxx <- c(median(this[, 1]), median(this[, 2]), sd(this[, 2]), sd(this[, 2]), this.inte)
             this.features <- rbind(this.features, xxx)
-        } else {
+        }
+
+        if (nrow_this == 0) {
+            this.time.weights <- all.times[which(base.curve[, 1] %in% this[2])]
+            xxx <- c(this[1], this[2], NA, NA, this[3] * this.time.weights)
+            this.features <- rbind(this.features, xxx)
+        }
+        
+        if (nrow_this > 10) {
             this.span <- range(this[, 2])
             this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
             this.curve[this.curve[, 1] %in% this[, 2], 2] <- this[, 3]
 
             bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
             bw <- seq(bw, 2 * bw, length.out = 3)
+
             if (bw[1] > 1.5 * min.bw) bw <- c(max(min.bw, bw[1] / 2), bw)
 
             if (shape.model == "Gaussian") {
