@@ -1,3 +1,4 @@
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
@@ -6,6 +7,7 @@ solve.a <- function(x, t, a, sigma.1, sigma.2) {
     return(sum(t * w) / sum(w))
 }
 
+#' @export
 prep.uv <- function(x, t, a) {
 
     ## this function prepares the parameters required for latter
@@ -21,6 +23,7 @@ prep.uv <- function(x, t, a) {
     ))
 }
 
+#' @export
 solve.sigma <- function(x, t, a) {
     ## this function takes the value intensity level x, retention time t
     ## and assumed breaking point a, calculates the square estimated of
@@ -36,6 +39,7 @@ solve.sigma <- function(x, t, a) {
     ))
 }
 
+#' @export
 bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 1)) {
     ## function takes into x and t, and then computes the value of
     ## sigma.1, sigma.2 and a using iterative method. the returned
@@ -89,11 +93,13 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
     return(c(a.new, sigma$sigma.1, sigma$sigma.2, scale))
 }
 
+#' @export
 rev_cum_sum <- function(x) {
     l <- length(x)
     return(cumsum((x)[l:1])[l:1])
 }
 
+#' @export
 compute_bounds <- function(x, sigma.ratio.lim) {
     l <- length(x)
     sel <- which(x >= sigma.ratio.lim[1] / (sigma.ratio.lim[1] + 1) * x[l])
@@ -111,6 +117,7 @@ compute_bounds <- function(x, sigma.ratio.lim) {
     return(list(start = start, end = end))
 }
 
+#' @export
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
     sel <- which(y > 1e-10)
     if (length(sel) < 2) {
@@ -214,6 +221,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     return(to.return)
 }
 
+#' @export
 bigauss.mix <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
     all.bw <- bw[order(bw)]
 
@@ -385,6 +393,7 @@ bigauss.mix <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.
     return(rec)
 }
 
+#' @export
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut = 1e-2) {
     x <- that.curve[, 1]
     y <- that.curve[, 2]
@@ -507,6 +516,7 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
     return(rec)
 }
 
+#' @export
 normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2) {
     all.bw <- bw[order(bw)]
     sel <- y > 1e-5
