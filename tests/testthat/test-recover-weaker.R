@@ -28,27 +28,6 @@ patrick::with_parameters_test_that(
       file.path(testdata, "aligned", "tolerances.parquet")
     )
 
-    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      cluster <- 2L
-    } else {
-      # use all cores in devtools::test()
-      cluster <- parallel::detectCores()
-    }
-
-    if (!is(cluster, "cluster")) {
-      cluster <- parallel::makeCluster(cluster)
-      on.exit(parallel::stopCluster(cluster))
-    }
-
-    clusterExport(cluster, c(
-      "recover.weaker", "load.lcms", "find.turn.point",
-      "combine.seq.3", "interpol.area", "duplicate.row.remove", "compute_all_times", "load_file"
-    ))
-    clusterEvalQ(cluster, library("splines"))
-
     recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
         filename = ms_files[[i]],
