@@ -43,15 +43,6 @@ compute_all_times <- function(base_curve) {
   return(all_times)
 }
 
-#' @export
-compute_base_curve <- function(x) {
-  base_curve <- unique(x)
-  base_curve <- base_curve[order(base_curve)]
-  #base_curve <- cbind(base_curve, base_curve * 0)
-  return(base_curve)
-}
-
-
 #' Normalize vector so that sum(vec) = 1
 l2normalize <- function(x) {
   x / sum(x)
@@ -449,7 +440,7 @@ recover.weaker <- function(filename,
   if (min.bw >= max.bw) min.bw <- max.bw / 4
 
 
-  base.curve <- compute_base_curve(sort(times))
+  base.curve <- sort(unique(times))
   aver.diff <- mean(diff(base.curve))
   all.times <- compute_all_times(base.curve)
 
