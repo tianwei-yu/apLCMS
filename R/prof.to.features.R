@@ -26,7 +26,7 @@ preprocess_feature_table <- function(feature_table) {
     keys <- c("mz", "rt", "intensity", "group_number")
     colnames(feature_table) <- keys
 
-    return (feature_table)
+    return (data.frame(feature_table))
 }
 
 compute_gaussian_peak_shape <- function(this.curve, power, bw, component.eliminate, BIC.factor) {
@@ -687,13 +687,10 @@ prof.to.features <- function(feature_table,
     keys <- c("mz", "pos", "sd1", "sd2", "area")
     this.features <- matrix(0, nrow = 1, ncol = length(keys), dimnames = list(NULL, keys))
 
-    num_features <- nrow(feature_table)
-
-    feature_table_breaks <- c(0, which(feature_table[1:(num_features - 1), "group_number"] != feature_table[2:num_features, "group_number"]), num_features)
-
-    for (i in 1:(length(feature_table_breaks) - 1))
+    feature_groups <- split(feature_table, feature_table$group_number)
+    for (i in seq_along(feature_groups))
     {
-        this <- feature_table[(feature_table_breaks[i] + 1):feature_table_breaks[i + 1], ]        
+        this <- feature_groups[[i]]
         this <- this[order(this[, "rt"]), ]
 
         mz.sd.rec <- c(NA, sd(this[, "mz"]))
