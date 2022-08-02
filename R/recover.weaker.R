@@ -1,24 +1,33 @@
+#' Custom way of removing duplicate rows from a specifically formatted table.
+#'
+#' @description
+#' Rows are considered as duplicate if the 1st, 2nd and 5th column are less than 1e-10 (tolerance) apart.
+#' Only a single row in this `range` is kept from a group.
+#' @param new.table The table from which the duplicate rows should be removed. Needs at least 5 columns.
+#' Columns 1, 2 and 5 have to be of numeric type.
+#' @param tolerance Tolerance to use for numeric comparisons.
+#' @return Returns the same table with duplicate rows removed.
 #' @export
-duplicate.row.remove <- function(new.table) {
+duplicate.row.remove <- function(new.table, tolerance = 1e-10) {  
   new.table <- new.table[order(new.table[, 1], new.table[, 2], new.table[, 5]), ]
   n <- 1
   m <- 2
   to.remove <- rep(0, nrow(new.table))
 
   while (m <= nrow(new.table)) {
-    if (abs(new.table[m, 1] - new.table[n, 1]) < 1e-10 &
-      abs(new.table[m, 2] - new.table[n, 2]) < 1e-10 &
-      abs(new.table[m, 5] - new.table[n, 5]) < 1e-10) {
+    if (abs(new.table[m, 1] - new.table[n, 1]) < tolerance &
+      abs(new.table[m, 2] - new.table[n, 2]) < tolerance &
+      abs(new.table[m, 5] - new.table[n, 5]) < tolerance) {
       to.remove[m] <- 1
       m <- m + 1
     } else {
       n <- m
       m <- m + 1
     }
-    # cat("*(", n, m, ")")
   }
 
-  if (sum(to.remove) > 0) new.table <- new.table[-which(to.remove == 1), ]
+  if (sum(to.remove) > 0) 
+    new.table <- new.table[-which(to.remove == 1), ]
   new.table
 }
 
@@ -26,7 +35,7 @@ duplicate.row.remove <- function(new.table) {
 #' @param base_curve Basis curve
 #' @export
 compute_all_times <- function(base_curve) {
-  all_times <- base_curve[, 1]
+  all_times <- base_curve
   if (all_times[1] > 0) all_times <- c(0, all_times)
   all_times <- c(all_times, 2 * all_times[length(all_times)] - all_times[length(all_times) - 1])
   all_times <- (all_times[1:(length(all_times) - 1)] + all_times[2:length(all_times)]) / 2
@@ -38,7 +47,7 @@ compute_all_times <- function(base_curve) {
 compute_base_curve <- function(x) {
   base_curve <- unique(x)
   base_curve <- base_curve[order(base_curve)]
-  base_curve <- cbind(base_curve, base_curve * 0)
+  #base_curve <- cbind(base_curve, base_curve * 0)
   return(base_curve)
 }
 
@@ -164,7 +173,7 @@ get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
 
 compute_EIC_area <- function(thee.sel, that.prof, base.curve, all.times, aver.diff) {
   if (length(thee.sel) > 1) {
-    that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], base.curve[, 1], all.times)
+    that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], base.curve, all.times)
   } else {
     that.inte <- that.prof[thee.sel, 3] * aver.diff
   }
@@ -173,7 +182,8 @@ compute_EIC_area <- function(thee.sel, that.prof, base.curve, all.times, aver.di
 
 get_features_in_rt_range <- function(this, base.curve, bw) {
   this.span <- range(this[, 1])
-  this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
+  this.curve <- base.curve[base.curve >= this.span[1] & base.curve <= this.span[2]]
+  this.curve <- cbind(this.curve, this.curve * 0)
   this.curve[this.curve[, 1] %in% this[, 1], 2] <- this[, 2]
 
   this.smooth <- ksmooth(
@@ -244,7 +254,7 @@ compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, b
         sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
       }
     } else {
-      sc <- interpol.area(x, y, base.curve[, 1], all.times)
+      sc <- interpol.area(x, y, base.curve, all.times)
       miu <- median(x)
     }
     curr.rec[3] <- sc
@@ -270,13 +280,12 @@ compute_peaks_and_valleys <- function(dens) {
 compute_rectangle <- function(data_table,
                               aligned_feature_mass,
                               breaks,
-                              i,
-                              custom.mz.tol,
+                              custom_mz_tol,
                               orig.tol,
                               intensity.weighted,
                               recover.min.count,
-                              target.time,
-                              custom.chr.tol,
+                              target_rt,
+                              custom_chr_tol,
                               base.curve,
                               all.times,
                               aver.diff,
@@ -287,7 +296,7 @@ compute_rectangle <- function(data_table,
     data_table,
     aligned_feature_mass,
     breaks,
-    custom.mz.tol[i]
+    custom_mz_tol
   )
 
   mass.den <- compute_mass_density(
@@ -299,7 +308,7 @@ compute_rectangle <- function(data_table,
 
   # find peaks in mz range in raw data
   mass_range <- compute_peaks_and_valleys(mass.den)
-  mass_range$pks <- mass_range$pks[which(abs(mass_range$pks - aligned_feature_mass) < custom.mz.tol[i] / 1.5)]
+  mass_range$pks <- mass_range$pks[which(abs(mass_range$pks - aligned_feature_mass) < custom_mz_tol / 1.5)]
 
   this.rec <- matrix(c(Inf, Inf, Inf), nrow = 1)
   for (peak in mass_range$pks) {
@@ -318,9 +327,9 @@ compute_rectangle <- function(data_table,
 
       if (nrow(that.prof) < 10) {
         thee.sel <- get_rt_region_indices(
-          target.time[i],
+          target_rt,
           that.prof,
-          custom.chr.tol[i] * 2
+          custom_chr_tol
         )
 
         if (length(thee.sel) > recover.min.count) {
@@ -341,7 +350,7 @@ compute_rectangle <- function(data_table,
           bandwidth,
           min.bw,
           max.bw,
-          target.time[i],
+          target_rt,
           recover.min.count
         )
 
@@ -431,7 +440,6 @@ recover.weaker <- function(filename,
   times <- this.raw$times
   data_table <- tibble::tibble(mz = this.raw$masses, labels = this.raw$labels, intensities = this.raw$intensi) |> dplyr::arrange_at("mz")
   rm(this.raw)
-  masses <- data_table$mz
 
   # Initialize parameters with default values
   if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
@@ -442,7 +450,7 @@ recover.weaker <- function(filename,
 
 
   base.curve <- compute_base_curve(sort(times))
-  aver.diff <- mean(diff(base.curve[, 1]))
+  aver.diff <- mean(diff(base.curve))
   all.times <- compute_all_times(base.curve)
 
   this.ftrs <- aligned.ftrs[, sample_name]
@@ -468,17 +476,17 @@ recover.weaker <- function(filename,
 
   for (i in seq_along(this.ftrs))
   {
-    if (this.ftrs[i] == 0 && aligned.ftrs[i, "mz"] < max(masses)) {
+    if (this.ftrs[i] == 0 && aligned.ftrs[i, "mz"] < max(data_table$mz)) {
       this.rec <- compute_rectangle(
         data_table,
         aligned.ftrs[i, "mz"],
         breaks,
-        i,
-        custom.mz.tol,
-        orig.tol, intensity.weighted,
+        custom.mz.tol[i],
+        orig.tol,
+        intensity.weighted,
         recover.min.count,
-        target.time,
-        custom.chr.tol,
+        target.time[i],
+        custom.chr.tol[i] * 2,
         base.curve,
         all.times,
         aver.diff,
