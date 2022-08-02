@@ -680,16 +680,8 @@ prof.to.features <- function(feature_table,
 
     for (i in 1:(length(feature_table_breaks) - 1))
     {
-        this <- feature_table[(feature_table_breaks[i] + 1):feature_table_breaks[i + 1], ]
-        if (is.null(nrow(this))) {
-            this <- matrix(this, nrow = 1)
-        }
-        
+        this <- feature_table[(feature_table_breaks[i] + 1):feature_table_breaks[i + 1], ]        
         this <- this[order(this[, "rt"]), ]
-        
-        if (is.null(nrow(this))) {
-            this <- matrix(this, nrow = 1)
-        }
 
         mz.sd.rec <- c(NA, sd(this[, "mz"]))
 
