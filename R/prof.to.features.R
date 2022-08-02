@@ -638,9 +638,17 @@ prof.to.features <- function(a,
         stop("estim.method argument must be 'moment' or 'EM'")
     }
 
-    if (is.na(min.bw)) min.bw <- diff(range(a[, 2], na.rm = TRUE)) / 60
-    if (is.na(max.bw)) max.bw <- diff(range(a[, 2], na.rm = TRUE)) / 15
-    if (min.bw >= max.bw) min.bw <- max.bw / 4
+    if (is.na(min.bw)) {
+        min.bw <- diff(range(a[, 2], na.rm = TRUE)) / 60
+    }
+
+    if (is.na(max.bw)) {
+        max.bw <- diff(range(a[, 2], na.rm = TRUE)) / 15
+    }
+
+    if (min.bw >= max.bw) {
+        min.bw <- max.bw / 4
+    }
 
     base.curve <- compute_base_curve(a[, 2])
     all.times <- compute_all_times(base.curve)
