@@ -8,6 +8,20 @@ validate_inputs <- function(shape.model, estim.method) {
     }
 }
 
+preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
+    if (is.na(min.bw)) {
+        min.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 60
+    }
+    if (is.na(max.bw)) {
+        max.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 15
+    }
+    if (min.bw >= max.bw) {
+        min.bw <- max.bw / 4
+    }
+
+    return (list("min.bw" = min.bw, "max.bw" = max.bw))
+}
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
@@ -641,17 +655,9 @@ prof.to.features <- function(feature_table,
 
     validate_inputs(shape.model, estim.method)
 
-    if (is.na(min.bw)) {
-        min.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 60
-    }
-
-    if (is.na(max.bw)) {
-        max.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 15
-    }
-
-    if (min.bw >= max.bw) {
-        min.bw <- max.bw / 4
-    }
+    bws <- preprocess_bandwidth(min.bw, max.bw, feature_table)
+    min.bw <- bws[["min.bw"]]
+    max.bw <- bws[["max.bw"]]
 
     base.curve <- compute_base_curve(feature_table[, 2])
     all.times <- compute_all_times(base.curve)
