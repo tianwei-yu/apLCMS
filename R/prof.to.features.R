@@ -22,6 +22,13 @@ preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
     return (list("min.bw" = min.bw, "max.bw" = max.bw))
 }
 
+preprocess_feature_table <- function(feature_table) {
+    keys <- c("mz", "rt", "intensity", "group_number")
+    colnames(feature_table) <- keys
+
+    return (feature_table)
+}
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
@@ -655,32 +662,34 @@ prof.to.features <- function(feature_table,
 
     validate_inputs(shape.model, estim.method)
 
+    feature_table <- preprocess_feature_table(feature_table)
+
     bws <- preprocess_bandwidth(min.bw, max.bw, feature_table)
     min.bw <- bws[["min.bw"]]
     max.bw <- bws[["max.bw"]]
 
-    base.curve <- compute_base_curve(feature_table[, 2])
+    base.curve <- compute_base_curve(feature_table[, "rt"])
     all.times <- compute_all_times(base.curve)
 
     this.features <- matrix(0, nrow = 1, ncol = 5)
     colnames(this.features) <- c("mz", "pos", "sd1", "sd2", "area")
     nrowa <- nrow(feature_table)
 
-    feature_table_breaks <- c(0, which(feature_table[1:(nrowa - 1), 4] != feature_table[2:nrowa, 4]), nrowa)
+    feature_table_breaks <- c(0, which(feature_table[1:(nrowa - 1), "group_number"] != feature_table[2:nrowa, "group_number"]), nrowa)
     mz.sd.rec <- NA
 
     for (i in 1:(length(feature_table_breaks) - 1))
     {
         this <- feature_table[(feature_table_breaks[i] + 1):feature_table_breaks[i + 1], ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
-        this <- this[order(this[, 2]), ]
+        this <- this[order(this[, "rt"]), ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
-        mz.sd.rec <- c(mz.sd.rec, sd(this[, 1]))
+        mz.sd.rec <- c(mz.sd.rec, sd(this[, "mz"]))
 
         nrow_this <- nrow(this)
         if (between(nrow_this, 2, 10)) {
-            this.inte <- interpol.area(this[, 2], this[, 3], base.curve[, 1], all.times)
-            xxx <- c(median(this[, 1]), median(this[, 2]), sd(this[, 2]), sd(this[, 2]), this.inte)
+            this.inte <- interpol.area(this[, "rt"], this[, "intensity"], base.curve[, 1], all.times)
+            xxx <- c(median(this[, "mz"]), median(this[, "rt"]), sd(this[, "rt"]), sd(this[, "rt"]), this.inte)
             this.features <- rbind(this.features, xxx)
         }
 
@@ -691,9 +700,9 @@ prof.to.features <- function(feature_table,
         }
 
         if (nrow_this > 10) {
-            this.span <- range(this[, 2])
+            this.span <- range(this[, "rt"])
             this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
-            this.curve[this.curve[, 1] %in% this[, 2], 2] <- this[, 3]
+            this.curve[this.curve[, 1] %in% this[, "rt"], 2] <- this[, "intensity"]
 
             bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
             bw <- seq(bw, 2 * bw, length.out = 3)
@@ -712,11 +721,11 @@ prof.to.features <- function(feature_table,
             }
 
             if (is.null(nrow(xxx))) {
-                this.features <- rbind(this.features, c(median(this[, 1]), xxx))
+                this.features <- rbind(this.features, c(median(this[, "mz"]), xxx))
             } else {
                 for (m in 1:nrow(xxx))
                 {
-                    this.d <- abs(this[, 2] - xxx[m, 1])
+                    this.d <- abs(this[, "rt"] - xxx[m, 1])
                     this.features <- rbind(this.features, c(mean(this[which(this.d == min(this.d)), 1]), xxx[m, ]))
                 }
             }
