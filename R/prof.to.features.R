@@ -682,9 +682,16 @@ prof.to.features <- function(feature_table,
     for (i in 1:(length(feature_table_breaks) - 1))
     {
         this <- feature_table[(feature_table_breaks[i] + 1):feature_table_breaks[i + 1], ]
-        if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
+        if (is.null(nrow(this))) {
+            this <- matrix(this, nrow = 1)
+        }
+        
         this <- this[order(this[, "rt"]), ]
-        if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
+        
+        if (is.null(nrow(this))) {
+            this <- matrix(this, nrow = 1)
+        }
+
         mz.sd.rec <- c(mz.sd.rec, sd(this[, "mz"]))
 
         nrow_this <- nrow(this)
@@ -708,7 +715,9 @@ prof.to.features <- function(feature_table,
             bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
             bw <- seq(bw, 2 * bw, length.out = 3)
 
-            if (bw[1] > 1.5 * min.bw) bw <- c(max(min.bw, bw[1] / 2), bw)
+            if (bw[1] > 1.5 * min.bw) {
+                bw <- c(max(min.bw, bw[1] / 2), bw)
+            }
 
             if (shape.model == "Gaussian") {
                 xxx <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
