@@ -595,7 +595,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
 #' value, retention time, intensity, and group number is output from proc.cdf(). This matrix is then fed to the function 
 #' prof.to.features() to generate a feature list. Every detected feature is summarized into a single row in the output matrix from this function.
 #' 
-#' @param a The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
+#' @param feature_table The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
 #' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps 
 #'  determine the bandwidth in the kernel smoother used for peak identification.
 #' @param min.bw The minimum bandwidth to use in the kernel smoother.
@@ -617,7 +617,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
 #' @export
 #' @examples
 #' prof.to.features(extracted_features, sd.cut = sd_cut, sigma.ratio.lim = sigma_ratio_lim, do.plot = FALSE)
-prof.to.features <- function(a,
+prof.to.features <- function(feature_table,
                              bandwidth = 0.5,
                              min.bw = NA,
                              max.bw = NA,
@@ -639,30 +639,30 @@ prof.to.features <- function(a,
     }
 
     if (is.na(min.bw)) {
-        min.bw <- diff(range(a[, 2], na.rm = TRUE)) / 60
+        min.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 60
     }
 
     if (is.na(max.bw)) {
-        max.bw <- diff(range(a[, 2], na.rm = TRUE)) / 15
+        max.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 15
     }
 
     if (min.bw >= max.bw) {
         min.bw <- max.bw / 4
     }
 
-    base.curve <- compute_base_curve(a[, 2])
+    base.curve <- compute_base_curve(feature_table[, 2])
     all.times <- compute_all_times(base.curve)
 
     this.features <- matrix(0, nrow = 1, ncol = 5)
     colnames(this.features) <- c("mz", "pos", "sd1", "sd2", "area")
-    nrowa <- nrow(a)
+    nrowa <- nrow(feature_table)
 
-    a.breaks <- c(0, which(a[1:(nrowa - 1), 4] != a[2:nrowa, 4]), nrowa)
+    a.breaks <- c(0, which(feature_table[1:(nrowa - 1), 4] != feature_table[2:nrowa, 4]), nrowa)
     mz.sd.rec <- NA
 
     for (i in 1:(length(a.breaks) - 1))
     {
-        this <- a[(a.breaks[i] + 1):a.breaks[i + 1], ]
+        this <- feature_table[(a.breaks[i] + 1):a.breaks[i + 1], ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
         this <- this[order(this[, 2]), ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
