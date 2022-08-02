@@ -674,9 +674,9 @@ prof.to.features <- function(feature_table,
     keys <- c("mz", "pos", "sd1", "sd2", "area")
     this.features <- matrix(0, nrow = 1, ncol = length(keys), dimnames = list(NULL, keys))
 
-    nrowa <- nrow(feature_table)
+    num_features <- nrow(feature_table)
 
-    feature_table_breaks <- c(0, which(feature_table[1:(nrowa - 1), "group_number"] != feature_table[2:nrowa, "group_number"]), nrowa)
+    feature_table_breaks <- c(0, which(feature_table[1:(num_features - 1), "group_number"] != feature_table[2:num_features, "group_number"]), num_features)
     mz.sd.rec <- NA
 
     for (i in 1:(length(feature_table_breaks) - 1))
