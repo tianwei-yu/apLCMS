@@ -677,7 +677,6 @@ prof.to.features <- function(feature_table,
     num_features <- nrow(feature_table)
 
     feature_table_breaks <- c(0, which(feature_table[1:(num_features - 1), "group_number"] != feature_table[2:num_features, "group_number"]), num_features)
-    mz.sd.rec <- NA
 
     for (i in 1:(length(feature_table_breaks) - 1))
     {
@@ -692,7 +691,7 @@ prof.to.features <- function(feature_table,
             this <- matrix(this, nrow = 1)
         }
 
-        mz.sd.rec <- c(mz.sd.rec, sd(this[, "mz"]))
+        mz.sd.rec <- c(NA, sd(this[, "mz"]))
 
         nrow_this <- nrow(this)
         if (between(nrow_this, 2, 10)) {
