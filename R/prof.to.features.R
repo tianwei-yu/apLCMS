@@ -701,8 +701,8 @@ prof.to.features <- function(feature_table,
 
         if (nrow_this > 10) {
             this.span <- range(this[, "rt"])
-            this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
-            this.curve[this.curve[, 1] %in% this[, "rt"], 2] <- this[, "intensity"]
+            this.curve <- base.curve[base.curve[, "base_curve"] >= this.span[1] & base.curve[, "base_curve"] <= this.span[2], ]
+            this.curve[this.curve[, "base_curve"] %in% this[, "rt"], 2] <- this[, "intensity"]
 
             bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
             bw <- seq(bw, 2 * bw, length.out = 3)
@@ -710,14 +710,14 @@ prof.to.features <- function(feature_table,
             if (bw[1] > 1.5 * min.bw) bw <- c(max(min.bw, bw[1] / 2), bw)
 
             if (shape.model == "Gaussian") {
-                xxx <- normix.bic(this.curve[, 1], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+                xxx <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
                 if (nrow(xxx) == 1) {
                     xxx <- c(xxx[1, 1:2], xxx[1, 2], xxx[1, 3])
                 } else {
                     xxx <- cbind(xxx[, 1:2], xxx[, 2], xxx[, 3])
                 }
             } else {
-                xxx <- bigauss.mix(this.curve[, 1], this.curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+                xxx <- bigauss.mix(this.curve[, "base_curve"], this.curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
             }
 
             if (is.null(nrow(xxx))) {
