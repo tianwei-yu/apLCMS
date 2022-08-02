@@ -696,14 +696,14 @@ prof.to.features <- function(feature_table,
         nrow_this <- nrow(this)
         if (between(nrow_this, 2, 10)) {
             this.inte <- interpol.area(this[, "rt"], this[, "intensity"], base.curve[, 1], all.times)
-            xxx <- c(median(this[, "mz"]), median(this[, "rt"]), sd(this[, "rt"]), sd(this[, "rt"]), this.inte)
-            this.features <- rbind(this.features, xxx)
+            chr_peak_shape <- c(median(this[, "mz"]), median(this[, "rt"]), sd(this[, "rt"]), sd(this[, "rt"]), this.inte)
+            this.features <- rbind(this.features, chr_peak_shape)
         }
 
         if (nrow_this < 2) {
             this.time.weights <- all.times[which(base.curve[, 1] %in% this[2])]
-            xxx <- c(this[1], this[2], NA, NA, this[3] * this.time.weights)
-            this.features <- rbind(this.features, xxx)
+            chr_peak_shape <- c(this[1], this[2], NA, NA, this[3] * this.time.weights)
+            this.features <- rbind(this.features, chr_peak_shape)
         }
 
         if (nrow_this > 10) {
@@ -719,23 +719,23 @@ prof.to.features <- function(feature_table,
             }
 
             if (shape.model == "Gaussian") {
-                xxx <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
-                if (nrow(xxx) == 1) {
-                    xxx <- c(xxx[1, 1:2], xxx[1, 2], xxx[1, 3])
+                chr_peak_shape <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+                if (nrow(chr_peak_shape) == 1) {
+                    chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
                 } else {
-                    xxx <- cbind(xxx[, 1:2], xxx[, 2], xxx[, 3])
+                    chr_peak_shape <- cbind(chr_peak_shape[, 1:2], chr_peak_shape[, 2], chr_peak_shape[, 3])
                 }
             } else {
-                xxx <- bigauss.mix(this.curve[, "base_curve"], this.curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+                chr_peak_shape <- bigauss.mix(this.curve[, "base_curve"], this.curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
             }
 
-            if (is.null(nrow(xxx))) {
-                this.features <- rbind(this.features, c(median(this[, "mz"]), xxx))
+            if (is.null(nrow(chr_peak_shape))) {
+                this.features <- rbind(this.features, c(median(this[, "mz"]), chr_peak_shape))
             } else {
-                for (m in 1:nrow(xxx))
+                for (m in 1:nrow(chr_peak_shape))
                 {
-                    this.d <- abs(this[, "rt"] - xxx[m, 1])
-                    this.features <- rbind(this.features, c(mean(this[which(this.d == min(this.d)), 1]), xxx[m, ]))
+                    this.d <- abs(this[, "rt"] - chr_peak_shape[m, 1])
+                    this.features <- rbind(this.features, c(mean(this[which(this.d == min(this.d)), 1]), chr_peak_shape[m, ]))
                 }
             }
         }
