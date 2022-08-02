@@ -731,8 +731,6 @@ prof.to.features <- function(feature_table,
                 }
             }
         }
-
-        # message(i)
     }
     this.features <- this.features[-1, ]
     this.features <- this.features[order(this.features[, "mz"], this.features[, "pos"]), ]
