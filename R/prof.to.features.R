@@ -671,8 +671,9 @@ prof.to.features <- function(feature_table,
     base.curve <- compute_base_curve(feature_table[, "rt"])
     all.times <- compute_all_times(base.curve)
 
-    this.features <- matrix(0, nrow = 1, ncol = 5)
-    colnames(this.features) <- c("mz", "pos", "sd1", "sd2", "area")
+    keys <- c("mz", "pos", "sd1", "sd2", "area")
+    this.features <- matrix(0, nrow = 1, ncol = length(keys), dimnames = list(NULL, keys))
+
     nrowa <- nrow(feature_table)
 
     feature_table_breaks <- c(0, which(feature_table[1:(nrowa - 1), "group_number"] != feature_table[2:nrowa, "group_number"]), nrowa)
@@ -734,8 +735,8 @@ prof.to.features <- function(feature_table,
         # message(i)
     }
     this.features <- this.features[-1, ]
-    this.features <- this.features[order(this.features[, 1], this.features[, 2]), ]
-    this.features <- this.features[which(apply(this.features[, 3:4], 1, min) > sd.cut[1] & apply(this.features[, 3:4], 1, max) < sd.cut[2]), ]
+    this.features <- this.features[order(this.features[, "mz"], this.features[, "pos"]), ]
+    this.features <- this.features[which(apply(this.features[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(this.features[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
     rownames(this.features) <- NULL
 
     if (do.plot) {
@@ -743,8 +744,8 @@ prof.to.features <- function(feature_table,
         plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
         text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
         hist(mz.sd.rec, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
-        hist(c(this.features[, 3], this.features[, 4]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
-        hist(log10(this.features[, 5]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+        hist(c(this.features[, "sd1"], this.features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
+        hist(log10(this.features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
     }
 
     return(this.features)
