@@ -29,6 +29,19 @@ preprocess_feature_table <- function(feature_table) {
     return (feature_table)
 }
 
+compute_gaussian_peak_shape <- function(this.curve, power, bw, component.eliminate, BIC.factor) {
+
+    ## this function computes parameters of chromatographic peak shape if peaks are considered to be gaussian
+
+    chr_peak_shape <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+    if (nrow(chr_peak_shape) == 1) {
+        chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
+    } else {
+        chr_peak_shape <- cbind(chr_peak_shape[, 1:2], chr_peak_shape[, 2], chr_peak_shape[, 3])
+    }
+    return (chr_peak_shape)
+}
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
@@ -711,12 +724,7 @@ prof.to.features <- function(feature_table,
             }
 
             if (shape.model == "Gaussian") {
-                chr_peak_shape <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
-                if (nrow(chr_peak_shape) == 1) {
-                    chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
-                } else {
-                    chr_peak_shape <- cbind(chr_peak_shape[, 1:2], chr_peak_shape[, 2], chr_peak_shape[, 3])
-                }
+                chr_peak_shape <- compute_gaussian_peak_shape(this.curve, power, bw, component.eliminate, BIC.factor)
             } else {
                 chr_peak_shape <- bigauss.mix(this.curve[, "base_curve"], this.curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
             }
