@@ -17,7 +17,7 @@
 #'  This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.
 #' @param max.num.segments the maximum number of segments.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @return A matrix with six columns. Every row corrsponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength, 
+#' @return A matrix with six columns. Every row corresponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength, 
 #'  spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered 
 #'  by the elution time.
 #' @examples
@@ -34,27 +34,44 @@ find.tol.time <- function(mz,
                           mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
-    o <- order(mz)
-    mz <- mz[o]
-    chr <- chr[o]
-    lab <- lab[o]
-    rm(o)
+
+    features <- tibble::tibble(mz = mz, rt = chr, labels = lab)
+    features  <- dplyr::arrange_at(features, "mz")
+
+    # o <- order(mz)
+    # mz <- mz[o]
+    # chr <- chr[o]
+    # lab <- lab[o]
+    # rm(o)
+
+    mz <- features$mz
+    chr <- features$rt
+    lab <- features$labels
     
     l <- length(mz)
+
+    min_mz_tol <- min(
+        mz_tol_absolute,
+        mz_tol_relative * ((mz[2:l] + mz[1:(l - 1)]) / 2)
+    )
     
-    breaks <-
-        c(0, which((mz[2:l] - mz[1:(l - 1)]) > min(mz_tol_absolute, mz_tol_relative * ((
-            mz[2:l] + mz[1:(l - 1)]
-        ) / 2))), l)
-    
+    indices <- which((mz[2:l] - mz[1:(l - 1)]) > min_mz_tol)
+    breaks <- c(0, indices, l)
     for (i in 2:length(breaks)) {
-        this.o <- order(chr[(breaks[i - 1] + 1):breaks[i]])
+        this.iter <- (breaks[i - 1] + 1):breaks[i]
+        this.o <- order(chr[this.iter])
         this.o <- this.o + breaks[i - 1]
-        mz[(breaks[i - 1] + 1):breaks[i]] <- mz[this.o]
-        chr[(breaks[i - 1] + 1):breaks[i]] <- chr[this.o]
-        lab[(breaks[i - 1] + 1):breaks[i]] <- lab[this.o]
+        mz[this.iter] <- mz[this.o]
+        chr[this.iter] <- chr[this.o]
+        lab[this.iter] <- lab[this.o]
+        # newfeatures <- tibble::tibble(mz = mz[this.iter], chr = chr[this.iter], lab = lab[this.iter])
     }
-    
+
+    # mz  <- newfeatures$mz
+    # chr <- newfeatures$chr
+    # lab <- newfeatures$lab
+
+
     breaks <- breaks[c(-1, -length(breaks))]
     if (is.na(rt_tol_relative)) {
         da <- 0
@@ -98,7 +115,8 @@ find.tol.time <- function(mz,
         rt_tol_relative <- x[sel]
         
         if (do.plot) {
-          tolerance_plot(x, y, exp.y, sel, main = "find retention time tolerance")
+          tolerance_plot(x, y, exp.y,
+          sel, main = "find retention time tolerance")
         }
     }
     
