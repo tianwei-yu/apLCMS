@@ -1,4 +1,13 @@
 
+validate_inputs <- function(shape.model, estim.method) {
+    if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
+        stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
+    }
+    if (!estim.method %in% c("moment", "EM")) {
+        stop("estim.method argument must be 'moment' or 'EM'")
+    }
+}
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
@@ -630,13 +639,7 @@ prof.to.features <- function(feature_table,
                              component.eliminate = 0.01,
                              BIC.factor = 2) {
 
-    if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
-        stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
-    }
-
-    if (!estim.method %in% c("moment", "EM")) {
-        stop("estim.method argument must be 'moment' or 'EM'")
-    }
+    validate_inputs(shape.model, estim.method)
 
     if (is.na(min.bw)) {
         min.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 60
