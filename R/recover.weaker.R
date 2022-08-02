@@ -32,14 +32,17 @@ duplicate.row.remove <- function(new.table, tolerance = 1e-10) {
 }
 
 #' Compute all time values from base curve.
-#' @param base_curve Basis curve
+#' @param times Retention time values.
 #' @export
-compute_all_times <- function(base_curve) {
-  all_times <- base_curve
-  if (all_times[1] > 0) all_times <- c(0, all_times)
-  all_times <- c(all_times, 2 * all_times[length(all_times)] - all_times[length(all_times) - 1])
+compute_delta_rt <- function(times) {
+  # add element which is 2x the last element - the second to last - basically the extrapolated next element
+  all_times <- c(0, times, 2 * times[length(times)] - times[length(times) - 1])
+
+  # basically take the mean between consecutive values as the values - somewhat smoothed
   all_times <- (all_times[1:(length(all_times) - 1)] + all_times[2:length(all_times)]) / 2
-  all_times <- all_times[2:length(all_times)] - all_times[1:(length(all_times) - 1)]
+
+  # get the differences between the values
+  all_times <- diff(all_times)
   return(all_times)
 }
 
@@ -162,18 +165,18 @@ get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
   return(selection)
 }
 
-compute_EIC_area <- function(thee.sel, that.prof, base.curve, all.times, aver.diff) {
+compute_EIC_area <- function(thee.sel, that.prof, times, delta_rt, aver.diff) {
   if (length(thee.sel) > 1) {
-    that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], base.curve, all.times)
+    that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], times, delta_rt)
   } else {
     that.inte <- that.prof[thee.sel, 3] * aver.diff
   }
   return(that.inte)
 }
 
-get_features_in_rt_range <- function(this, base.curve, bw) {
+get_features_in_rt_range <- function(this, times, bw) {
   this.span <- range(this[, 1])
-  this.curve <- base.curve[base.curve >= this.span[1] & base.curve <= this.span[2]]
+  this.curve <- times[times >= this.span[1] & times <= this.span[2]]
   this.curve <- cbind(this.curve, this.curve * 0)
   this.curve[this.curve[, 1] %in% this[, 1], 2] <- this[, 2]
 
@@ -187,7 +190,7 @@ get_features_in_rt_range <- function(this, base.curve, bw) {
   return(compute_peaks_and_valleys(this.smooth))
 }
 
-compute_pks_vlys_rt <- function(that.prof, base.curve, bandwidth, min.bw, max.bw, target_rt, recover.min.count) {
+compute_pks_vlys_rt <- function(that.prof, times, bandwidth, min.bw, max.bw, target_rt, recover.min.count) {
   # extract rt labels and intensities
   this <- that.prof[, 2:3]
   this <- this[order(this[, 1]), ]
@@ -196,7 +199,7 @@ compute_pks_vlys_rt <- function(that.prof, base.curve, bandwidth, min.bw, max.bw
 
   roi <- get_features_in_rt_range(
     this,
-    base.curve,
+    times,
     bw
   )
   pks <- roi$pks
@@ -219,7 +222,7 @@ compute_pks_vlys_rt <- function(that.prof, base.curve, bandwidth, min.bw, max.bw
   return(list(pks = pks, vlys = vlys, this = this))
 }
 
-compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, base.curve, all.times) {
+compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, times, delta_rt) {
   curr.rec <- c(that.mass, NA, NA)
 
   # same filtering of peaks as in compute_pks_vlyws and as above
@@ -245,7 +248,7 @@ compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, b
         sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
       }
     } else {
-      sc <- interpol.area(x, y, base.curve, all.times)
+      sc <- interpol.area(x, y, times, delta_rt)
       miu <- median(x)
     }
     curr.rec[3] <- sc
@@ -277,8 +280,8 @@ compute_rectangle <- function(data_table,
                               recover.min.count,
                               target_rt,
                               custom_chr_tol,
-                              base.curve,
-                              all.times,
+                              times,
+                              delta_rt,
                               aver.diff,
                               bandwidth,
                               min.bw,
@@ -327,8 +330,8 @@ compute_rectangle <- function(data_table,
           curr.rec[3] <- compute_EIC_area(
             thee.sel,
             that.prof,
-            base.curve,
-            all.times,
+            times,
+            delta_rt,
             aver.diff
           )
           curr.rec[2] <- median(that.prof[thee.sel, 2])
@@ -337,7 +340,7 @@ compute_rectangle <- function(data_table,
       } else {
         all <- compute_pks_vlys_rt(
           that.prof,
-          base.curve,
+          times,
           bandwidth,
           min.bw,
           max.bw,
@@ -351,8 +354,8 @@ compute_rectangle <- function(data_table,
             pks,
             all,
             aver.diff,
-            base.curve,
-            all.times
+            times,
+            delta_rt
           )
           this.rec <- rbind(this.rec, curr.rec)
         }
@@ -440,9 +443,9 @@ recover.weaker <- function(filename,
   if (min.bw >= max.bw) min.bw <- max.bw / 4
 
 
-  base.curve <- sort(unique(times))
-  aver.diff <- mean(diff(base.curve))
-  all.times <- compute_all_times(base.curve)
+  times <- sort(unique(times))
+  aver.diff <- mean(diff(times))
+  vec_delta_rt <- compute_delta_rt(times)
 
   this.ftrs <- aligned.ftrs[, sample_name]
   this.times <- pk.times[, sample_name]
@@ -478,8 +481,8 @@ recover.weaker <- function(filename,
         recover.min.count,
         target.time[i],
         custom.chr.tol[i] * 2,
-        base.curve,
-        all.times,
+        times,
+        vec_delta_rt,
         aver.diff,
         bandwidth,
         min.bw,
