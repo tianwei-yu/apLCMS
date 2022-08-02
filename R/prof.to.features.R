@@ -657,12 +657,12 @@ prof.to.features <- function(feature_table,
     colnames(this.features) <- c("mz", "pos", "sd1", "sd2", "area")
     nrowa <- nrow(feature_table)
 
-    a.breaks <- c(0, which(feature_table[1:(nrowa - 1), 4] != feature_table[2:nrowa, 4]), nrowa)
+    feature_table_breaks <- c(0, which(feature_table[1:(nrowa - 1), 4] != feature_table[2:nrowa, 4]), nrowa)
     mz.sd.rec <- NA
 
-    for (i in 1:(length(a.breaks) - 1))
+    for (i in 1:(length(feature_table_breaks) - 1))
     {
-        this <- feature_table[(a.breaks[i] + 1):a.breaks[i + 1], ]
+        this <- feature_table[(feature_table_breaks[i] + 1):feature_table_breaks[i + 1], ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
         this <- this[order(this[, 2]), ]
         if (is.null(nrow(this))) this <- matrix(this, nrow = 1)
