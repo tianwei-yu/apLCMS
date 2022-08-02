@@ -629,13 +629,13 @@ prof.to.features <- function(a,
                              power = 1,
                              component.eliminate = 0.01,
                              BIC.factor = 2) {
-    if (sum(shape.model %in% c("bi-Gaussian", "Gaussian")) == 0) {
-        print("Error: peak shape model has to be Gaussian or bi-Gaussian")
-        return(0)
+
+    if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
+        stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
     }
-    if (sum(estim.method %in% c("moment", "EM")) == 0) {
-        print("Error: peak model estimation method has to be moment or EM")
-        return(0)
+
+    if (!estim.method %in% c("moment", "EM")) {
+        stop("estim.method argument must be 'moment' or 'EM'")
     }
 
     if (is.na(min.bw)) min.bw <- diff(range(a[, 2], na.rm = TRUE)) / 60
@@ -672,7 +672,7 @@ prof.to.features <- function(a,
             xxx <- c(this[1], this[2], NA, NA, this[3] * this.time.weights)
             this.features <- rbind(this.features, xxx)
         }
-        
+
         if (nrow_this > 10) {
             this.span <- range(this[, 2])
             this.curve <- base.curve[base.curve[, 1] >= this.span[1] & base.curve[, 1] <= this.span[2], ]
