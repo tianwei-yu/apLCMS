@@ -685,7 +685,7 @@ prof.to.features <- function(feature_table,
     all.times <- compute_all_times(base.curve)
 
     keys <- c("mz", "pos", "sd1", "sd2", "area")
-    processed_features <- matrix(0, nrow = 1, ncol = length(keys), dimnames = list(NULL, keys))
+    processed_features <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
 
     feature_groups <- split(feature_table, feature_table$group_number)
     for (i in seq_along(feature_groups))
@@ -737,7 +737,6 @@ prof.to.features <- function(feature_table,
             }
         }
     }
-    processed_features <- processed_features[-1, ]
     processed_features <- processed_features[order(processed_features[, "mz"], processed_features[, "pos"]), ]
     processed_features <- processed_features[which(apply(processed_features[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(processed_features[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
     rownames(processed_features) <- NULL
