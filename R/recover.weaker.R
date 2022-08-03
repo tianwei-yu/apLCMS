@@ -8,7 +8,7 @@
 #' @param tolerance Tolerance to use for numeric comparisons.
 #' @return Returns the same table with duplicate rows removed.
 #' @export
-duplicate.row.remove <- function(new.table, tolerance = 1e-10) {  
+duplicate.row.remove <- function(new.table, tolerance = 1e-10) {
   new.table <- new.table[order(new.table[, 1], new.table[, 2], new.table[, 5]), ]
   n <- 1
   m <- 2
@@ -26,8 +26,9 @@ duplicate.row.remove <- function(new.table, tolerance = 1e-10) {
     }
   }
 
-  if (sum(to.remove) > 0) 
+  if (sum(to.remove) > 0) {
     new.table <- new.table[-which(to.remove == 1), ]
+  }
   new.table
 }
 
@@ -71,19 +72,21 @@ l2normalize <- function(x) {
 #' @param intensity_weighted Whether to use intensity weighting or not.
 #' @return \link[stats]{density} object containing the densities.
 #' @export
-compute_mass_density <- function(mz,
-                                 intensities,
+compute_mass_density <- function(features,
                                  bandwidth,
-                                 intensity_weighted) {
+                                 intensity_weighted,
+                                 n = 512) {
   if (intensity_weighted) {
-    mass_density <- density(
-      mz,
-      weights = l2normalize(intensities),
-      bw = bandwidth
-    )
+    weights <- l2normalize(features$intensities)
   } else {
-    mass_density <- density(mz, bw = bandwidth)
+    weights <- NULL
   }
+  mass_density <- density(
+    features$mz,
+    weights = weights,
+    bw = bandwidth,
+    n = n
+  )
   return(mass_density)
 }
 
@@ -168,7 +171,7 @@ get_single_occurrence_mask <- function(values) {
 get_times_to_use <- function(original_sample_rts, adjusted_sample_rts, cap = 2000) {
   to.use <- which(
     get_single_occurrence_mask(adjusted_sample_rts) &
-    get_single_occurrence_mask(original_sample_rts)
+      get_single_occurrence_mask(original_sample_rts)
   )
 
   if (length(to.use) > cap) {
@@ -177,49 +180,71 @@ get_times_to_use <- function(original_sample_rts, adjusted_sample_rts, cap = 200
   return(to.use)
 }
 
+#' Predict the indices for the valley points with low mass density.
+#' @description
+#' The density of mz values in the feature table is computed based on the tolerance.
+#' The valleys or breaks of clusters in mz values are detected and a function
+#' is approximated to predict the indices for the mass values which are the closest to those
+#' valley points.
+#' @param features data.frame Data table with features for which to predict the indices.
+#' @param mz_orig_tol float Mz tolerance to use as KDE bandwidth parameter.
+#' @return vector Predicted indices for valley points.
 #' @export
-compute_breaks_2 <- function(data_table, orig.tol) {
-  all.mass.den <- density(
-    data_table$mz,
-    weights = l2normalize(data_table$intensities),
-    bw = 0.5 * orig.tol * max(data_table$mz),
-    n = 2^min(15, floor(log2(length(data_table$mz))) - 2)
+predict_mz_break_indices <- function(features, mz_orig_tol) {
+  mz_density <- compute_mass_density(
+    features,
+    TRUE,
+    bandwidth = 0.5 * mz_orig_tol * max(features$mz),
+    n = 2^min(15, floor(log2(length(features$mz))) - 2)
   )
 
-  all.mass.turns <- find.turn.point(all.mass.den$y)
-  all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
-  breaks <- c(0, unique(round(approx(data_table$mz, seq_along(data_table$mz), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
+  turnpoints <- find.turn.point(mz_density$y)
+  mz_valleys <- mz_density$x[turnpoints$vlys]
 
+  indices <- seq_along(features$mz)
+  predictions <- approx(
+    x = features$mz,
+    y = indices,
+    xout = mz_valleys,
+    rule = 2,
+    ties = "ordered"
+  )$y
+
+  predicted_indices_at_vlys <- unique(round(predictions))[-1]
+  breaks <- c(0, predicted_indices_at_vlys)
   return(breaks)
 }
 
+#' Compute range of valley indices which are in mz_tol range around aligned_feature_mass.
+#' @description
+#'
+#' @param aligned_feature_mass float Mz value of the aligned feature.
+#' @param mz vector mz values of the features.
+#' @param vlys_indices vector Indices of the valley points of mz clusters.
+#' @param mz_tol float Tolerance to use to check if values are close.
+#' @return pair Index range (start, end).
 #' @export
-get_mzrange_bound_indices <- function(aligned_feature_mass, masses, breaks, mz_tol) {
-  if (aligned_feature_mass <= masses[breaks[2]]) {
-    this.found <- c(1, 2)
+get_mzrange_bound_indices <- function(aligned_feature_mass,
+                                      mz,
+                                      vlys_indices,
+                                      mz_tol) {
+  if (aligned_feature_mass <= mz[vlys_indices[2]]) {
+    all_indices <- c(1, 2)
   } else {
-    this.found <- c(
-      which(abs(masses[breaks] - aligned_feature_mass) < mz_tol),
-      min(which(masses[breaks] > aligned_feature_mass)),
-      max(which(masses[breaks] < aligned_feature_mass))
+    # get all indices where mz is close to aligned_feature mass,
+    # the first one that is larger and the last one that is smaller.
+    upper_bound_idx <- min(which(mz[vlys_indices] > aligned_feature_mass))
+    lower_bound_idx <- max(which(mz[vlys_indices] < aligned_feature_mass))
+    valley_indices_within_tol <- which(abs(mz[vlys_indices] - aligned_feature_mass) < mz_tol)
+    all_indices <- c(
+      valley_indices_within_tol,
+      upper_bound_idx,
+      lower_bound_idx
     ) + 1
-    this.found <- c(min(this.found), max(this.found))
   }
-  return(this.found)
+  return(list(start = min(all_indices), end = max(all_indices)))
 }
 
-#' @export
-get_raw_features_in_mzrange <- function(data_table, aligned_feature_mass, breaks, mz_tol) {
-  this.found <- get_mzrange_bound_indices(
-    aligned_feature_mass,
-    data_table$mz,
-    breaks,
-    mz_tol
-  )
-  this.sel <- (breaks[this.found[1]] + 1):breaks[this.found[2]]
-  features <- data_table |> dplyr::slice(this.sel)
-  return(features)
-}
 
 #' @export
 get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
@@ -324,9 +349,9 @@ compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, t
 }
 
 compute_mass_boundaries <- function(mass.vlys, peak) {
-    lower <- max(mass.vlys[mass.vlys < peak])
-    upper <- min(mass.vlys[mass.vlys > peak])
-    return(list(lower = lower, upper = upper))
+  lower <- max(mass.vlys[mass.vlys < peak])
+  upper <- min(mass.vlys[mass.vlys > peak])
+  return(list(lower = lower, upper = upper))
 }
 
 compute_peaks_and_valleys <- function(dens) {
@@ -352,23 +377,28 @@ compute_rectangle <- function(data_table,
                               bandwidth,
                               min.bw,
                               max.bw) {
-  features <- get_raw_features_in_mzrange(
-    data_table,
+
+  bounds <- get_mzrange_bound_indices(
     aligned_feature_mass,
+    data_table$mz,
     breaks,
-    custom_mz_tol
+    orig.tol
+  )
+
+  features <- dplyr::slice(
+    data_table,
+    (breaks[bounds$start] + 1):breaks[bounds$end]
   )
 
   mass.den <- compute_mass_density(
-    mz = features$mz,
-    intensities = features$intensities,
+    features,
     bandwidth = 0.5 * orig.tol * aligned_feature_mass,
     intensity_weighted = intensity.weighted
   )
 
   # find peaks in mz range in raw data
   mass_range <- compute_peaks_and_valleys(mass.den)
-  mass_range$pks <- mass_range$pks[which(abs(mass_range$pks - aligned_feature_mass) < custom_mz_tol / 1.5)]
+  mass_range$pks <- mass_range$pks[abs(mass_range$pks - aligned_feature_mass) < custom_mz_tol / 1.5]
 
   this.rec <- matrix(c(Inf, Inf, Inf), nrow = 1)
   for (peak in mass_range$pks) {
@@ -501,7 +531,8 @@ recover.weaker <- function(filename,
   data_table <- tibble::tibble(
     mz = this.raw$masses,
     labels = this.raw$labels,
-    intensities = this.raw$intensi) |> dplyr::arrange_at("mz")
+    intensities = this.raw$intensi
+  ) |> dplyr::arrange_at("mz")
   rm(this.raw)
 
   # Initialize parameters with default values
@@ -542,7 +573,7 @@ recover.weaker <- function(filename,
   # )
   # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
 
-  breaks <- compute_breaks_2(data_table, orig.tol)
+  breaks <- predict_mz_break_indices(data_table, orig.tol)
 
   this.mz <- rep(NA, length(this.ftrs))
 
