@@ -685,7 +685,7 @@ prof.to.features <- function(feature_table,
     all.times <- compute_all_times(base.curve)
 
     keys <- c("mz", "pos", "sd1", "sd2", "area")
-    this.features <- matrix(0, nrow = 1, ncol = length(keys), dimnames = list(NULL, keys))
+    processed_features <- matrix(0, nrow = 1, ncol = length(keys), dimnames = list(NULL, keys))
 
     feature_groups <- split(feature_table, feature_table$group_number)
     for (i in seq_along(feature_groups))
@@ -699,13 +699,13 @@ prof.to.features <- function(feature_table,
         if (between(num_features, 2, 10)) {
             eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, 1], all.times)
             chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
-            this.features <- rbind(this.features, chr_peak_shape)
+            processed_features <- rbind(processed_features, chr_peak_shape)
         }
 
         if (num_features < 2) {
             this.time.weights <- all.times[which(base.curve[, 1] %in% feature_group[2])]
             chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * this.time.weights)
-            this.features <- rbind(this.features, chr_peak_shape)
+            processed_features <- rbind(processed_features, chr_peak_shape)
         }
 
         if (num_features > 10) {
@@ -727,29 +727,29 @@ prof.to.features <- function(feature_table,
             }
 
             if (is.null(nrow(chr_peak_shape))) {
-                this.features <- rbind(this.features, c(median(feature_group[, "mz"]), chr_peak_shape))
+                processed_features <- rbind(processed_features, c(median(feature_group[, "mz"]), chr_peak_shape))
             } else {
                 for (m in 1:nrow(chr_peak_shape))
                 {
                     this.d <- abs(feature_group[, "rt"] - chr_peak_shape[m, 1])
-                    this.features <- rbind(this.features, c(mean(feature_group[which(this.d == min(this.d)), 1]), chr_peak_shape[m, ]))
+                    processed_features <- rbind(processed_features, c(mean(feature_group[which(this.d == min(this.d)), 1]), chr_peak_shape[m, ]))
                 }
             }
         }
     }
-    this.features <- this.features[-1, ]
-    this.features <- this.features[order(this.features[, "mz"], this.features[, "pos"]), ]
-    this.features <- this.features[which(apply(this.features[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(this.features[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
-    rownames(this.features) <- NULL
+    processed_features <- processed_features[-1, ]
+    processed_features <- processed_features[order(processed_features[, "mz"], processed_features[, "pos"]), ]
+    processed_features <- processed_features[which(apply(processed_features[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(processed_features[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
+    rownames(processed_features) <- NULL
 
     if (do.plot) {
         par(mfrow = c(2, 2))
         plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
         text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
         hist(mz.sd.rec, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
-        hist(c(this.features[, "sd1"], this.features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
-        hist(log10(this.features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+        hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
+        hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
     }
 
-    return(this.features)
+    return(processed_features)
 }
