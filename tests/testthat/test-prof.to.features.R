@@ -26,13 +26,6 @@ patrick::with_parameters_test_that(
       sigma_ratio_lim = c(0.1, 10),
       shape_model = "bi-Gaussian"
     ),
-    mbr_test0_gaussian = list(
-      filename = c("mbr_test0_cdf.Rds"),
-      expected_filename = "mbr_test0_gaussian_features.Rds",
-      sd_cut = c(0.1, 100),
-      sigma_ratio_lim = c(0.1, 10),
-      shape_model = "Gaussian"
-    ),
     RCX_01_shortened_gaussian = list(
       filename = c("RCX_06_shortened_cdf.Rds"),
       expected_filename = "RCX_06_shortened_gaussian_features.Rds",
