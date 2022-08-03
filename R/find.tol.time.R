@@ -120,10 +120,10 @@ find.tol.time <- function(mz,
     
     list(
         mz = mz,
-        chr = rt,
+        rt = rt,
         lab = sample_id,
         grps = groups,
-        chr.tol = rt_tol_relative,
+        rt.tol = rt_tol_relative,
         mz.tol = mz_tol_relative
     )
 }

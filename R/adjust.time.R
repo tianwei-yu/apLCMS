@@ -108,7 +108,7 @@ adjust.time <- function(features,
                                 rt_tol_relative = rt_tol_relative,
                                 mz_tol_absolute = mz_tol_absolute,
                                 do.plot = do.plot)
-        rt_tol_relative <- all.ft$chr.tol
+        rt_tol_relative <- all.ft$rt.tol
         
         message("**** performing time correction ****")
         message(paste("m/z tolerance level: ", mz_tol_relative))
@@ -117,7 +117,7 @@ adjust.time <- function(features,
         for(i in 1:number_of_samples) {
             this <- features[[i]]
             sel <- which(all.ft$lab == i)
-            that <- cbind(all.ft$mz[sel], all.ft$chr[sel], all.ft$grps[sel])
+            that <- cbind(all.ft$mz[sel], all.ft$rt[sel], all.ft$grps[sel])
             this <- this[order(this[, 1], this[, 2]), ]
             that <- that[order(that[, 1], that[, 2]), ]
             this <- cbind(this, V6=rep(i, nrow(this)), V7=that[, 3])
