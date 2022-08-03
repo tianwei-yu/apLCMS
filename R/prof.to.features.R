@@ -690,28 +690,28 @@ prof.to.features <- function(feature_table,
     feature_groups <- split(feature_table, feature_table$group_number)
     for (i in seq_along(feature_groups))
     {
-        this <- feature_groups[[i]]
-        this <- this[order(this[, "rt"]), ]
+        feature_group <- feature_groups[[i]]
+        feature_group <- feature_group[order(feature_group[, "rt"]), ]
 
-        mz.sd.rec <- c(NA, sd(this[, "mz"]))
+        mz.sd.rec <- c(NA, sd(feature_group[, "mz"]))
 
-        nrow_this <- nrow(this)
+        nrow_this <- nrow(feature_group)
         if (between(nrow_this, 2, 10)) {
-            this.inte <- interpol.area(this[, "rt"], this[, "intensity"], base.curve[, 1], all.times)
-            chr_peak_shape <- c(median(this[, "mz"]), median(this[, "rt"]), sd(this[, "rt"]), sd(this[, "rt"]), this.inte)
+            this.inte <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, 1], all.times)
+            chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), this.inte)
             this.features <- rbind(this.features, chr_peak_shape)
         }
 
         if (nrow_this < 2) {
-            this.time.weights <- all.times[which(base.curve[, 1] %in% this[2])]
-            chr_peak_shape <- c(this[1], this[2], NA, NA, this[3] * this.time.weights)
+            this.time.weights <- all.times[which(base.curve[, 1] %in% feature_group[2])]
+            chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * this.time.weights)
             this.features <- rbind(this.features, chr_peak_shape)
         }
 
         if (nrow_this > 10) {
-            this.span <- range(this[, "rt"])
+            this.span <- range(feature_group[, "rt"])
             this.curve <- base.curve[base.curve[, "base_curve"] >= this.span[1] & base.curve[, "base_curve"] <= this.span[2], ]
-            this.curve[this.curve[, "base_curve"] %in% this[, "rt"], 2] <- this[, "intensity"]
+            this.curve[this.curve[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
 
             bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
             bw <- seq(bw, 2 * bw, length.out = 3)
@@ -727,12 +727,12 @@ prof.to.features <- function(feature_table,
             }
 
             if (is.null(nrow(chr_peak_shape))) {
-                this.features <- rbind(this.features, c(median(this[, "mz"]), chr_peak_shape))
+                this.features <- rbind(this.features, c(median(feature_group[, "mz"]), chr_peak_shape))
             } else {
                 for (m in 1:nrow(chr_peak_shape))
                 {
-                    this.d <- abs(this[, "rt"] - chr_peak_shape[m, 1])
-                    this.features <- rbind(this.features, c(mean(this[which(this.d == min(this.d)), 1]), chr_peak_shape[m, ]))
+                    this.d <- abs(feature_group[, "rt"] - chr_peak_shape[m, 1])
+                    this.features <- rbind(this.features, c(mean(feature_group[which(this.d == min(this.d)), 1]), chr_peak_shape[m, ]))
                 }
             }
         }
