@@ -32,8 +32,8 @@ patrick::with_parameters_test_that(
       recover.weaker(
         filename = ms_files[[i]],
         sample_name = get_sample_name(files[i]),
-        this.f1 = extracted[[i]],
-        this.f2 = adjusted[[i]],
+        extracted_features = extracted[[i]],
+        adjusted_features = adjusted[[i]],
         pk.times = aligned$rt_crosstab,
         aligned.ftrs = aligned$int_crosstab,
         orig.tol = mz_tol,

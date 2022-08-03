@@ -85,8 +85,8 @@ recover_weaker_signals <- function(
     recover.weaker(
       sample_name = get_sample_name(filenames[i]),
       filename = filenames[[i]],
-      this.f1 = extracted_features[[i]],
-      this.f2 = corrected_features[[i]],
+      extracted_features = extracted_features[[i]],
+      adjusted_features = corrected_features[[i]],
       pk.times = aligned_rt_crosstab,
       aligned.ftrs = aligned_int_crosstab,
       orig.tol = original_mz_tolerance,

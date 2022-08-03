@@ -31,8 +31,13 @@ duplicate.row.remove <- function(new.table, tolerance = 1e-10) {
   new.table
 }
 
-#' Compute all time values from base curve.
+#' Compute custom smoothed h-method derivative of function.
+#' @description
+#' The function adds an extrapolated element in the end and a 0 element in the front,
+#' then computes the midpoints between#' neighbouring elements and then uses the `diff`
+#' function to compute the changes in rt between points.
 #' @param times Retention time values.
+#' @return Differences between time values.
 #' @export
 compute_delta_rt <- function(times) {
   # add element which is 2x the last element - the second to last - basically the extrapolated next element
@@ -47,10 +52,24 @@ compute_delta_rt <- function(times) {
 }
 
 #' Normalize vector so that sum(vec) = 1
+#' @description x / sum(x)
+#' @param x Data to normalize.
+#' @return Normalized data.
 l2normalize <- function(x) {
   x / sum(x)
 }
 
+
+#' Compute the density function of mz values.
+#' @description
+#' The function takes the mz values and uses \link[stats]{density} to
+#' compute the local density, optionally using intensity based weighting.
+#' @param mz Mass values to compute the density over.
+#' @param intensities Intensities of the peaks at mz values.
+#' Only used if intensity_weighted == TRUE.
+#' @param bandwidth Bandwidth to use to compute the kernel density.
+#' @param intensity_weighted Whether to use intensity weighting or not.
+#' @return \link[stats]{density} object containing the densities.
 #' @export
 compute_mass_density <- function(mz,
                                  intensities,
@@ -68,45 +87,92 @@ compute_mass_density <- function(mz,
   return(mass_density)
 }
 
+#' Compute custom chromatographic tolerance.
+#' @description
+#' Compute chromatographic tolerance for each feature. If `use_observed_range == TRUE`,
+#' the whole range of retention times for all peaks is used to compute the tolerance,
+#' otherwise `chr_range` is used for each feature.
+#' @param use_observed_range bool Whether to use the observed chromatographic range for computation or not.
+#' @param peak_rts data.frame Retention time cross table with all peak rts.
+#' @param chr_range float Default chromatographic tolerance to use.
+#' @param aligned_features data.frame Aligned feature table.
+#' @return vector Custom chromatographic tolerances to use for each feature.
 #' @export
-get_custom_chr_tol <- function(use.observed.range,
-                               pk.times,
-                               chr.range,
-                               aligned.ftrs) {
-  custom.chr.tol <- rep(chr.range, nrow(aligned.ftrs))
+get_custom_chr_tol <- function(use_observed_range,
+                               peak_rts,
+                               chr_range,
+                               aligned_features) {
+  custom_chr_tol <- rep(chr_range, nrow(aligned_features))
 
-  if (use.observed.range) {
+  if (use_observed_range) {
     # check observed rt range across ALL SAMPLES
-    all_peak_rts <- pk.times[, 5:ncol(pk.times)]
+    all_peak_rts <- peak_rts[, 5:ncol(peak_rts)]
     observed.chr.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
     sufficient_rts <- apply(!is.na(all_peak_rts), 1, sum) >= 5
-    selection <- which(sufficient_rts & custom.chr.tol > observed.chr.range)
-    custom.chr.tol[selection] <- observed.chr.range[selection]
+    selection <- which(sufficient_rts & custom_chr_tol > observed.chr.range)
+    custom_chr_tol[selection] <- observed.chr.range[selection]
   }
 
-  return(custom.chr.tol)
+  return(custom_chr_tol)
 }
 
+#' Compute target times for regions of interest for recovery.
+#' @description
+#' Compute the individual target times for the features to be recovered in the sample.
+#' Spline interpolation using \link[splines]{interpSpline} is used to map from adjusted times
+#' back into the original times. The function requires `x` to be distinct, hence the filtering
+#' to only include rt values that occurr only once in both lists.
+#' @param aligned_rts vector Aligned retention time values.
+#' @param original_sample_rts vector Original feature retention time values before correction.
+#' @param adjusted_sample_rts vector Feature retention time values after time correction.
 #' @export
-compute_target_time <- function(aligned_rts, orig.time, adjusted.time) {
-  to.use <- get_times_to_use(orig.time, adjusted.time)
-  orig.time <- orig.time[to.use]
-  adjusted.time <- adjusted.time[to.use]
+compute_target_times <- function(aligned_rts,
+                                 original_sample_rts,
+                                 adjusted_sample_rts,
+                                 min_common_times = 4) {
+  to.use <- get_times_to_use(original_sample_rts, adjusted_sample_rts)
+  adjusted_subset <- adjusted_sample_rts[to.use]
 
-  sel.non.na <- which(!is.na(aligned_rts))
-  if (length(adjusted.time) >= 4) {
-    sp <- interpSpline(orig.time ~ adjusted.time, na.action = na.omit)
-    aligned_rts[sel.non.na] <- predict(sp, aligned_rts[sel.non.na])$y
+  sel_non_na <- which(!is.na(aligned_rts))
+  if (length(adjusted_subset) >= min_common_times) {
+    original_subset <- original_sample_rts[to.use]
+    sp <- splines::interpSpline(
+      original_subset ~ adjusted_subset,
+      na.action = na.omit
+    )
+    aligned_rts[sel_non_na] <- predict(sp, aligned_rts[sel_non_na])$y
   }
 }
 
+#' Get boolean mask for values that occur only once.
+#' @description
+#' Uses the \link[base]{table} function to compute the occurrences and then
+#' checks which values only occur a single time.
+#' @param values vector Values for which to compute the mask.
+#' @return vector Boolean vector which is the mask of values occuring only once.
+get_single_occurrence_mask <- function(values) {
+  ttt <- table(values)
+  mask <- values %in% as.numeric(names(ttt)[ttt == 1])
+  return(mask)
+}
+
+#' Get retention time values to use
+#' @description
+#' Obtain retention time values which occur only once in both the original and the adjusted times.
+#' This is a custom version of the unique or intersection function with rounding etc.
+#' @param original_sample_rts vector Original feature retention time values before correction.
+#' @param adjusted_sample_rts vector Feature retention time values after time correction.
+#' @param cap int Maximum number of time values to return.
+#' @return Indices of retention time values to use.
 #' @export
-get_times_to_use <- function(orig.time, adjusted.time) {
-  ttt.0 <- table(orig.time)
-  ttt <- table(adjusted.time)
-  to.use <- which(adjusted.time %in% as.numeric(names(ttt)[ttt == 1]) & orig.time %in% as.numeric(names(ttt.0)[ttt.0 == 1]))
-  if (length(to.use) > 2000) {
-    to.use <- sample(to.use, 2000, replace = FALSE)
+get_times_to_use <- function(original_sample_rts, adjusted_sample_rts, cap = 2000) {
+  to.use <- which(
+    get_single_occurrence_mask(adjusted_sample_rts) &
+    get_single_occurrence_mask(original_sample_rts)
+  )
+
+  if (length(to.use) > cap) {
+    to.use <- sample(to.use, cap, replace = FALSE)
   }
   return(to.use)
 }
@@ -390,8 +456,8 @@ refine_selection <- function(this.sel, target_rt, rectangle, aligned_rt, chr_tol
 #' @param pk.times matrix, with columns of m/z, median elution time, and elution times in each spectrum.
 #' @param align.mz.tol the m/z tolerance used in the alignment.
 #' @param align.chr.tol the elution time tolerance in the alignment.
-#' @param this.f1 The matrix which is the output from proc.to.feature().
-#' @param this.f2 The matrix which is the output from proc.to.feature(). The retention time in this object have been adjusted by the function adjust.time().
+#' @param extracted_features The matrix which is the output from proc.to.feature().
+#' @param adjusted_features The matrix which is the output from proc.to.feature(). The retention time in this object have been adjusted by the function adjust.time().
 #' @param mz.range The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
 #' @param chr.range The retention time around the feature retention time to search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
 #' @param use.observed.range If the value is TRUE, the actual range of the observed locations of the feature in all the spectra will be used.
@@ -417,8 +483,8 @@ recover.weaker <- function(filename,
                            pk.times,
                            align.mz.tol,
                            align.chr.tol,
-                           this.f1,
-                           this.f2,
+                           extracted_features,
+                           adjusted_features,
                            mz.range = NA,
                            chr.range = NA,
                            use.observed.range = TRUE,
@@ -432,7 +498,10 @@ recover.weaker <- function(filename,
   # load raw data
   this.raw <- load_file(filename)
   times <- this.raw$times
-  data_table <- tibble::tibble(mz = this.raw$masses, labels = this.raw$labels, intensities = this.raw$intensi) |> dplyr::arrange_at("mz")
+  data_table <- tibble::tibble(
+    mz = this.raw$masses,
+    labels = this.raw$labels,
+    intensities = this.raw$intensi) |> dplyr::arrange_at("mz")
   rm(this.raw)
 
   # Initialize parameters with default values
@@ -458,11 +527,20 @@ recover.weaker <- function(filename,
     aligned.ftrs
   )
 
-  target.time <- compute_target_time(
+  # rounding is used to create a histogram of retention time values
+  target_times <- compute_target_times(
     aligned.ftrs[, "rt"],
-    round(this.f1[, "pos"], 5),
-    round(this.f2[, "pos"], 5)
+    round(extracted_features[, "pos"], 5),
+    round(adjusted_features[, "pos"], 5)
   )
+
+  # IMPORTANT: THIS CODE SECTION COULD BE USED TO REPLACE COMPUTE_TARGET_TIMES FOR THE TEST CASES AND
+  # IS A MASSIVE SIMPLIFICATION.
+  # sp <- splines::interpSpline(
+  #   unique(extracted_features[, "pos"]) ~ unique(adjusted_features[, "pos"]),
+  #   na.action = na.omit
+  # )
+  # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
 
   breaks <- compute_breaks_2(data_table, orig.tol)
 
@@ -479,7 +557,7 @@ recover.weaker <- function(filename,
         orig.tol,
         intensity.weighted,
         recover.min.count,
-        target.time[i],
+        target_times[i],
         custom.chr.tol[i] * 2,
         times,
         vec_delta_rt,
@@ -490,7 +568,7 @@ recover.weaker <- function(filename,
       )
 
       this.sel <- get_rt_region_indices(
-        target.time[i],
+        target_times[i],
         this.rec,
         custom.chr.tol[i]
       )
@@ -499,19 +577,19 @@ recover.weaker <- function(filename,
       if (length(this.sel) > 0) {
         this.sel <- refine_selection(
           this.sel,
-          target.time[i],
+          target_times[i],
           this.rec,
           aligned.ftrs[i, 1],
           custom.chr.tol[i],
           custom.mz.tol[i]
         )
 
-        this.pos.diff <- abs(this.f1[, 2] - this.rec[this.sel, 2])
+        this.pos.diff <- abs(extracted_features[, 2] - this.rec[this.sel, 2])
         this.pos.diff <- which(this.pos.diff == min(this.pos.diff))[1]
-        this.f1 <- rbind(this.f1, c(this.rec[this.sel, 1], this.rec[this.sel, 2], NA, NA, this.rec[this.sel, 3]))
-        this.time.adjust <- (-this.f1[this.pos.diff, 2] + this.f2[this.pos.diff, 2])
+        this.f1 <- rbind(extracted_features, c(this.rec[this.sel, 1], this.rec[this.sel, 2], NA, NA, this.rec[this.sel, 3]))
+        this.time.adjust <- (-this.f1[this.pos.diff, 2] + adjusted_features[this.pos.diff, 2])
         this.f2 <- rbind(
-          this.f2,
+          adjusted_features,
           c(
             this.rec[this.sel, 1],
             this.rec[this.sel, 2] + this.time.adjust,
@@ -532,8 +610,8 @@ recover.weaker <- function(filename,
   to.return$this.mz <- this.mz
   to.return$this.ftrs <- this.ftrs
   to.return$this.times <- this.times
-  to.return$this.f1 <- duplicate.row.remove(this.f1)
-  to.return$this.f2 <- duplicate.row.remove(this.f2)
+  to.return$this.f1 <- duplicate.row.remove(extracted_features)
+  to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
   return(to.return)
 }
