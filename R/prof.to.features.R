@@ -681,8 +681,8 @@ prof.to.features <- function(feature_table,
     min.bw <- bws[["min.bw"]]
     max.bw <- bws[["max.bw"]]
 
-    base.curve <- compute_base_curve(feature_table[, "rt"])
-    all.times <- compute_all_times(base.curve)
+    ordered_rts <- compute_base_curve(feature_table[, "rt"])
+    all_rts <- compute_all_times(ordered_rts)
 
     keys <- c("mz", "pos", "sd1", "sd2", "area")
     processed_features <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
@@ -697,20 +697,20 @@ prof.to.features <- function(feature_table,
 
         num_features <- nrow(feature_group)
         if (between(num_features, 2, 10)) {
-            eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, 1], all.times)
+            eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], ordered_rts[, 1], all_rts)
             chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
             processed_features <- rbind(processed_features, chr_peak_shape)
         }
 
         if (num_features < 2) {
-            this.time.weights <- all.times[which(base.curve[, "base_curve"] %in% feature_group[2])]
+            this.time.weights <- all_rts[which(ordered_rts[, "base_curve"] %in% feature_group[2])]
             chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * this.time.weights)
             processed_features <- rbind(processed_features, chr_peak_shape)
         }
 
         if (num_features > 10) {
             this.span <- range(feature_group[, "rt"])
-            this.curve <- base.curve[base.curve[, "base_curve"] >= this.span[1] & base.curve[, "base_curve"] <= this.span[2], ]
+            this.curve <- ordered_rts[ordered_rts[, "base_curve"] >= this.span[1] & ordered_rts[, "base_curve"] <= this.span[2], ]
             this.curve[this.curve[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
 
             bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
