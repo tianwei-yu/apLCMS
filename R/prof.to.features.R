@@ -695,20 +695,20 @@ prof.to.features <- function(feature_table,
 
         mz.sd.rec <- c(NA, sd(feature_group[, "mz"]))
 
-        nrow_this <- nrow(feature_group)
-        if (between(nrow_this, 2, 10)) {
-            this.inte <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, 1], all.times)
-            chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), this.inte)
+        num_features <- nrow(feature_group)
+        if (between(num_features, 2, 10)) {
+            eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, 1], all.times)
+            chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
             this.features <- rbind(this.features, chr_peak_shape)
         }
 
-        if (nrow_this < 2) {
+        if (num_features < 2) {
             this.time.weights <- all.times[which(base.curve[, 1] %in% feature_group[2])]
             chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * this.time.weights)
             this.features <- rbind(this.features, chr_peak_shape)
         }
 
-        if (nrow_this > 10) {
+        if (num_features > 10) {
             this.span <- range(feature_group[, "rt"])
             this.curve <- base.curve[base.curve[, "base_curve"] >= this.span[1] & base.curve[, "base_curve"] <= this.span[2], ]
             this.curve[this.curve[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
