@@ -42,6 +42,20 @@ compute_gaussian_peak_shape <- function(this.curve, power, bw, component.elimina
     return (chr_peak_shape)
 }
 
+#' Compute standard deviation of m/z values groupwise
+compute_mz_sd <- function(feature_groups) {
+    mz_sd <- c()
+    for (i in seq_along(feature_groups)) {
+        group <- feature_groups[[i]]
+
+        if (nrow(group > 1)) {
+            group_sd <- sd(group[, "mz"])
+            mz_sd <- append(mz_sd, group_sd)
+        }
+    }
+    return (mz_sd)
+}
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
     ## thif function solves the value of a using the x, t, a from the
     ## previous step, and sigma.1, and sigma.2
@@ -693,8 +707,6 @@ prof.to.features <- function(feature_table,
         feature_group <- feature_groups[[i]]
         feature_group <- feature_group[order(feature_group[, "rt"]), ]
 
-        mz.sd.rec <- c(NA, sd(feature_group[, "mz"]))
-
         num_features <- nrow(feature_group)
         if (between(num_features, 2, 10)) {
             eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], ordered_rts[, 1], all_rts)
@@ -742,10 +754,12 @@ prof.to.features <- function(feature_table,
     rownames(processed_features) <- NULL
 
     if (do.plot) {
+        mz_sd <- compute_mz_sd(feature_groups)
+
         par(mfrow = c(2, 2))
         plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
         text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
-        hist(mz.sd.rec, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
+        hist(mz_sd, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
         hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
         hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
     }
