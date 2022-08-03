@@ -703,7 +703,7 @@ prof.to.features <- function(feature_table,
         }
 
         if (num_features < 2) {
-            this.time.weights <- all.times[which(base.curve[, 1] %in% feature_group[2])]
+            this.time.weights <- all.times[which(base.curve[, "base_curve"] %in% feature_group[2])]
             chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * this.time.weights)
             processed_features <- rbind(processed_features, chr_peak_shape)
         }
