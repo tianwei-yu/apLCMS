@@ -56,6 +56,17 @@ compute_mz_sd <- function(feature_groups) {
   return(mz_sd)
 }
 
+plot <- function(feature_groups, processed_features) {
+    mz_sd <- compute_mz_sd(feature_groups)
+
+    par(mfrow = c(2, 2))
+    plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
+    text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
+    hist(mz_sd, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
+    hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
+    hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+}
+
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
   ## thif function solves the value of a using the x, t, a from the
   ## previous step, and sigma.1, and sigma.2
@@ -750,14 +761,7 @@ prof.to.features <- function(feature_table,
   rownames(processed_features) <- NULL
 
   if (do.plot) {
-    mz_sd <- compute_mz_sd(feature_groups)
-
-    par(mfrow = c(2, 2))
-    plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
-    text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
-    hist(mz_sd, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
-    hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
-    hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+    plot(feature_groups, processed_features)
   }
 
   return(processed_features)
