@@ -68,8 +68,6 @@ extract_features <- function(
     'compute_densities',
     'compute_breaks',
     'compute_boundaries',
-    'compute_row_sel',
-    'filter_zero',
     'increment_counter',
     'rm.ridge',
     'compute_base_curve',
