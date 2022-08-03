@@ -29,11 +29,11 @@ preprocess_feature_table <- function(feature_table) {
     return (data.frame(feature_table))
 }
 
-compute_gaussian_peak_shape <- function(this.curve, power, bw, component.eliminate, BIC.factor) {
+compute_gaussian_peak_shape <- function(rt_curve, power, bw, component.eliminate, BIC.factor) {
 
     ## this function computes parameters of chromatographic peak shape if peaks are considered to be gaussian
 
-    chr_peak_shape <- normix.bic(this.curve[, "base_curve"], this.curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+    chr_peak_shape <- normix.bic(rt_curve[, "base_curve"], rt_curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
     if (nrow(chr_peak_shape) == 1) {
         chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
     } else {
@@ -715,17 +715,17 @@ prof.to.features <- function(feature_table,
         }
 
         if (num_features < 2) {
-            this.time.weights <- all_rts[which(ordered_rts[, "base_curve"] %in% feature_group[2])]
-            chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * this.time.weights)
+            time_weights <- all_rts[which(ordered_rts[, "base_curve"] %in% feature_group[2])]
+            chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
             processed_features <- rbind(processed_features, chr_peak_shape)
         }
 
         if (num_features > 10) {
-            this.span <- range(feature_group[, "rt"])
-            this.curve <- ordered_rts[ordered_rts[, "base_curve"] >= this.span[1] & ordered_rts[, "base_curve"] <= this.span[2], ]
-            this.curve[this.curve[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
+            rt_range <- range(feature_group[, "rt"])
+            rt_curve <- ordered_rts[ordered_rts[, "base_curve"] >= rt_range[1] & ordered_rts[, "base_curve"] <= rt_range[2], ]
+            rt_curve[rt_curve[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
 
-            bw <- min(max(bandwidth * (this.span[2] - this.span[1]), min.bw), max.bw)
+            bw <- min(max(bandwidth * (rt_range[2] - rt_range[1]), min.bw), max.bw)
             bw <- seq(bw, 2 * bw, length.out = 3)
 
             if (bw[1] > 1.5 * min.bw) {
@@ -733,9 +733,9 @@ prof.to.features <- function(feature_table,
             }
 
             if (shape.model == "Gaussian") {
-                chr_peak_shape <- compute_gaussian_peak_shape(this.curve, power, bw, component.eliminate, BIC.factor)
+                chr_peak_shape <- compute_gaussian_peak_shape(rt_curve, power, bw, component.eliminate, BIC.factor)
             } else {
-                chr_peak_shape <- bigauss.mix(this.curve[, "base_curve"], this.curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+                chr_peak_shape <- bigauss.mix(rt_curve[, "base_curve"], rt_curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
             }
 
             if (is.null(nrow(chr_peak_shape))) {
@@ -743,8 +743,8 @@ prof.to.features <- function(feature_table,
             } else {
                 for (m in 1:nrow(chr_peak_shape))
                 {
-                    this.d <- abs(feature_group[, "rt"] - chr_peak_shape[m, 1])
-                    processed_features <- rbind(processed_features, c(mean(feature_group[which(this.d == min(this.d)), 1]), chr_peak_shape[m, ]))
+                    rt_diff <- abs(feature_group[, "rt"] - chr_peak_shape[m, 1])
+                    processed_features <- rbind(processed_features, c(mean(feature_group[which(rt_diff == min(rt_diff)), 1]), chr_peak_shape[m, ]))
                 }
             }
         }
