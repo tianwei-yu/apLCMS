@@ -37,25 +37,6 @@ compute_boundaries <- function(mass.vlys, mass.pks, j){
 }
 
 #' @export
-compute_row_sel <- function(this_table, mass.sel){
-  labels <- this_table$labels[mass.sel]
-  masses <- this_table$masses[mass.sel]
-  intensi <- this_table$intensi[mass.sel]
-
-  return(list(labels = labels, masses = masses, intensi = intensi))
-}
-
-#' @export
-filter_zero <- function(that){
-  that.sel <- which(that$intensi != 0)
-  that$labels <- that$labels[that.sel]
-  that$masses <- that$masses[that.sel]
-  that$intensi <- that$intensi[that.sel]
-
-  return(that)
-}
-
-#' @export
 increment_counter <- function(pointers, that.n){
   pointers$prof.pointer <- pointers$prof.pointer + that.n
   pointers$height.pointer <- pointers$height.pointer + 1
@@ -152,40 +133,31 @@ adaptive.bin <- function(x,
         # compute boundaries
         boundaries <- compute_boundaries(mass.vlys, mass.pks, j)
 
-        if (length(mass.pks) == 1) boundaries$lower <- boundaries$lower - 1
+        if (length(mass.pks) == 1){
+          boundaries$lower <- boundaries$lower - 1
+        }
 
-        # compute if we are in mass range from mass.lower to mass.upper
-        mass.sel <- which(this_table$masses > boundaries$lower & this_table$masses <= boundaries$upper)
-        #that <- this_table |> dplyr::filter(masses > boundaries$lower & masses <= boundaries$upper) #|> dplyr::arrange_at("labels")
+        # get rows which fulfill condition
+        that <- this_table |> dplyr::filter(masses > boundaries$lower & masses <= boundaries$upper)
 
-        if (length(mass.sel) > 0) {
+        if (nrow(that) > 0) {
+          that <- combine.seq.3(that)
 
-          # get rows which fulfill condition
-          that <- compute_row_sel(this_table, mass.sel)
-
-          # rearrange in order of labels
-          that.merged <- combine.seq.3(that$labels, that$masses, that$intensi)
-          if (nrow(that.merged) == 1) {
-            new.merged <- that.merged
-          } else {
-            new.merged <- that.merged[order(that.merged[, 1]), ]
+          if (nrow(that) != 1) {
+            that <- that[order(that[, 1]), ]
           }
 
-          that$labels <- new.merged[, 2]
-          that$masses <- new.merged[, 1]
-          that$intensi <- new.merged[, 3]
           that.range <- diff(range(that$labels))
 
-          if (that.range > 0.5 * time.range & length(that$labels) > that.range * min.pres & length(that$labels) / (diff(range(that$labels)) / aver.time.range) > min.pres) {
+          if (that.range > 0.5 * time.range & length(that$labels) > that.range * min.pres & length(that$labels) / (that.range / aver.time.range) > min.pres) {
             that$intensi <- rm.ridge(that$labels, that$intensi, bw = max(10 * min.run, that.range / 2))
 
-            # filter out 0 entries
-            that <- filter_zero(that)
+            that <- that |> dplyr::filter(intensi != 0)
           }
 
           that.n <- length(that$masses)
 
-          newprof[ pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that$masses, that$labels, that$intensi, rep(pointers$curr.label, that.n))
+          newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that$masses, that$labels, that$intensi, rep(pointers$curr.label, that.n))
           height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that$intensi))
 
           # increment counters
@@ -196,11 +168,11 @@ adaptive.bin <- function(x,
       if (runif(1) < 0.05) {
         this_table <- this_table |> dplyr::arrange_at("labels")
 
-        that.merged <- combine.seq.3(this_table$labels, this_table$masses, this_table$intensi)
+        that.merged <- combine.seq.3(this_table)
         that.n <- nrow(that.merged)
 
-        newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that.merged, rep(pointers$curr.label, that.n))
-        height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that.merged[, 3]))
+        newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that.merged$masses, that.merged$labels, that.merged$intensi, rep(pointers$curr.label, that.n))
+        height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that.merged$intensi))
 
         # increment counters
         pointers <- increment_counter(pointers, that.n)
