@@ -712,13 +712,11 @@ prof.to.features <- function(feature_table,
       chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
       processed_features <- rbind(processed_features, chr_peak_shape)
     }
-
     if (num_features < 2) {
       time_weights <- all_rts[which(ordered_rts[, "base_curve"] %in% feature_group[2])]
       chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
       processed_features <- rbind(processed_features, chr_peak_shape)
     }
-
     if (num_features > 10) {
       rt_range <- range(feature_group[, "rt"])
       rt_curve <- ordered_rts[ordered_rts[, "base_curve"] >= rt_range[1] & ordered_rts[, "base_curve"] <= rt_range[2], ]
@@ -726,7 +724,6 @@ prof.to.features <- function(feature_table,
 
       bw <- min(max(bandwidth * (rt_range[2] - rt_range[1]), min.bw), max.bw)
       bw <- seq(bw, 2 * bw, length.out = 3)
-
       if (bw[1] > 1.5 * min.bw) {
         bw <- c(max(min.bw, bw[1] / 2), bw)
       }
