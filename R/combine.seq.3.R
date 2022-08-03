@@ -2,29 +2,30 @@
 #' 
 #' This is a internal function.
 #' 
-#' @param a vector of retention time.
-#' @param mz vector of m/z ratio.
-#' @param inte vector of signal strength.
+#' @param table dataframe of retention time, m/z ratio, signal strength.
 #' @return returns
 #' \itemize{
-#'   \item mz - m/z ratio
-#'   \item a - retention time
-#'   \item int - signal strength
+#'   \item masses - m/z ratio
+#'   \item labels - retention time
+#'   \item intensi - signal strength
 #' }
 #' @export
 #' @examples
-#' combine.seq.3(retention_time_vector, masses, intensi)
-combine.seq.3 <- function(a, mz, inte) {
-    l <- length(a)
-    breaks <- c(0, which(a[1:(l - 1)] != a[2:l]), l)
-    new.int <- new.mz <- rep(0, length(breaks) - 1)
+#' combine.seq.3(table)
+combine.seq.3 <- function(table) {
+    l <- nrow(table)
+    breaks <- c(0, which(table$labels[1:(l - 1)] != table$labels[2:l]), l)
+    new_table <- data.frame(masses = rep(0, length(breaks) - 1), labels = unique(table$labels), intensi = rep(0, length(breaks) - 1))
     
     for (i in 1:(length(breaks) - 1)) {
-        this.int <- inte[(breaks[i] + 1):breaks[i + 1]]
-        this.mz <- mz[(breaks[i] + 1):breaks[i + 1]]
-        new.int[i] <- sum(this.int)
-        new.mz[i] <- median(this.mz[which(this.int == max(this.int))])
+        start <- breaks[i] + 1
+        end <- breaks[i + 1]
+
+        this_table <- data.frame(intensi = table$intensi[start:end], masses = table$masses[start:end])
+
+        new_table$intensi[i] <- sum(this_table$intensi)
+        new_table$masses[i] <- median(this_table$masses[which(this_table$intensi == max(this_table$intensi))])
     }
-    new.a <- unique(a)
-    return(cbind(new.mz, new.a, new.int))
+
+    return(new_table)
 }
