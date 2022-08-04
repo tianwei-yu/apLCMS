@@ -56,7 +56,7 @@ compute_mz_sd <- function(feature_groups) {
   return(mz_sd)
 }
 
-plot <- function(feature_groups, processed_features) {
+plot_peak_summary <- function(feature_groups, processed_features) {
     mz_sd <- compute_mz_sd(feature_groups)
 
     par(mfrow = c(2, 2))
@@ -762,7 +762,7 @@ prof.to.features <- function(feature_table,
   rownames(processed_features) <- NULL
 
   if (do.plot) {
-    plot(feature_groups, processed_features)
+    plot_peak_summary(feature_groups, processed_features)
   }
 
   return(processed_features)
