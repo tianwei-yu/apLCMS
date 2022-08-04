@@ -265,7 +265,7 @@ recover.weaker <- function(filename,
             dplyr::arrange_at("labels")
 
           if (nrow(that) > recover.min.count) {
-            that.prof <- combine.seq.3(that$labels, that$mz, that$intensities)
+            that.prof <- combine.seq.3_old(that$labels, that$mz, that$intensities)
             that.mass <- sum(that.prof[, 1] * that.prof[, 3]) / sum(that.prof[, 3])
             curr.rec <- c(that.mass, NA, NA)
 
