@@ -138,7 +138,6 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
   n.iter <- 0
 
   while ((change > epsilon) & (n.iter < max.iter)) {
-    ## print(c(n.iter,change))
     a.old <- a.new
     n.iter <- n.iter + 1
     sigma <- solve.sigma(x, t, a.old)
@@ -146,11 +145,6 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
     a.new <- solve.a(x, t, a.old, sigma$sigma.1, sigma$sigma.2)
     change <- abs(a.old - a.new)
   }
-  #  return(list(a=a.new,
-  #              sigma.1=sigma$sigma.1,
-  #              sigma.2=sigma$sigma.2,
-  #              iter.end=(max.iter>n.iter)
-  #              ))
   d <- x
   sigma$sigma.2 <- sqrt(sigma$sigma.2)
   sigma$sigma.1 <- sqrt(sigma$sigma.1)
@@ -193,9 +187,6 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
   } else {
     x <- x[sel]
     y <- y[sel]
-    # 			sel<-order(x)
-    # 			y<-y[sel]
-    # 			x<-x[sel]
 
     y.0 <- y
     if (do.plot) plot(x, y)
@@ -487,16 +478,10 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
       this.y <- y[x >= this.low & x <= this.high]
 
       miu[m] <- sum(this.x * this.y) / sum(this.y)
-      # if(sum(this.y>0) > 1)
-      # {
       sigma[m] <- sqrt(sum(this.y * (this.x - miu[m])^2) / sum(this.y))
-      # }else{
-      #  sigma[m]<-mean(diff(this.x))/2
-      # }
       fitted <- dnorm(this.x, mean = miu[m], sd = sigma[m])
       this.sel <- this.y > 0 & fitted / dnorm(miu[m], mean = miu[m], sd = sigma[m]) > prob.cut
       sc[m] <- exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
-      # sc[m]<-lm(this.y[this.sel]~fitted[this.sel]+0)$coef
     }
 
     to.erase <- which(is.na(miu) | is.na(sigma) | sigma == 0 | is.na(sc))
@@ -520,7 +505,6 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
         fitted <- dnorm(x, mean = miu, sd = sigma)
         this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > prob.cut
         sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
-        # sc<-lm(y[this.sel]~fitted[this.sel]+0)$coef
         break
       }
       miu.0 <- miu
@@ -549,7 +533,6 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
         fitted <- dnorm(x, mean = miu[m], sd = sigma[m])
         this.sel <- this.y > 0 & fitted / dnorm(miu[m], mean = miu[m], sd = sigma[m]) > prob.cut
         sc[m] <- exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
-        # sc[m]<-lm(this.y[this.sel]~fitted[this.sel]+0)$coef
       }
       diff <- sum((miu.0 - miu)^2)
 
