@@ -87,15 +87,16 @@ adaptive.bin <- function(x,
 
   cat(c("m/z tolerance is: ", tol, "\n"))
 
-  times <- x$times |> unique(data_table$labels)
-  times <- times[order(times)]
+  times <- sort(unique(data_table$labels))
 
   rm(x)
+  min_time <- min(times)
+  max_time <- max(times)
+  time_range <- (max_time - min_time)
 
   # calculate function parameters
-  min.count.run <- min.run * length(times) / (max(times) - min(times))
-  time.range <- diff(range(times))
-  aver.time.range <- (max(data_table$labels) - min(data_table$labels)) / length(times)
+  min.count.run <- min.run * length(times) / time_range
+  aver.time.range <- (time_range) / length(times)
 
   # init data
   newprof <- matrix(0, nrow = length(data_table$masses), ncol = 4)
@@ -149,7 +150,7 @@ adaptive.bin <- function(x,
 
           that.range <- diff(range(that$labels))
 
-          if (that.range > 0.5 * time.range & length(that$labels) > that.range * min.pres & length(that$labels) / (that.range / aver.time.range) > min.pres) {
+          if (that.range > 0.5 * time_range & length(that$labels) > that.range * min.pres & length(that$labels) / (that.range / aver.time.range) > min.pres) {
             that$intensi <- rm.ridge(that$labels, that$intensi, bw = max(10 * min.run, that.range / 2))
 
             that <- that |> dplyr::filter(intensi != 0)
