@@ -641,7 +641,7 @@ prof.to.features <- function(a,
     if (is.na(max.bw)) max.bw <- diff(range(a[, 2], na.rm = TRUE)) / 15
     if (min.bw >= max.bw) min.bw <- max.bw / 4
 
-    base.curve <- compute_base_curve(a[, 2])
+    base.curve <- sort(unique(a[, 2]))
     all.times <- compute_delta_rt(base.curve)
 
     this.features <- matrix(0, nrow = 1, ncol = 5)

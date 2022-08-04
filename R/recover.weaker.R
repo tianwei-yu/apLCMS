@@ -259,9 +259,9 @@ get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
 
 compute_EIC_area <- function(thee.sel, that.prof, times, delta_rt, aver.diff) {
   if (length(thee.sel) > 1) {
-    that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], times, delta_rt)
+    that.inte <- interpol.area(that.prof$labels[thee.sel], that.prof$intensities[thee.sel], times, delta_rt)
   } else {
-    that.inte <- that.prof[thee.sel, 3] * aver.diff
+    that.inte <- that.prof$intensities[thee.sel] * aver.diff
   }
   return(that.inte)
 }
@@ -438,8 +438,8 @@ compute_rectangle <- function(data_table,
 
     # get values in RT region of interest?
     if (nrow(that) > recover.min.count) {
-      that.prof <- combine.seq.3(that$labels, that$mz, that$intensities)
-      that.mass <- sum(that.prof[, 1] * that.prof[, 3]) / sum(that.prof[, 3])
+      that.prof <- combine.seq.3(that)
+      that.mass <- sum(that.prof$mz * that.prof$intensities) / sum(that.prof$intensities)
       curr.rec <- c(that.mass, NA, NA)
 
       if (nrow(that.prof) < 10) {
@@ -457,7 +457,7 @@ compute_rectangle <- function(data_table,
             delta_rt,
             aver.diff
           )
-          curr.rec[2] <- median(that.prof[thee.sel, 2])
+          curr.rec[2] <- median(that.prof$labels[thee.sel])
           this.rec <- rbind(this.rec, curr.rec)
         }
       } else {
