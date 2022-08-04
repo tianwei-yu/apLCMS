@@ -82,7 +82,7 @@ adaptive.bin <- function(x,
                          baseline.correct,
                          weighted = FALSE) {
   # order inputs after mz values
-  data_table <- tibble::tibble(masses = x$masses, labels = x$labels, intensi = x$intensi) |> dplyr::arrange_at("masses")
+  data_table <- tibble::tibble(mz = x$masses, labels = x$labels, intensities = x$intensi) |> dplyr::arrange_at("mz")
 
 
   cat(c("m/z tolerance is: ", tol, "\n"))
@@ -99,14 +99,13 @@ adaptive.bin <- function(x,
   aver.time.range <- (time_range) / length(times)
 
   # init data
-  newprof <- matrix(0, nrow = length(data_table$masses), ncol = 4)
-  height.rec <- matrix(0, nrow = length(data_table$masses), ncol = 3)
+  newprof <- matrix(0, nrow = length(data_table$mz), ncol = 4)
+  height.rec <- matrix(0, nrow = length(data_table$mz), ncol = 3)
 
   # init counters
-  # using the data frame has slowed the execution 
-  pointers <- data.frame(curr.label = 1, prof.pointer = 1, height.pointer = 1)
+  pointers <- list(curr.label = 1, prof.pointer = 1, height.pointer = 1)
 
-  breaks <- compute_breaks(tol, data_table$masses, data_table$intensi, weighted)
+  breaks <- compute_breaks(tol, data_table$mz, data_table$intensities, weighted)
 
   for (i in 1:(length(breaks) - 1))
   {
@@ -115,15 +114,14 @@ adaptive.bin <- function(x,
     start <- breaks[i] + 1
     end <- breaks[i + 1]
 
-    # using the data frame has slowed the execution 
-    this_table <- data.frame(labels = data_table$labels[start:end], masses = data_table$masses[start:end], intensi = data_table$intensi[start:end])
+    this_table <- data.frame(labels = data_table$labels[start:end], mz = data_table$mz[start:end], intensities = data_table$intensities[start:end])
 
     if (length(unique(this_table$labels)) >= min.count.run * min.pres) {
       # reorder in order of labels (scan number)
       this_table <- this_table |> dplyr::arrange_at("labels")
-      mass.den <- compute_densities(this_table$masses, tol, weighted, this_table$intensi, median)
+      mass.den <- compute_densities(this_table$mz, tol, weighted, this_table$intensities, median)
 
-      mass.den$y[mass.den$y < min(this_table$intensi) / 10] <- 0
+      mass.den$y[mass.den$y < min(this_table$intensities) / 10] <- 0
       mass.turns <- find.turn.point(mass.den$y)
       mass.pks <- mass.den$x[mass.turns$pks]
       mass.vlys <- c(-Inf, mass.den$x[mass.turns$vlys], Inf)
@@ -139,7 +137,7 @@ adaptive.bin <- function(x,
         }
 
         # get rows which fulfill condition
-        that <- this_table |> dplyr::filter(masses > boundaries$lower & masses <= boundaries$upper)
+        that <- this_table |> dplyr::filter(mz > boundaries$lower & mz <= boundaries$upper)
 
         if (nrow(that) > 0) {
           that <- combine.seq.3(that)
@@ -151,15 +149,15 @@ adaptive.bin <- function(x,
           that.range <- diff(range(that$labels))
 
           if (that.range > 0.5 * time_range & length(that$labels) > that.range * min.pres & length(that$labels) / (that.range / aver.time.range) > min.pres) {
-            that$intensi <- rm.ridge(that$labels, that$intensi, bw = max(10 * min.run, that.range / 2))
+            that$intensities <- rm.ridge(that$labels, that$intensities, bw = max(10 * min.run, that.range / 2))
 
-            that <- that |> dplyr::filter(intensi != 0)
+            that <- that |> dplyr::filter(intensities != 0)
           }
 
-          that.n <- length(that$masses)
+          that.n <- length(that$mz)
 
-          newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that$masses, that$labels, that$intensi, rep(pointers$curr.label, that.n))
-          height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that$intensi))
+          newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that$mz, that$labels, that$intensities, rep(pointers$curr.label, that.n))
+          height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that$intensities))
 
           # increment counters
           pointers <- increment_counter(pointers, that.n)
@@ -172,8 +170,8 @@ adaptive.bin <- function(x,
         that.merged <- combine.seq.3(this_table)
         that.n <- nrow(that.merged)
 
-        newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that.merged$masses, that.merged$labels, that.merged$intensi, rep(pointers$curr.label, that.n))
-        height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that.merged$intensi))
+        newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that.merged$mz, that.merged$labels, that.merged$intensities, rep(pointers$curr.label, that.n))
+        height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that.merged$intensities))
 
         # increment counters
         pointers <- increment_counter(pointers, that.n)

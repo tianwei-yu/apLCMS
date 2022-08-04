@@ -15,16 +15,16 @@
 combine.seq.3 <- function(features) {
     l <- nrow(features)
     breaks <- c(0, which(features$labels[1:(l - 1)] != features$labels[2:l]), l)
-    new_table <- data.frame(masses = rep(0, length(breaks) - 1), labels = unique(features$labels), intensi = rep(0, length(breaks) - 1))
+    new_table <- data.frame(mz = rep(0, length(breaks) - 1), labels = unique(features$labels), intensities = rep(0, length(breaks) - 1))
     
     for (i in 1:(length(breaks) - 1)) {
         start <- breaks[i] + 1
         end <- breaks[i + 1]
-        mz <- features$masses[start:end]
-        ints <- features$intensi[start:end]
+        mz <- features$mz[start:end]
+        ints <- features$intensities[start:end]
 
-        new_table$intensi[i] <- sum(ints)
-        new_table$masses[i] <- median(mz[which.max(ints)])
+        new_table$intensities[i] <- sum(ints)
+        new_table$mz[i] <- median(mz[which.max(ints)])
     }
 
     return(new_table)
