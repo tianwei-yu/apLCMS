@@ -141,7 +141,9 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
     a.old <- a.new
     n.iter <- n.iter + 1
     sigma <- solve.sigma(x, t, a.old)
-    if (n.iter == 1) sigma[is.na(sigma)] <- as.numeric(sigma[which(!is.na(sigma))])[1] / 10
+    if (n.iter == 1) {
+        sigma[is.na(sigma)] <- as.numeric(sigma[which(!is.na(sigma))])[1] / 10
+    }
     a.new <- solve.a(x, t, a.old, sigma$sigma.1, sigma$sigma.2)
     change <- abs(a.old - a.new)
   }
@@ -201,7 +203,9 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     l <- length(x)
     min.d <- min(diff(x))
     dx <- c(x[2] - x[1], (x[3:l] - x[1:(l - 2)]) / 2, x[l] - x[l - 1])
-    if (l == 2) dx <- rep(diff(x), 2)
+    if (l == 2) {
+        dx <- rep(diff(x), 2)
+    }
     dx[dx > 4 * min.d] <- 4 * min.d
 
     y.cum <- cumsum(y * dx)
@@ -238,7 +242,9 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
       }
     }
 
-    if (do.plot) abline(v = m)
+    if (do.plot) {
+        abline(v = m)
+    }
 
     sel1 <- which(x < m)
     sel2 <- which(x >= m)
@@ -318,7 +324,9 @@ bigauss.mix <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.
       last.num.pks <- length(pks)
       l <- length(x)
       dx <- c(x[2] - x[1], (x[3:l] - x[1:(l - 2)]) / 2, x[l] - x[l - 1])
-      if (l == 2) dx <- rep(diff(x), 2)
+      if (l == 2) {
+        dx <- rep(diff(x), 2)
+      }
 
       # initiation
       m <- s1 <- s2 <- delta <- pks
@@ -377,7 +385,9 @@ bigauss.mix <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.
           s2 <- s2[-to.erase]
           delta <- delta[-to.erase]
           fit <- fit[, -to.erase]
-          if (is.null(ncol(fit))) fit <- matrix(fit, ncol = 1)
+          if (is.null(ncol(fit))) {
+            fit <- matrix(fit, ncol = 1)
+          }
           sum.fit <- apply(fit, 1, sum)
           fit <- fit / sum.fit
           old.m <- old.m[-to.erase]
@@ -442,7 +452,9 @@ bigauss.mix <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.
     }
   }
   sel <- which(bic.rec == min(bic.rec, na.rm = TRUE))
-  if (length(sel) > 1) sel <- sel[which(all.bw[sel] == max(all.bw[sel]))]
+  if (length(sel) > 1) {
+    sel <- sel[which(all.bw[sel] == max(all.bw[sel]))]
+  }
   rec <- new("list")
   rec$param <- results[[sel]]
   rec$smoother.pks <- smoother.pk.rec
@@ -523,7 +535,9 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
         w[m, ] <- dnorm(x, mean = miu[m], sd = sigma[m]) * sc[m] / all.w
       }
 
-      if (sum(is.na(w)) > 0) break
+      if (sum(is.na(w)) > 0) {
+        break
+      }
 
       for (m in 1:l)
       {
@@ -629,7 +643,9 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
     }
   }
   sel <- which(bic.rec == min(bic.rec))
-  if (length(sel) > 1) sel <- sel[which(all.bw[sel] == max(all.bw[sel]))]
+  if (length(sel) > 1) {
+    sel <- sel[which(all.bw[sel] == max(all.bw[sel]))]
+  }
   rec <- new("list")
   rec$param <- results[[sel]]
   rec$smoother.pks <- smoother.pk.rec
