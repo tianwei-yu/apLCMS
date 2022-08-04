@@ -8,7 +8,6 @@
 #' This forms a sort of weighted tolerance.
 #' @param mz_tol_absolute float Absolute tolerance to use independent from the mz values.
 #' @return float Minimum tolerance values to use.
-
 compute_min_mz_tolerance <- function(mz, mz_tol_relative, mz_tol_absolute) {
     l <- length(mz)
     mz_midpoints <- ((mz[2:l] + mz[1:(l - 1)]) / 2)
