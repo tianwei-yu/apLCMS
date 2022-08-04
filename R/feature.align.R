@@ -23,51 +23,64 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
 }
 
 
-select_rt <- function(sample, rt_tol_relative, min_occurrence, number_of_samples) {
-    # Kernel Density Estimation, this time for retention time
-    den <- density(sample[, 2], bw = rt_tol_relative / 1.414)
-    # again select statistically significant points
+create_output <- function(sample_grouped, number_of_samples, deviation) {
+    return(c(to_attach(sample_grouped, number_of_samples, use = "sum"),
+             to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
+             deviation
+    )
+    )
+}
+
+
+validate_contents <- function(samples, min_occurrence) {
+    # validate whether data is still from at least 'min_occurrence' number of samples
+    if (!is.null(nrow(samples))) {
+        if (length(unique(samples[, 6])) >= min_occurrence) {
+            return(TRUE)
+        }
+        return(FALSE)
+    }
+    return(FALSE)
+}
+
+
+find_optima <- function(data, bandwidth) {
+    # Kernel Density Estimation
+    den <- density(data, bw = bandwidth)
+    # select statistically significant points
     turns <- find.turn.point(den$y)
-    peaks <- den$x[turns$pks]
-    valleys <- den$x[turns$vlys]
-    for (i in seq_along(peaks)) {
-        lower_bound <- max(valleys[valleys < peaks[i]])
-        upper_bound <- min(valleys[valleys > peaks[i]])
-        # select data with m/z within lower and upper bound from density estimation
-        selected <- which(sample[, 2] > lower_bound & sample[, 2] <= upper_bound)
-        sample_grouped <- sample[selected, ]
-        if (!is.null(nrow(sample_grouped))) {
-            if (length(unique(sample_grouped[, 6])) >= min_occurrence) {
-                # continue if data is still from at least 'min_occurrence' samples
-                return(c(to_attach(sample_grouped, number_of_samples, use = "sum"),
-                         to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
-                         sd(sample_grouped[, 1], na.rm = TRUE)
-                       )
-                )
-            }
+    return(list(peaks = den$x[turns$pks], valleys = den$x[turns$vlys]))
+}
+
+
+filter_based_on_density <- function(sample, turns, index, i) {
+    # select data within lower and upper bound from density estimation
+    lower_bound <- max(turns$valleys[turns$valleys < turns$peaks[i]])
+    upper_bound <- min(turns$valleys[turns$valleys > turns$peaks[i]])
+    selected <- which(sample[, index] > lower_bound & sample[, index] <= upper_bound)
+    return(sample[selected, ])
+}
+
+
+select_rt <- function(sample, rt_tol_relative, min_occurrence, number_of_samples) {
+    # turns for rt
+    turns <- find_optima(sample[, 2], bandwidth = rt_tol_relative / 1.414)
+    for (i in seq_along(turns$peaks)) {
+        sample_grouped <- filter_based_on_density(sample, turns, 2, i)
+        if (validate_contents(sample_grouped, min_occurrence)) {
+            return(create_output(sample_grouped, number_of_samples, sd(sample_grouped[, 1], na.rm = TRUE)))
         }
     }
 }
 
 
 select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples) {
-    # Kernel Density Estimation with target standard deviation 'mz_tol_relative' multiplied by median of m/z
-    des <- density(sample[, 1], bw = mz_tol_relative * median(sample[, 1]))
-    # find the peaks and valleys of a density function
-    turns <- find.turn.point(des$y)
-    peaks <- des$x[turns$pks]
-    valleys <- des$x[turns$vlys]
-    for (i in seq_along(peaks)) {
-        lower_bound <- max(valleys[valleys < peaks[i]])
-        upper_bound <- min(valleys[valleys > peaks[i]])
-        # select data with m/z within lower and upper bound from density estimation
-        selected <- which(sample[, 1] > lower_bound & sample[, 1] <= upper_bound)
-        sample_grouped <- sample[selected, ]
-        if (!is.null(nrow(sample_grouped))) {
-            # continue if data is still from at least 'min_occurrence' samples
-            if (length(unique(sample_grouped[, 6])) >= min_occurrence) {
-                return(select_rt(sample_grouped, rt_tol_relative, min_occurrence, number_of_samples)) 
-            }
+    # turns for m/z
+    turns <- find_optima(sample[, 1], bandwidth = mz_tol_relative * median(sample[, 1]))
+    for (i in seq_along(turns$peaks)) {
+        sample_grouped <- filter_based_on_density(sample, turns, 1, i)
+        if (validate_contents(sample_grouped, min_occurrence)) {
+            return(select_rt(sample_grouped, rt_tol_relative, min_occurrence, number_of_samples)) 
         }
     }
 }
@@ -166,10 +179,10 @@ feature.align <- function(features,
             sample_id[(sizes[i] + 1):sizes[i + 1]] <- i
         }
         
-        # table with number of values in a group
+        # table with number of values per group
         groups_cardinality <- table(all_features$grps)
         # count those with minimal occurrence 
-        # (times 3 ? shouldn't be number of sample) !!!
+        # (times 3 ? shouldn't be number of samples) !!!
         curr.row <- sum(groups_cardinality >= min_occurrence) * 3
         mz_sd <- rep(0, curr.row)
         
@@ -184,20 +197,16 @@ feature.align <- function(features,
                 group_ids <- which(grps == sel.labels[i])
                 if (length(group_ids) > 1) {
                     # select data from the group
-                    sample <- cbind(mz_values[group_ids], rt[group_ids], rt[group_ids], rt[group_ids], area[group_ids], sample_id[group_ids])
+                    sample <- cbind(mz_values[group_ids], rt[group_ids], rt[group_ids], 
+                                    rt[group_ids], area[group_ids], sample_id[group_ids])
                     # continue if data is from at least 'min_occurrence' samples
-                    if (length(unique(sample[, 6])) >= min_occurrence) {
+                    if (validate_contents(sample, min_occurrence)) {
                         return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples))
                     }
-                } else {
-                    if (min_occurrence == 1) {
-                        sample_grouped <- c(mz_values[group_ids], rt[group_ids], rt[group_ids], rt[group_ids], area[group_ids], sample_id[group_ids])
-                        return(c(to_attach(sample_grouped, number_of_samples, use = "sum"),
-                                 to_attach(sample_grouped[c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
-                                 NA
-                                )
-                              )
-                    }
+                } else if (min_occurrence == 1) {
+                    sample_grouped <- c(mz_values[group_ids], rt[group_ids], rt[group_ids], 
+                                        rt[group_ids], area[group_ids], sample_id[group_ids])
+                    return(create_output(sample_grouped, number_of_samples, NA))
                 }
                 return(NULL)
             }
