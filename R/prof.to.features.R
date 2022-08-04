@@ -192,6 +192,17 @@ compute_bounds <- function(x, sigma.ratio.lim) {
   return(list(start = start, end = end))
 }
 
+compute_dx <- function(x) {
+    l <- length(x)
+    min.d <- min(diff(x))
+    dx <- c(x[2] - x[1], (x[3:l] - x[1:(l - 2)]) / 2, x[l] - x[l - 1])
+    if (l == 2) {
+        dx <- rep(diff(x), 2)
+    }
+    dx[dx > 4 * min.d] <- 4 * min.d
+    return (dx)
+}
+
 #' @export
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
   sel <- which(y > 1e-10)
@@ -213,13 +224,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     max.y.0 <- max(y.0, na.rm = TRUE)
     y <- (y / max.y.0)^power
 
-    l <- length(x)
-    min.d <- min(diff(x))
-    dx <- c(x[2] - x[1], (x[3:l] - x[1:(l - 2)]) / 2, x[l] - x[l - 1])
-    if (l == 2) {
-        dx <- rep(diff(x), 2)
-    }
-    dx[dx > 4 * min.d] <- 4 * min.d
+    dx <- compute_dx(x)
 
     y.cum <- cumsum(y * dx)
     x.y.cum <- cumsum(y * x * dx)
