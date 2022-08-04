@@ -163,21 +163,32 @@ rev_cum_sum <- function(x) {
   return(cumsum((x)[l:1])[l:1])
 }
 
+compute_start_bound <- function(x, sigma_ratio_lim) {
+  start_bound <- 1
+  
+  len_x <- length(x)
+  idx <- which(x >= sigma_ratio_lim[1] / (sigma_ratio_lim[1] + 1) * x[len_x])
+  if (length(idx) > 0) {
+    start_bound <- max(1, min(idx))
+  }
+  return (start_bound)
+}
+
+compute_end_bound <- function(x, sigma_ratio_lim) {
+  len_x <- length(x)
+  end_bound <- len_x - 1
+
+  idx <- which(x <= sigma_ratio_lim[2] / (sigma_ratio_lim[2] + 1) * x[len_x])
+  if (length(idx) > 0) {
+    end_bound <- min(len_x - 1, max(idx))
+  }
+  return (end_bound)
+}
+
 #' @export
 compute_bounds <- function(x, sigma.ratio.lim) {
-  l <- length(x)
-  sel <- which(x >= sigma.ratio.lim[1] / (sigma.ratio.lim[1] + 1) * x[l])
-  if (length(sel) > 0) {
-    start <- max(1, min(sel))
-  } else {
-    start <- 1
-  }
-  sel <- which(x <= sigma.ratio.lim[2] / (sigma.ratio.lim[2] + 1) * x[l])
-  if (length(sel) > 0) {
-    end <- min(l - 1, max(sel))
-  } else {
-    end <- l - 1
-  }
+  start <- compute_start_bound(x, sigma.ratio.lim)
+  end <- compute_end_bound(x, sigma.ratio.lim)
   return(list(start = start, end = end))
 }
 
