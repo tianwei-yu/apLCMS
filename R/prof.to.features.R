@@ -191,7 +191,9 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     y <- y[sel]
 
     y.0 <- y
-    if (do.plot) plot(x, y)
+    if (do.plot) {
+        plot(x, y)
+    }
     if (do.plot & !is.na(truth[1])) {
       true.y1 <- dnorm(x[x < truth[1]], mean = truth[1], sd = truth[2]) * truth[2] * truth[4]
       true.y2 <- dnorm(x[x >= truth[1]], mean = truth[1], sd = truth[3]) * truth[3] * truth[4]
