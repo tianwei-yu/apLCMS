@@ -1,3 +1,7 @@
+#' @import tibble dplyr
+NULL
+#> NULL
+
 #' @export
 compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 512) {
   bandwidth <- 0.5 * tol * bw_func(masses)

@@ -1,3 +1,7 @@
+#' @import tibble dplyr
+NULL
+#> NULL
+
 #' @export
 duplicate.row.remove <- function(new.table) {
   new.table <- new.table[order(new.table[, 1], new.table[, 2], new.table[, 5]), ]

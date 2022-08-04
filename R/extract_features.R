@@ -1,3 +1,7 @@
+#' @import snow
+NULL
+#> NULL
+
 #' feature extraction
 #' 
 #' extract feature

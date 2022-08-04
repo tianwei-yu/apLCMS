@@ -1,3 +1,7 @@
+#' @import mzR
+NULL
+#> NULL
+
 #' Loading LC/MS data.
 #' 
 #' This is an internal function. It loads LC/MS data into memory.
