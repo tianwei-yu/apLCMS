@@ -277,9 +277,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
 
     dy.ratio <- d^2 * log(y / d)
     dy.ratio[is.na(dy.ratio)] <- 0
-    dy.ratio[dy.ratio == -Inf] <- 0
-    dy.ratio[dy.ratio == Inf] <- 0
-
+    dy.ratio[is.infinite(dy.ratio)] <- 0
 
     scale <- exp(sum(dy.ratio) / sum(d^2))
 
