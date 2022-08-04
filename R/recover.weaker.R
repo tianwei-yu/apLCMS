@@ -256,6 +256,7 @@ get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
   return(selection)
 }
 
+
 compute_EIC_area <- function(thee.sel, that.prof, times, delta_rt, aver.diff) {
   if (length(thee.sel) > 1) {
     that.inte <- interpol.area(that.prof[thee.sel, 2], that.prof[thee.sel, 3], times, delta_rt)
@@ -348,12 +349,37 @@ compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, t
   return(curr.rec)
 }
 
-compute_mass_boundaries <- function(mass.vlys, peak) {
-  lower <- max(mass.vlys[mass.vlys < peak])
-  upper <- min(mass.vlys[mass.vlys > peak])
+#' Compute bounds of area using given peak and mass valley points.
+#' @description
+#' The lower bound is the mass of the valley the closest but smaller than peak
+#' and the upper bound is the mass of the valley the closest but higher than
+#' the peak.
+#' @param mz_valley_points vector Mz values of valley points defining mz clusters.
+#' @param peak_mz double Value of the peak mz for which to get the valley bounds.
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item lower - double - The mz value of the lower bound valley point.
+#'   \item upper - double - The mz value of the upper bound valley point.
+#' }
+compute_mass_boundaries <- function(mz_valley_points, peak_mz) {
+  lower <- max(mz_valley_points[mz_valley_points < peak_mz])
+  upper <- min(mz_valley_points[mz_valley_points > peak_mz])
   return(list(lower = lower, upper = upper))
 }
 
+#' Compute peaks and valleys of density function.
+#' @description
+#' Given a density function, the turn points are computed and
+#' the peaks and valleys in the original data (points with highest
+#' and lowest density) are returned.
+#' @param density stats::density Density object for which to compute peaks
+#' and valleys.
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item pks - vector - The data points at which the density peaks.
+#'   \item vlys - vector - The points in the data where the density is low 
+#'                         (forming a valley in the function).
+#' }
 compute_peaks_and_valleys <- function(dens) {
   turns <- find.turn.point(dens$y)
   pks <- dens$x[turns$pks] # mz values with highest density
@@ -361,6 +387,7 @@ compute_peaks_and_valleys <- function(dens) {
   vlys <- c(-Inf, vlys, Inf) # masses with lowest densities values -> valley
   return(list(pks = pks, vlys = vlys))
 }
+
 
 compute_rectangle <- function(data_table,
                               aligned_feature_mass,
@@ -547,8 +574,8 @@ recover.weaker <- function(filename,
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
 
-  this.ftrs <- aligned.ftrs[, sample_name]
-  this.times <- pk.times[, sample_name]
+  sample_intensities <- aligned.ftrs[, sample_name]
+  sample_times <- pk.times[, sample_name]
 
   custom.mz.tol <- mz.range * aligned.ftrs$mz
   custom.chr.tol <- get_custom_chr_tol(
@@ -575,11 +602,22 @@ recover.weaker <- function(filename,
 
   breaks <- predict_mz_break_indices(data_table, orig.tol)
 
-  this.mz <- rep(NA, length(this.ftrs))
+  this.mz <- rep(NA, length(sample_intensities))
+  max_mz <- max(data_table$mz)
 
-  for (i in seq_along(this.ftrs))
+  # THIS CONSTRUCT TO EXTRACT MISSING FEATURES COULD BE USED TO POSSIBLY SPEED UP
+  # THE COMPUTATION AS THE LOOP WILL ONLY GO OVER THE ROWS AND THE ADDITIONAL VARIABLES
+  # CAN BE ADDED USING THE MUTATE FUNCTION.
+  # t_aligned <- tibble::tibble(aligned.ftrs)
+  # missing_features <- dplyr::filter(t_aligned, !!rlang::sym(sample_name) == 0 & mz < max_mz)
+
+  # if(nrow(missing_features) > 0) {
+  #   browser()
+  # }
+
+  for (i in seq_along(sample_intensities))
   {
-    if (this.ftrs[i] == 0 && aligned.ftrs[i, "mz"] < max(data_table$mz)) {
+    if (sample_intensities[i] == 0 && aligned.ftrs[i, "mz"] < max_mz) {
       this.rec <- compute_rectangle(
         data_table,
         aligned.ftrs[i, "mz"],
@@ -631,16 +669,16 @@ recover.weaker <- function(filename,
             NA
           )
         )
-        this.ftrs[i] <- this.rec[this.sel, 3]
-        this.times[i] <- this.rec[this.sel, 2] + this.time.adjust
+        sample_intensities[i] <- this.rec[this.sel, 3]
+        sample_times[i] <- this.rec[this.sel, 2] + this.time.adjust
         this.mz[i] <- this.rec[this.sel, 1]
       }
     }
   }
   to.return <- new("list")
   to.return$this.mz <- this.mz
-  to.return$this.ftrs <- this.ftrs
-  to.return$this.times <- this.times
+  to.return$this.ftrs <- sample_intensities
+  to.return$this.times <- sample_times
   to.return$this.f1 <- duplicate.row.remove(extracted_features)
   to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
