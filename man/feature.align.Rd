@@ -17,6 +17,7 @@ feature.align(features, min_occurrence = 2, mz_tol_relative = NA, rt_tol_relativ
   \item{mz_max_diff}{Argument passed to find.tol(). Consider only m/z diffs smaller than this value.This is only used when the mz_tol_relative is NA. }
   \item{mz_tol_absolute}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
   \item{do.plot}{Indicates whether plot should be drawn.}
+  \item{rt_colname}{contains the retention time information}
 }
 \details{
   The function first searches for the m/z tolerance level using a mixture model. After the mz_tol_relative is obtained, the peaks are grouped based on it. Consecutive peaks with m/z value difference smaller than the tolerance level are considered to belong to the same peak group. Non-parametric density estimation within each peak group is used to further split peak groups.
@@ -26,8 +27,8 @@ feature.align(features, min_occurrence = 2, mz_tol_relative = NA, rt_tol_relativ
   Returns a list object with the following objects in it:
   \item{aligned.ftrs}{A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.}
   \item{pk.times}{A matrix, with columns of m/z, median elution time, and elution times in each spectrum.}
-  \item{mz_tol_relative}{The m/z tolerance used in the alignment.}
-  \item{rt_tol_relative}{The elution time tolerance in the alignment.}
+  \item{mz.tol}{The m/z tolerance used in the alignment.}
+  \item{chr.tol}{The elution time tolerance in the alignment.}
 }
 \author{ Tianwei Yu <tyu8@emory.edu> }
 \seealso{ proc.to.feature }

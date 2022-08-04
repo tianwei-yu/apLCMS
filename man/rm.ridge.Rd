@@ -6,7 +6,7 @@
 rm.ridge(x, y2, bw)
 }
 \arguments{
-  \item{x}{ Retetion time vector. }
+  \item{x}{ Retention time vector. }
   \item{y2}{ Intensity vector. }
   \item{bw}{ Bandwidth for the kernel smoother. A very wide one is used here. }
 }

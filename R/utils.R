@@ -11,6 +11,7 @@ get_feature_values <- function(features, rt_colname) {
     return(list(mz = mz, rt = rt, sample_id = sample_id))
 }
 
+#' @export
 extract_pattern_colnames <- function(dataframe, pattern) {
     dataframe <- dplyr::select(dataframe, contains(pattern))
     return(colnames(dataframe))

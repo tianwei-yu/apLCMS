@@ -22,10 +22,10 @@ recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol,
   \item{align.chr.tol}{the elution time tolerance in the alignment. }
   \item{this.f1}{The matrix which is the output from proc.to.feature().}
   \item{this.f2}{The matrix which is the output from proc.to.feature(). The retention time in this object have been adjusted by the function adjust.time().}
-  \item{orig.tol}{ The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.}
   \item{mz.range}{The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used. }
   \item{chr.range}{The retention time around the feature retention time to search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.}
   \item{use.observed.range}{If the value is TRUE, the actual range of the observed locations of the feature in all the spectra will be used. }
+  \item{orig.tol}{ The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.}
   \item{min.bw}{The minimum bandwidth to use in the kernel smoother.See the details section.}
   \item{max.bw}{The maximum bandwidth to use in the kernel smoother.See the details section.}
   \item{bandwidth}{A value between zero and one. Multiplying this value to the length of the signal along the time axis helps determine the bandwidth in the kernel smoother used for peak identification. See the details section.}

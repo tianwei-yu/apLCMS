@@ -16,7 +16,7 @@ A list is returned.
   \item{new.rec}{ The matrix containing m/z, retention time, intensity, and EIC label as columns after applying the run filter. }
   \item{height.rec}{ The vector of peak heights. }
   \item{time.range.rec}{ The vector of peak retention time span. }
-  \item{mz/pres.rec}{ The vector of proportion of non-missing m/z. }
+  \item{mz.pres.rec}{ The vector of proportion of non-missing m/z. }
 }
 \references{
 Bioinformatics. 25(15):1930-36. 

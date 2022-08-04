@@ -14,6 +14,7 @@ tolerance_plot <- function(x, y, exp_y, selected, main) {
   abline(v = x[selected], col = "blue")
 }
 
+#' @export
 plot_raw_profile_histogram <- function(raw.prof,
                                        min.pres,
                                        baseline.correct,
