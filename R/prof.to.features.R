@@ -29,11 +29,11 @@ preprocess_feature_table <- function(feature_table) {
   return(data.frame(feature_table))
 }
 
-compute_gaussian_peak_shape <- function(rt_curve, power, bw, component.eliminate, BIC.factor) {
+compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.eliminate, BIC.factor) {
 
   ## this function computes parameters of chromatographic peak shape if peaks are considered to be gaussian
 
-  chr_peak_shape <- normix.bic(rt_curve[, "base_curve"], rt_curve[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+  chr_peak_shape <- normix.bic(chr_profile[, "base_curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
   if (nrow(chr_peak_shape) == 1) {
     chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
   } else {
@@ -742,8 +742,8 @@ prof.to.features <- function(feature_table,
     }
     if (num_features > 10) {
       rt_range <- range(feature_group[, "rt"])
-      rt_curve <- ordered_rts[ordered_rts[, "base_curve"] >= rt_range[1] & ordered_rts[, "base_curve"] <= rt_range[2], ]
-      rt_curve[rt_curve[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
+      chr_profile <- ordered_rts[between(ordered_rts[, "base_curve"], min(rt_range), max(rt_range)), ]
+      chr_profile[chr_profile[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
 
       bw <- min(max(bandwidth * (rt_range[2] - rt_range[1]), min.bw), max.bw)
       bw <- seq(bw, 2 * bw, length.out = 3)
@@ -752,9 +752,9 @@ prof.to.features <- function(feature_table,
       }
 
       if (shape.model == "Gaussian") {
-        chr_peak_shape <- compute_gaussian_peak_shape(rt_curve, power, bw, component.eliminate, BIC.factor)
+        chr_peak_shape <- compute_gaussian_peak_shape(chr_profile, power, bw, component.eliminate, BIC.factor)
       } else {
-        chr_peak_shape <- bigauss.mix(rt_curve[, "base_curve"], rt_curve[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+        chr_peak_shape <- bigauss.mix(chr_profile[, "base_curve"], chr_profile[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
       }
 
       if (is.null(nrow(chr_peak_shape))) {
