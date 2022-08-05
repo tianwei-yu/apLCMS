@@ -1,3 +1,7 @@
+#' @import snow
+NULL
+#> NULL
+
 #' feature extraction
 #' 
 #' extract feature
@@ -67,6 +71,8 @@ extract_features <- function(
     'compute_mass_values',
     'compute_densities',
     'compute_breaks',
+    'compute_boundaries',
+    'increment_counter',
     'rm.ridge',
     #'compute_base_curve',
     'compute_delta_rt',

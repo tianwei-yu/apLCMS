@@ -1,3 +1,7 @@
+#' @import foreach
+NULL
+#> NULL
+
 to_attach <- function(pick, number_of_samples, use = "sum") {
     strengths <- rep(0, number_of_samples)
     if (is.null(nrow(pick))) {

@@ -1,3 +1,7 @@
+#' @import snow doParallel foreach
+NULL
+#> NULL
+
 #' Semi-supervised feature detection
 #' 
 #' @description

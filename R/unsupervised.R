@@ -1,3 +1,7 @@
+#' @import tools snow splines parallel doParallel
+NULL
+#> NULL
+
 as_feature_crosstab <- function(feature_names, sample_names, data) {
   colnames(data) <- c('mz', 'rt', 'mz_min', 'mz_max', sample_names)
   rownames(data) <- feature_names

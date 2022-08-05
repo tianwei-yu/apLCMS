@@ -2,7 +2,7 @@
 #'
 #' This is a internal function.
 #'
-#' @param table dataframe of retention time, m/z ratio, signal strength.
+#' @param features dataframe of retention time, m/z ratio, signal strength.
 #' @return returns
 #' \itemize{
 #'   \item masses - m/z ratio
@@ -29,7 +29,7 @@ combine.seq.3 <- function(features) {
         ints <- features$intensities[start:end]
 
         new_table$intensities[i] <- sum(ints)
-        new_table$mz[i] <- median(mz[which(ints == max(ints))])
+        new_table$mz[i] <- median(mz[which.max(ints)])
     }
 
     return(new_table)
