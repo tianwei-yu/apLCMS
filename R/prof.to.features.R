@@ -203,6 +203,15 @@ compute_dx <- function(x) {
     return (dx)
 }
 
+compute_chromatographic_profile <- function(feature_table, ordered_rts, rt_range) {
+  rt_range <- range(feature_table[, "rt"])
+  chr_profile <- ordered_rts[between(ordered_rts[, "base_curve"], min(rt_range), max(rt_range)), ]
+  chr_profile[chr_profile[, "base_curve"] %in% feature_table[, "rt"], 2] <- feature_table[, "intensity"]
+  colnames(chr_profile)[2] <- "intensity"
+
+  return (chr_profile)
+}
+
 #' @export
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
   sel <- which(y > 1e-10)
@@ -742,19 +751,17 @@ prof.to.features <- function(feature_table,
     }
     if (num_features > 10) {
       rt_range <- range(feature_group[, "rt"])
-      chr_profile <- ordered_rts[between(ordered_rts[, "base_curve"], min(rt_range), max(rt_range)), ]
-      chr_profile[chr_profile[, "base_curve"] %in% feature_group[, "rt"], 2] <- feature_group[, "intensity"]
-
       bw <- min(max(bandwidth * (rt_range[2] - rt_range[1]), min.bw), max.bw)
       bw <- seq(bw, 2 * bw, length.out = 3)
       if (bw[1] > 1.5 * min.bw) {
         bw <- c(max(min.bw, bw[1] / 2), bw)
       }
 
+      chr_profile <- compute_chromatographic_profile(feature_group, ordered_rts)
       if (shape.model == "Gaussian") {
         chr_peak_shape <- compute_gaussian_peak_shape(chr_profile, power, bw, component.eliminate, BIC.factor)
       } else {
-        chr_peak_shape <- bigauss.mix(chr_profile[, "base_curve"], chr_profile[, 2], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+        chr_peak_shape <- bigauss.mix(chr_profile[, "base_curve"], chr_profile[, "intensity"], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
       }
 
       if (is.null(nrow(chr_peak_shape))) {
