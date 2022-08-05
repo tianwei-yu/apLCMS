@@ -110,6 +110,7 @@ solve.sigma <- function(x, t, a) {
 #'
 #' @export
 bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 1)) {
+  # this function is not covered by any test case
   sel <- which(x > 1e-10)
   if (length(sel) == 0) {
     return(c(median(t), 1, 1, 0))
