@@ -153,10 +153,13 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
   return(c(a.new, sigma$sigma.1, sigma$sigma.2, scale))
 }
 
+#' @description
+#' Computes vector of cumulative sums on reversed input. Returns cumulative sum vector going from the sum of all elements to one.
+#'
 #' @export
 rev_cum_sum <- function(x) {
-  l <- length(x)
-  return(cumsum((x)[l:1])[l:1])
+  x <- rev(x)
+  return(rev(cumsum(x)))
 }
 
 compute_start_bound <- function(x, sigma_ratio_lim) {
