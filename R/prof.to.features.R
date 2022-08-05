@@ -202,8 +202,8 @@ compute_dx <- function(x) {
       x[l] - x[l - 1]
     )
   }
-  min_diff <- min(diff(x))
-  dx[dx > 4 * min_diff] <- 4 * min_diff
+  diff_threshold <- min(dx) * 4
+  dx <- pmin(dx, diff_threshold)
   return (dx)
 }
 
