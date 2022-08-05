@@ -642,7 +642,9 @@ prof.to.features <- function(a,
     if (min.bw >= max.bw) min.bw <- max.bw / 4
 
     base.curve <- sort(unique(a[, 2]))
-    all.times <- compute_delta_rt(base.curve)
+    base.curve <- cbind(base.curve, base.curve * 0)
+
+    all.times <- compute_delta_rt(base.curve[, 1])
 
     this.features <- matrix(0, nrow = 1, ncol = 5)
     colnames(this.features) <- c("mz", "pos", "sd1", "sd2", "area")

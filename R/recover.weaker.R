@@ -256,7 +256,7 @@ get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
   if (!is.na(retention_time)) {
     selection <- which(abs(profile_data[, 2] - retention_time) < chr_tol)
   } else {
-    selection <- seq_len(profile_data)
+    selection <- 1
   }
   return(selection)
 }
@@ -368,6 +368,7 @@ compute_curr_rec_with_enough_peaks <- function(that.mass, peak, valleys, labels_
 #'   \item lower - double - The value of the lower bound valley point.
 #'   \item upper - double - The value of the upper bound valley point.
 #' }
+#' @export
 compute_boundaries <- function(valley_points, peak) {
   lower <- max(valley_points[valley_points < peak])
   upper <- min(valley_points[valley_points > peak])
