@@ -269,11 +269,8 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     s1 <- sqrt(sum((x[sel1] - m)^2 * y[sel1] * dx[sel1]) / sum(y[sel1] * dx[sel1]))
     s2 <- sqrt(sum((x[sel2] - m)^2 * y[sel2] * dx[sel2]) / sum(y[sel2] * dx[sel2]))
 
-
-    if (power != 1) {
-      s1 <- s1 * sqrt(power)
-      s2 <- s2 * sqrt(power)
-    }
+    s1 <- s1 * sqrt(power)
+    s2 <- s2 * sqrt(power)
 
     d1 <- dnorm(x[sel1], sd = s1, mean = m)
     d2 <- dnorm(x[sel2], sd = s2, mean = m)
