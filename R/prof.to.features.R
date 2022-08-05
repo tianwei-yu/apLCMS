@@ -309,7 +309,10 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
 }
 
 #' @export
-bigauss.mix <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
+bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
+  x <- chr_profile[, "base_curve"]
+  y <- chr_profile[, "intensity"]
+
   all.bw <- bw[order(bw)]
 
   x.0 <- x
@@ -761,7 +764,7 @@ prof.to.features <- function(feature_table,
       if (shape.model == "Gaussian") {
         chr_peak_shape <- compute_gaussian_peak_shape(chr_profile, power, bw, component.eliminate, BIC.factor)
       } else {
-        chr_peak_shape <- bigauss.mix(chr_profile[, "base_curve"], chr_profile[, "intensity"], sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+        chr_peak_shape <- bigauss.mix(chr_profile, sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
       }
 
       if (is.null(nrow(chr_peak_shape))) {
