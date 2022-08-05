@@ -42,6 +42,7 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
   return(chr_peak_shape)
 }
 
+#' @description
 #' Compute standard deviation of m/z values groupwise
 compute_mz_sd <- function(feature_groups) {
   mz_sd <- c()
@@ -67,20 +68,18 @@ plot_peak_summary <- function(feature_groups, processed_features) {
     hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
 }
 
+#' @description
+#' This function solves the value of a using the x, t, a from the previous step, and sigma.1, and sigma.2 (original authors' comment).
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
-  ## thif function solves the value of a using the x, t, a from the
-  ## previous step, and sigma.1, and sigma.2
-
   w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
   return(sum(t * w) / sum(w))
 }
 
+#' @description
+#' This function prepares the parameters required for latter compuation. u, v, and sum of x (original authors' comment).
+#'
 #' @export
 prep.uv <- function(x, t, a) {
-
-  ## this function prepares the parameters required for latter
-  ## compuation. u, v, and sum of x.
-
   temp <- (t - a)^2 * x
   u <- sum(temp * as.numeric(t < a))
   v <- sum(temp * as.numeric(t >= a))
@@ -91,13 +90,11 @@ prep.uv <- function(x, t, a) {
   ))
 }
 
+#' @description
+#' This function takes the value intensity level x, retention time t and assumed breaking point a, calculates the square estimated of sigma.1 and sigma.2 (original authors' comment).
+#'
 #' @export
 solve.sigma <- function(x, t, a) {
-  ## this function takes the value intensity level x, retention time t
-  ## and assumed breaking point a, calculates the square estimated of
-  ## sigma.1 and sigma.2.
-
-
   tt <- prep.uv(x, t, a)
   sigma.1 <- tt$u / tt$x.sum * ((tt$v / tt$u)^(1 / 3) + 1)
   sigma.2 <- tt$v / tt$x.sum * ((tt$u / tt$v)^(1 / 3) + 1)
@@ -107,14 +104,12 @@ solve.sigma <- function(x, t, a) {
   ))
 }
 
+#' @description
+#' Function takes into x and t, and then computes the value of sigma.1, sigma.2 and a using iterative method. the returned values include estimated sigmas,
+#' a and a boolean variable on whether the termination criteria is satified upon the end of the program (original authors' comment).
+#'
 #' @export
 bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 1)) {
-  ## function takes into x and t, and then computes the value of
-  ## sigma.1, sigma.2 and a using iterative method. the returned
-  ## values include estimated sigmas, a and a boolean variable on
-  ## whether the termination criteria is satified upon the end of the
-  ## program.
-
   sel <- which(x > 1e-10)
   if (length(sel) == 0) {
     return(c(median(t), 1, 1, 0))
