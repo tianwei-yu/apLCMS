@@ -308,22 +308,12 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
   return(to.return)
 }
 
+#' @importFrom magittr %>%
+#' @importFrom dplyr filter arrange
 #' @export
 bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
-  x <- chr_profile[, "base_curve"]
-  y <- chr_profile[, "intensity"]
 
   all.bw <- bw[order(bw)]
-
-  x.0 <- x
-  y.0 <- y
-
-  sel <- y > 1e-5
-  x <- x[sel]
-  y <- y[sel]
-  sel <- order(x)
-  y <- y[sel]
-  x <- x[sel]
   results <- new("list")
   smoother.pk.rec <- smoother.vly.rec <- new("list")
   bic.rec <- all.bw
@@ -335,10 +325,15 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 
   last.num.pks <- Inf
 
+  chr_profile_unfiltered <- chr_profile
+  chr_profile <- data.frame(chr_profile) %>%
+    filter(intensity > 1e-5) %>%
+    arrange(base_curve)
+
   for (bw.n in length(all.bw):1)
   {
     bw <- all.bw[bw.n]
-    this.smooth <- ksmooth(x.0, y.0, kernel = "normal", bandwidth = bw)
+    this.smooth <- ksmooth(chr_profile_unfiltered[, "base_curve"], chr_profile_unfiltered[, "intensity"], kernel = "normal", bandwidth = bw)
     turns <- find.turn.point(this.smooth$y)
     pks <- this.smooth$x[turns$pks]
     vlys <- c(-Inf, this.smooth$x[turns$vlys], Inf)
@@ -347,30 +342,30 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
     smoother.vly.rec[[bw.n]] <- vlys
     if (length(pks) != last.num.pks) {
       last.num.pks <- length(pks)
-      l <- length(x)
-      dx <- c(x[2] - x[1], (x[3:l] - x[1:(l - 2)]) / 2, x[l] - x[l - 1])
+      l <- length(chr_profile[, "base_curve"])
+      dx <- c(chr_profile[2, "base_curve"] - chr_profile[1, "base_curve"], (chr_profile[3:l, "base_curve"] - chr_profile[1:(l - 2), "base_curve"]) / 2, chr_profile[l, "base_curve"] - chr_profile[l - 1, "base_curve"])
       if (l == 2) {
-        dx <- rep(diff(x), 2)
+        dx <- rep(diff(chr_profile[, "base_curve"]), 2)
       }
 
       # initiation
       m <- s1 <- s2 <- delta <- pks
       for (i in 1:length(m))
       {
-        sel.1 <- which(x >= max(vlys[vlys < m[i]]) & x < m[i])
-        s1[i] <- sqrt(sum((x[sel.1] - m[i])^2 * y[sel.1] * dx[sel.1]) / sum(y[sel.1] * dx[sel.1]))
+        sel.1 <- which(chr_profile[, "base_curve"] >= max(vlys[vlys < m[i]]) & chr_profile[, "base_curve"] < m[i])
+        s1[i] <- sqrt(sum((chr_profile[sel.1, "base_curve"] - m[i])^2 * chr_profile[sel.1, "intensity"] * dx[sel.1]) / sum(chr_profile[sel.1, "intensity"] * dx[sel.1]))
 
-        sel.2 <- which(x >= m[i] & x < min(vlys[vlys > m[i]]))
-        s2[i] <- sqrt(sum((x[sel.2] - m[i])^2 * y[sel.2] * dx[sel.2]) / sum(y[sel.2] * dx[sel.2]))
+        sel.2 <- which(chr_profile[, "base_curve"] >= m[i] & chr_profile[, "base_curve"] < min(vlys[vlys > m[i]]))
+        s2[i] <- sqrt(sum((chr_profile[sel.2, "base_curve"] - m[i])^2 * chr_profile[sel.2, "intensity"] * dx[sel.2]) / sum(chr_profile[sel.2, "intensity"] * dx[sel.2]))
 
-        delta[i] <- (sum(y[sel.1] * dx[sel.1]) + sum(y[sel.2] * dx[sel.2])) / ((sum(dnorm(x[sel.1], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(x[sel.2], mean = m[i], sd = s2[i])) * s2[i] / 2))
+        delta[i] <- (sum(chr_profile[sel.1, "intensity"] * dx[sel.1]) + sum(chr_profile[sel.2, "intensity"] * dx[sel.2])) / ((sum(dnorm(chr_profile[sel.1, "base_curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(chr_profile[sel.2, "base_curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
       }
       delta[is.na(delta)] <- 1e-10
       s1[is.na(s1)] <- 1e-10
       s2[is.na(s2)] <- 1e-10
 
 
-      fit <- matrix(0, ncol = length(m), nrow = length(x)) # this is the matrix of fitted values
+      fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base_curve"])) # this is the matrix of fitted values
 
       this.change <- Inf
       counter <- 0
@@ -383,13 +378,13 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
         cuts <- c(-Inf, m, Inf)
         for (j in 2:length(cuts))
         {
-          sel <- which(x >= cuts[j - 1] & x < cuts[j])
+          sel <- which(chr_profile[, "base_curve"] >= cuts[j - 1] & chr_profile[, "base_curve"] < cuts[j])
           use.s1 <- which(1:length(m) >= (j - 1))
           s.to.use <- s2
           s.to.use[use.s1] <- s1[use.s1]
           for (i in 1:ncol(fit))
           {
-            fit[sel, i] <- dnorm(x[sel], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
+            fit[sel, i] <- dnorm(chr_profile[sel, "base_curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
           }
         }
         fit[is.na(fit)] <- 0
@@ -397,8 +392,8 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 
         # Elimination step
         fit <- fit / sum.fit
-        fit2 <- fit * y
-        perc.explained <- apply(fit2, 2, sum) / sum(y)
+        fit2 <- fit * chr_profile[, "intensity"]
+        perc.explained <- apply(fit2, 2, sum) / sum(chr_profile[, "intensity"])
         max.erase <- max(1, round(length(perc.explained) / 5))
 
         to.erase <- which(perc.explained <= min(eliminate, perc.explained[order(perc.explained, na.last = FALSE)[max.erase]]))
@@ -421,11 +416,11 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
         # M step
         for (i in 1:length(m))
         {
-          this.y <- y * fit[, i]
+          this.y <- chr_profile[, "intensity"] * fit[, i]
           if (estim.method == "moment") {
-            this.fit <- bigauss.esti(x, this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+            this.fit <- bigauss.esti(chr_profile[, "base_curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
           } else {
-            this.fit <- bigauss.esti.EM(x, this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+            this.fit <- bigauss.esti.EM(chr_profile[, "base_curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
           }
           m[i] <- this.fit[1]
           s1[i] <- this.fit[2]
@@ -441,32 +436,32 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
       fit <- fit * 0
       for (j in 2:length(cuts))
       {
-        sel <- which(x >= cuts[j - 1] & x < cuts[j])
+        sel <- which(chr_profile[, "base_curve"] >= cuts[j - 1] & chr_profile[, "base_curve"] < cuts[j])
         use.s1 <- which(1:length(m) >= (j - 1))
         s.to.use <- s2
         s.to.use[use.s1] <- s1[use.s1]
         for (i in 1:ncol(fit))
         {
           if (s.to.use[i] != 0) {
-            fit[sel, i] <- dnorm(x[sel], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
+            fit[sel, i] <- dnorm(chr_profile[sel, "base_curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
           }
         }
       }
 
       if (do.plot) {
-        plot(x, y, cex = .1, main = paste("bw=", bw))
+        plot(chr_profile[, "base_curve"], chr_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
         sum.fit <- apply(fit, 1, sum)
-        lines(x, sum.fit)
+        lines(chr_profile[, "base_curve"], sum.fit)
         abline(v = m)
         cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
         for (i in 1:length(m))
         {
-          lines(x, fit[, i], col = cols[i])
+          lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
         }
       }
       area <- delta * (s1 + s2) / 2
-      rss <- sum((y - apply(fit, 1, sum))^2)
-      l <- length(x)
+      rss <- sum((chr_profile[, "intensity"] - apply(fit, 1, sum))^2)
+      l <- length(chr_profile[, "base_curve"])
       bic <- l * log(rss / l) + 4 * length(m) * log(l) * BIC.factor
       results[[bw.n]] <- cbind(m, s1, s2, delta, area)
       bic.rec[bw.n] <- bic
