@@ -196,9 +196,13 @@ compute_dx <- function(x) {
   if (l == 2) {
       dx <- rep(diff(x), 2)
   } else {
-    min_diff <- min(diff(x))
-    dx <- c(x[2] - x[1], (x[3:l] - x[1:(l - 2)]) / 2, x[l] - x[l - 1])
+    dx <- c(
+      x[2] - x[1],
+      diff(x, lag = 2) / 2,
+      x[l] - x[l - 1]
+    )
   }
+  min_diff <- min(diff(x))
   dx[dx > 4 * min_diff] <- 4 * min_diff
   return (dx)
 }
