@@ -191,6 +191,9 @@ compute_bounds <- function(x, sigma.ratio.lim) {
   return(list(start = start, end = end))
 }
 
+#' @description
+#' Compute difference between neighbouring elements of a vector and apply a mask such that the maximum difference is no higher than 4-fold minimum difference.
+#'
 compute_dx <- function(x) {
   l <- length(x)
   diff_x <- diff(x)
