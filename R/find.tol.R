@@ -1,3 +1,7 @@
+#' @import MASS
+NULL
+#> NULL
+
 #' An internal function that is not supposed to be directly accessed by the user. Find m/z tolerance level.
 #' 
 #' The function finds the tolerance level in m/z from a given vector of observed m/z values.

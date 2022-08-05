@@ -1,3 +1,7 @@
+#' @import dplyr stringr tibble tools tidyr parallel doParallel snow
+NULL
+#> NULL
+
 merge_known_tables <- function(batchwise, batches_idx) {
   colnames <- c("chemical_formula", "HMDB_ID", "KEGG_compound_ID", "mass", "ion.type", "m.z",
               "Number_profiles_processed", "Percent_found", "mz_min", "mz_max", 
