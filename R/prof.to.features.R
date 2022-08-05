@@ -193,8 +193,9 @@ compute_bounds <- function(x, sigma.ratio.lim) {
 
 compute_dx <- function(x) {
   l <- length(x)
+  diff_x <- diff(x)
   if (l == 2) {
-      dx <- rep(diff(x), 2)
+      dx <- rep(diff_x, 2)
   } else {
     dx <- c(
       x[2] - x[1],
@@ -202,7 +203,7 @@ compute_dx <- function(x) {
       x[l] - x[l - 1]
     )
   }
-  diff_threshold <- min(dx) * 4
+  diff_threshold <- min(diff_x) * 4
   dx <- pmin(dx, diff_threshold)
   return (dx)
 }
