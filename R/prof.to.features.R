@@ -754,7 +754,7 @@ prof.to.features <- function(feature_table,
     }
     if (num_features > 10) {
       rt_range <- range(feature_group[, "rt"])
-      bw <- min(max(bandwidth * (rt_range[2] - rt_range[1]), min.bw), max.bw)
+      bw <- min(max(bandwidth * (max(rt_range) - min(rt_range)), min.bw), max.bw)
       bw <- seq(bw, 2 * bw, length.out = 3)
       if (bw[1] > 1.5 * min.bw) {
         bw <- c(max(min.bw, bw[1] / 2), bw)
