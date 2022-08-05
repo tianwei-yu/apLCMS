@@ -731,7 +731,7 @@ prof.to.features <- function(feature_table,
 
     num_features <- nrow(feature_group)
     if (between(num_features, 2, 10)) {
-      eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], ordered_rts[, 1], all_rts)
+      eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], ordered_rts[, "base_curve"], all_rts)
       chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
       processed_features <- rbind(processed_features, chr_peak_shape)
     }
