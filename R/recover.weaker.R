@@ -267,10 +267,10 @@ compute_EIC_area <- function(thee.sel, that.prof, times, delta_rt, aver.diff) {
 }
 
 get_features_in_rt_range <- function(this, times, bw) {
-  this.span <- range(this[, 1])
-  this.curve <- times[times >= this.span[1] & times <= this.span[2]]
+  this.curve <- times[times >= min(this$labels) & times <= max(this$labels)]
+
   this.curve <- cbind(this.curve, this.curve * 0)
-  this.curve[this.curve[, 1] %in% this[, 1], 2] <- this[, 2]
+  this.curve[this.curve[, 1] %in% this$labels, 2] <- this$intensities
 
   this.smooth <- ksmooth(
     this.curve[, 1],
@@ -282,12 +282,8 @@ get_features_in_rt_range <- function(this, times, bw) {
   return(compute_peaks_and_valleys(this.smooth))
 }
 
-compute_pks_vlys_rt <- function(that.prof, times, bandwidth, min.bw, max.bw, target_rt, recover.min.count) {
-  # extract rt labels and intensities
-  this <- that.prof[, 2:3]
-  this <- this[order(this[, 1]), ]
-
-  bw <- min(max(bandwidth * (max(this[, 1]) - min(this[, 1])), min.bw), max.bw)
+compute_pks_vlys_rt <- function(this, times, bandwidth, min.bw, max.bw, target_rt, recover.min.count) {
+  bw <- min(max(bandwidth * (max(this[, "labels"]) - min(this[, "labels"])), min.bw), max.bw)
 
   roi <- get_features_in_rt_range(
     this,
@@ -300,8 +296,8 @@ compute_pks_vlys_rt <- function(that.prof, times, bandwidth, min.bw, max.bw, tar
   pks.n <- pks
   for (m in 1:length(pks))
   {
-    boundaries <- compute_mass_boundaries(vlys, pks[m])
-    pks.n[m] <- sum(this[, 1] >= boundaries$lower & this[, 1] <= boundaries$upper)
+    boundaries <- compute_boundaries(vlys, pks[m])
+    pks.n[m] <- sum(this$labels >= boundaries$lower & this$labels <= boundaries$upper)
   }
 
   if (!is.na(target_rt)) {
@@ -311,40 +307,46 @@ compute_pks_vlys_rt <- function(that.prof, times, bandwidth, min.bw, max.bw, tar
   } else {
     pks <- pks[pks.n > recover.min.count]
   }
-  return(list(pks = pks, vlys = vlys, this = this))
+  return(list(pks = pks, vlys = vlys))
 }
 
-compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, times, delta_rt) {
+compute_mu_sc <- function(this, aver.diff, times, delta_rt) {
+  x <- this$labels
+  y <- this$intensities
+
+  if (nrow(this) >= 10) {
+    miu <- sum(x * y) / sum(y)
+    sigma <- sqrt(sum(y * (x - miu)^2) / sum(y))
+    if (sigma == 0) {
+      sc <- sum(y) * aver.diff
+      miu <- miu
+    } else {
+      fitted <- dnorm(x, mean = miu, sd = sigma)
+      this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > 1e-2
+      sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
+    }
+  } else {
+    sc <- interpol.area(x, y, times, delta_rt)
+    miu <- median(x)
+  }
+  return(list(sc = sc, miu = miu))
+}
+
+compute_curr_rec_with_enough_peaks <- function(that.mass, peak, valleys, labels_intensities, aver.diff, times, delta_rt) {
   curr.rec <- c(that.mass, NA, NA)
 
   # same filtering of peaks as in compute_pks_vlyws and as above
-  boundaries <- compute_mass_boundaries(all$vlys, pks)
-  this <- all$this[which(all$this[, 1] >= boundaries$lower & all$this[, 1] <= boundaries$upper), ]
+  boundaries <- compute_boundaries(valleys, peak)
 
-  if (is.null(nrow(this))) {
-    curr.rec[3] <- this[2] * aver.diff
-    curr.rec[2] <- this[1]
+  this <- labels_intensities |> dplyr::filter(labels >= boundaries$lower & labels <= boundaries$upper)
+
+  if (nrow(this) == 1) {
+    curr.rec[3] <- this$intensities * aver.diff
+    curr.rec[2] <- this$labels
   } else {
-    x <- this[, 1]
-    y <- this[, 2]
-
-    if (nrow(this) >= 10) {
-      miu <- sum(x * y) / sum(y)
-      sigma <- sqrt(sum(y * (x - miu)^2) / sum(y))
-      if (sigma == 0) {
-        curr.rec[3] <- sum(y) * aver.diff
-        curr.rec[2] <- miu
-      } else {
-        fitted <- dnorm(x, mean = miu, sd = sigma)
-        this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > 1e-2
-        sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
-      }
-    } else {
-      sc <- interpol.area(x, y, times, delta_rt)
-      miu <- median(x)
-    }
-    curr.rec[3] <- sc
-    curr.rec[2] <- miu
+    res <- compute_mu_sc(this, aver.diff, times, delta_rt)
+    curr.rec[3] <- res$sc
+    curr.rec[2] <- res$miu
   }
   return(curr.rec)
 }
@@ -354,16 +356,16 @@ compute_curr_rec_with_enough_peaks <- function(that.mass, pks, all, aver.diff, t
 #' The lower bound is the mass of the valley the closest but smaller than peak
 #' and the upper bound is the mass of the valley the closest but higher than
 #' the peak.
-#' @param mz_valley_points vector Mz values of valley points defining mz clusters.
-#' @param peak_mz double Value of the peak mz for which to get the valley bounds.
+#' @param valley_points vector values of valley points defining clusters.
+#' @param peak double Value of the peak for which to get the valley bounds.
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
-#'   \item lower - double - The mz value of the lower bound valley point.
-#'   \item upper - double - The mz value of the upper bound valley point.
+#'   \item lower - double - The value of the lower bound valley point.
+#'   \item upper - double - The value of the upper bound valley point.
 #' }
-compute_mass_boundaries <- function(mz_valley_points, peak_mz) {
-  lower <- max(mz_valley_points[mz_valley_points < peak_mz])
-  upper <- min(mz_valley_points[mz_valley_points > peak_mz])
+compute_boundaries <- function(valley_points, peak) {
+  lower <- max(valley_points[valley_points < peak])
+  upper <- min(valley_points[valley_points > peak])
   return(list(lower = lower, upper = upper))
 }
 
@@ -430,7 +432,7 @@ compute_rectangle <- function(data_table,
   this.rec <- matrix(c(Inf, Inf, Inf), nrow = 1)
   for (peak in mass_range$pks) {
     # get mass values of valleys the closest to the peak
-    mass <- compute_mass_boundaries(mass_range$vlys, peak)
+    mass <- compute_boundaries(mass_range$vlys, peak)
 
     that <- features |>
       dplyr::filter(mz > mass$lower & mz <= mass$upper) |>
@@ -461,8 +463,10 @@ compute_rectangle <- function(data_table,
           this.rec <- rbind(this.rec, curr.rec)
         }
       } else {
+        labels_intensities <- dplyr::select(that.prof, c("labels", "intensities")) |> dplyr::arrange_at("labels")
+
         all <- compute_pks_vlys_rt(
-          that.prof,
+          labels_intensities,
           times,
           bandwidth,
           min.bw,
@@ -471,11 +475,12 @@ compute_rectangle <- function(data_table,
           recover.min.count
         )
 
-        for (pks in all$pks) {
+        for (peak in all$pks) {
           curr.rec <- compute_curr_rec_with_enough_peaks(
             that.mass,
-            pks,
-            all,
+            peak,
+            all$vlys,
+            labels_intensities,
             aver.diff,
             times,
             delta_rt

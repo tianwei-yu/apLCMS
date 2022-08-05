@@ -15,11 +15,16 @@
 combine.seq.3 <- function(features) {
     l <- nrow(features)
     breaks <- c(0, which(features$labels[1:(l - 1)] != features$labels[2:l]), l)
-    new_table <- data.frame(mz = rep(0, length(breaks) - 1), labels = unique(features$labels), intensities = rep(0, length(breaks) - 1))
+    new_table <- tibble::tibble(
+        mz = rep(0, length(breaks) - 1),
+        labels = unique(features$labels),
+        intensities = rep(0, length(breaks) - 1)
+    )
 
     for (i in 1:(length(breaks) - 1)) {
         start <- breaks[i] + 1
         end <- breaks[i + 1]
+
         mz <- features$mz[start:end]
         ints <- features$intensities[start:end]
 
