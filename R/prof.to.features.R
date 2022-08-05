@@ -162,22 +162,22 @@ rev_cum_sum <- function(x) {
   return(rev(cumsum(x)))
 }
 
-compute_start_bound <- function(x, sigma_ratio_lim) {
+compute_start_bound <- function(x, left_sigma_ratio_lim) {
   start_bound <- 1
   
   len_x <- length(x)
-  idx <- which(x >= sigma_ratio_lim[1] / (sigma_ratio_lim[1] + 1) * x[len_x])
+  idx <- which(x >= left_sigma_ratio_lim / (left_sigma_ratio_lim + 1) * x[len_x])
   if (length(idx) > 0) {
     start_bound <- max(1, min(idx))
   }
   return (start_bound)
 }
 
-compute_end_bound <- function(x, sigma_ratio_lim) {
+compute_end_bound <- function(x, right_sigma_ratio_lim) {
   len_x <- length(x)
   end_bound <- len_x - 1
 
-  idx <- which(x <= sigma_ratio_lim[2] / (sigma_ratio_lim[2] + 1) * x[len_x])
+  idx <- which(x <= right_sigma_ratio_lim / (right_sigma_ratio_lim + 1) * x[len_x])
   if (length(idx) > 0) {
     end_bound <- min(len_x - 1, max(idx))
   }
@@ -186,8 +186,8 @@ compute_end_bound <- function(x, sigma_ratio_lim) {
 
 #' @export
 compute_bounds <- function(x, sigma.ratio.lim) {
-  start <- compute_start_bound(x, sigma.ratio.lim)
-  end <- compute_end_bound(x, sigma.ratio.lim)
+  start <- compute_start_bound(x, sigma.ratio.lim[1])
+  end <- compute_end_bound(x, sigma.ratio.lim[2])
   return(list(start = start, end = end))
 }
 
