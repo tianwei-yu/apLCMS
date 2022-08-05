@@ -4,7 +4,7 @@ find_local_maxima <- function(y, ties.method) {
     # each row is 3 consecutive values in descending order
     # rows are sorted in ascending order
     z <- embed(padded_y, dim = 3)
-
+    
     # reverse the row ordering
     # first column is equal y
     z <- z[rev(seq(nrow(z))), ]
@@ -41,48 +41,38 @@ msExtrema <- function(y) {
 #' @export
 #' @examples
 #' find.turn.point(y)
+library(pastecs)
 find.turn.point <- function(y) {
+    
     y <- y[!is.na(y)] # filter NA values
+    m <- turnpoints(y)  # It gives the index.max peak
 
     if (length(unique(y)) == 1) { # if exactly one distinct value
         middle_index <- round(length(y) / 2) # get mid index
         start_and_end <- c(1, length(y)) # get first and last index
         return(list(pks = middle_index, vlys = start_and_end))
     } else {
-        b <- msExtrema(y)
+        b <- msExtrema(y)  # Boolean list, TRUE for the extreme and peak values
 
-        pks <- which(b$index.max)
-        vlys <- which(b$index.min)
-
-        # pks_mask <- diff(sign(diff(y)))
-        # vlys_mask <- diff(sign(diff(c(-Inf, -y, -Inf))))
-
-        # if(anyNA(pks_mask) || anyNA(vlys_mask)) {
-        #     browser()
+        pks <- which(m$peaks) #which(b$index.max)    # gives 1 index -> 258
+        #vlys <- which(b$index.min)   # gives 2 indices -> 1, 512
+        
+        # These If redefine the vlys, not sure it is correct !
+        # if (pks[1] != 1) {    # this is TRUE 
+        #     vlys <- c(1, vlys)
         # }
 
-        # pks_v2 <- which(pks_mask == -2) + 1
-        # vlys_v2 <- which(vlys_mask == -2)
-
-        # if(pks != pks_v2 || vlys != vlys_v2) {
-        #     browser()
+        # if (pks[length(pks)] != length(y)) {  # This is TRUE
+        #     vlys <- c(vlys, length(y))
         # }
 
-        if (pks[1] != 1) {
-            vlys <- c(1, vlys)
-        }
-
-        if (pks[length(pks)] != length(y)) {
-            vlys <- c(vlys, length(y))
-        }
-
-        if (length(pks) == 1) {
-            vlys <- c(1, length(y))
+        if (length(pks) == 1) {   #This is TRUE -> final vlys values are assigned here 
+            vlys <- c(1, m$n)#c(1, length(y))
         }
 
         x <- new("list")
         x$pks <- pks
         x$vlys <- vlys
-        return(x)
+    return(x)
     }
 }
