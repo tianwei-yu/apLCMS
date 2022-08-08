@@ -1,3 +1,7 @@
+#' @import pastecs
+NULL
+#> NULL
+
 #' Find peaks and valleys of a curve.
 #'
 #' @description
@@ -12,7 +16,6 @@
 #' @export
 #' @examples
 #' find.turn.point(y)
-library(pastecs)
 find.turn.point <- function(y) {
     y <- y[!is.na(y)]                             # filter NA values
     if (length(unique(y)) == 1) {                 # if exactly one distinct value
@@ -20,15 +23,14 @@ find.turn.point <- function(y) {
         start_and_end <- c(1, length(y))          # get first and last index
         return(list(pks = middle_index, vlys = start_and_end))
     } else {
-        list_tp <- turnpoints(y)        
-        pks <- which(list_tp$peaks)  
-        vlys <- which(list_tp$pits)
-        if (length(pks) == 1) {   
-            vlys <- c(1, list_tp$n)
+        list_tp <- pastecs::turnpoints(y)
+        peaks <- which(list_tp$peaks)  
+        pits <- which(list_tp$pits)
+
+        if (length(peaks) == 1) {   
+            pits <- c(1, list_tp$n)
         }
-        x <- new("list")
-        x$pks <- pks
-        x$vlys <- vlys
-    return(x)
+
+    return(list(pks = peaks, vlys = pits))
     }
 }

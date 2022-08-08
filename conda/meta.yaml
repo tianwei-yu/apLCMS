@@ -62,6 +62,7 @@ requirements:
     - r-tidyr
     - r-stringr
     - r-tibble
+    - r-pastecs
 
 test:
   commands:

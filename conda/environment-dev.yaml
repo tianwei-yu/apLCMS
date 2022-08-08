@@ -33,3 +33,4 @@ dependencies:
   - r-datacomparer
   - r-patrick
   - radian
+  - r-pastecs
