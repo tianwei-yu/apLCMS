@@ -243,7 +243,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
         plot(x, y)
     }
     if (do.plot & !is.na(truth[1])) {
-      draw_chr_peaks()
+      draw_chr_normal_peaks(x, truth)
     }
     max.y.0 <- max(y.0, na.rm = TRUE)
     y <- (y / max.y.0)^power
@@ -304,8 +304,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     scale <- compute_scale(y, d)
 
     if (do.plot) {
-      fit.1 <- d * scale
-      lines(x[y > 0], fit.1, col = "red")
+      lines(x[y > 0], d * scale, col = "red")
     }
 
     to.return <- c(m, s1, s2, scale)
