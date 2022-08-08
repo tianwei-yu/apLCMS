@@ -82,12 +82,25 @@ plot_raw_profile_histogram <- function(raw.prof,
 
 #' @export
 plot_peak_summary <- function(feature_groups, processed_features) {
-    mz_sd <- compute_mz_sd(feature_groups)
+  mz_sd <- compute_mz_sd(feature_groups)
 
-    par(mfrow = c(2, 2))
-    plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
-    text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
-    hist(mz_sd, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
-    hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
-    hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+  par(mfrow = c(2, 2))
+  plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
+  text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
+  hist(mz_sd, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
+  hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
+  hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+}
+
+#' @export
+plot_chr_profile <- function(chr_profile, bw, fit, m) {
+  plot(chr_profile[, "base_curve"], chr_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
+  sum.fit <- apply(fit, 1, sum)
+  lines(chr_profile[, "base_curve"], sum.fit)
+  abline(v = m)
+  cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
+  for (i in 1:length(m))
+  {
+    lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
+  }
 }

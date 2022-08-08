@@ -447,15 +447,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
       }
 
       if (do.plot) {
-        plot(chr_profile[, "base_curve"], chr_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
-        sum.fit <- apply(fit, 1, sum)
-        lines(chr_profile[, "base_curve"], sum.fit)
-        abline(v = m)
-        cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
-        for (i in 1:length(m))
-        {
-          lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
-        }
+        plot_chr_profile(chr_profile, bw, fit, m)
       }
       area <- delta * (s1 + s2) / 2
       rss <- sum((chr_profile[, "intensity"] - apply(fit, 1, sum))^2)
