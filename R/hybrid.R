@@ -1,3 +1,7 @@
+#' @import parallel doParallel
+NULL
+#> NULL
+
 .merge_peaks <- function(aligned, known_table, match_tol_ppm) {
   if (is.na(match_tol_ppm)) {
     match_tol_ppm <- aligned$mz_tolerance * 1e+06
