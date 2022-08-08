@@ -13,16 +13,16 @@ NULL
 #' @param tolerance Tolerance to use for numeric comparisons.
 #' @return Returns the same table with duplicate rows removed.
 #' @export
-duplicate.row.remove <- function(new.table, tolerance = 1e-10) {
-  new.table <- new.table[order(new.table[, 1], new.table[, 2], new.table[, 5]), ]
+duplicate.row.remove <- function(features, tolerance = 1e-10) {
+  new.table <- features |> dplyr::arrange_at(c("mz", "pos", "area"))
   n <- 1
   m <- 2
   to.remove <- rep(0, nrow(new.table))
 
   while (m <= nrow(new.table)) {
-    if (abs(new.table[m, 1] - new.table[n, 1]) < tolerance &
-      abs(new.table[m, 2] - new.table[n, 2]) < tolerance &
-      abs(new.table[m, 5] - new.table[n, 5]) < tolerance) {
+    if (abs(new.table$mz[m] - new.table$mz[n]) < tolerance &
+      abs(new.table$pos[m] - new.table$pos[n]) < tolerance &
+      abs(new.table$area[m] - new.table$area[n]) < tolerance) {
       to.remove[m] <- 1
       m <- m + 1
     } else {
@@ -254,7 +254,7 @@ get_mzrange_bound_indices <- function(aligned_feature_mass,
 #' @export
 get_rt_region_indices <- function(retention_time, profile_data, chr_tol) {
   if (!is.na(retention_time)) {
-    selection <- which(abs(profile_data[, 2] - retention_time) < chr_tol)
+    selection <- which(abs(profile_data$labels - retention_time) < chr_tol)
   } else {
     selection <- 1
   }
@@ -435,7 +435,7 @@ compute_rectangle <- function(data_table,
   mass_range <- compute_peaks_and_valleys(mass.den)
   mass_range$pks <- mass_range$pks[abs(mass_range$pks - aligned_feature_mass) < custom_mz_tol / 1.5]
 
-  this.rec <- matrix(c(Inf, Inf, Inf), nrow = 1)
+  this.rec <- tibble::tibble(mz = Inf, labels = Inf, intensities = Inf)
   for (peak in mass_range$pks) {
     # get mass values of valleys the closest to the peak
     mass <- compute_boundaries(mass_range$vlys, peak)
@@ -466,7 +466,7 @@ compute_rectangle <- function(data_table,
             aver.diff
           )
           curr.rec[2] <- median(that.prof$labels[thee.sel])
-          this.rec <- rbind(this.rec, curr.rec)
+          this.rec <- tibble::add_row(this.rec, tibble::tibble_row(mz = curr.rec[1], labels = curr.rec[2], intensities = curr.rec[3]))
         }
       } else {
         labels_intensities <- dplyr::select(that.prof, c("labels", "intensities")) |> dplyr::arrange_at("labels")
@@ -491,7 +491,8 @@ compute_rectangle <- function(data_table,
             times,
             delta_rt
           )
-          this.rec <- rbind(this.rec, curr.rec)
+
+          this.rec <- tibble::add_row(this.rec, tibble::tibble_row(mz = curr.rec[1], labels = curr.rec[2], intensities = curr.rec[3]))
         }
       }
     }
@@ -596,7 +597,7 @@ recover.weaker <- function(filename,
     aligned.ftrs
   )
 
-  # rounding is used to create a histogram of retention time values
+  # # rounding is used to create a histogram of retention time values
   target_times <- compute_target_times(
     aligned.ftrs[, "rt"],
     round(extracted_features[, "pos"], 5),
@@ -664,25 +665,25 @@ recover.weaker <- function(filename,
           custom.mz.tol[i]
         )
 
-        this.pos.diff <- abs(extracted_features[, 2] - this.rec[this.sel, 2])
+        this.pos.diff <- abs(extracted_features$pos - this.rec$labels[this.sel])
         this.pos.diff <- which(this.pos.diff == min(this.pos.diff))[1]
-        this.f1 <- rbind(extracted_features, c(this.rec[this.sel, 1], this.rec[this.sel, 2], NA, NA, this.rec[this.sel, 3]))
-        this.time.adjust <- (-this.f1[this.pos.diff, 2] + adjusted_features[this.pos.diff, 2])
-        this.f2 <- rbind(
-          adjusted_features,
-          c(
-            this.rec[this.sel, 1],
-            this.rec[this.sel, 2] + this.time.adjust,
-            NA,
-            NA,
-            this.rec[this.sel, 3],
-            grep(sample_name, colnames(aligned.ftrs)),
-            NA
-          )
+        this.f1 <- extracted_features |> tibble::add_row(
+          mz = this.rec$mz[this.sel],
+          pos = this.rec$labels[this.sel],
+          area = this.rec$intensities[this.sel]
         )
-        sample_intensities[i] <- this.rec[this.sel, 3]
-        sample_times[i] <- this.rec[this.sel, 2] + this.time.adjust
-        this.mz[i] <- this.rec[this.sel, 1]
+        this.time.adjust <- (-this.f1$pos[this.pos.diff] + adjusted_features$pos[this.pos.diff])
+        
+        this.f2 <- adjusted_features |> tibble::add_row(
+          mz = this.rec$mz[this.sel],
+          pos = this.rec$labels[this.sel] + this.time.adjust,
+          area = this.rec$intensities[this.sel],
+          V6 = grep(sample_name, colnames(aligned.ftrs))
+        )
+
+        sample_intensities[i] <- this.rec$intensities[this.sel]
+        sample_times[i] <- this.rec$labels[this.sel] + this.time.adjust
+        this.mz[i] <- this.rec$mz[this.sel]
       }
     }
   }
@@ -690,8 +691,8 @@ recover.weaker <- function(filename,
   to.return$this.mz <- this.mz
   to.return$this.ftrs <- sample_intensities
   to.return$this.times <- sample_times
-  to.return$this.f1 <- duplicate.row.remove(extracted_features)
-  to.return$this.f2 <- duplicate.row.remove(adjusted_features)
+  to.return$this.f1 <- duplicate.row.remove(this.f1)
+  to.return$this.f2 <- duplicate.row.remove(this.f2)
 
   return(to.return)
 }
