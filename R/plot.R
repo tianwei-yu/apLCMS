@@ -104,3 +104,14 @@ plot_chr_profile <- function(chr_profile, bw, fit, m) {
     lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
   }
 }
+
+#' @export
+plot_normix_bic <- function(x, y, bw, aaa) {
+  plot(x, y, cex = .1, main = paste("bw=", bw))
+  abline(v = aaa[, 1])
+  cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
+  for (i in 1:nrow(aaa))
+  {
+    lines(x, dnorm(x, mean = aaa[i, 1], sd = aaa[i, 2]) * aaa[i, 3], col = cols[i])
+  }
+}

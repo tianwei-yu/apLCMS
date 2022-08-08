@@ -633,13 +633,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
       }
 
       if (do.plot) {
-        plot(x, y, cex = .1, main = paste("bw=", bw))
-        abline(v = aaa[, 1])
-        cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
-        for (i in 1:nrow(aaa))
-        {
-          lines(x, dnorm(x, mean = aaa[i, 1], sd = aaa[i, 2]) * aaa[i, 3], col = cols[i])
-        }
+        plot_normix_bic(x, y, bw, aaa)
       }
 
       rss <- sum((y - total.fit)^2)
