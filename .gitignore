@@ -1,2 +1,5 @@
 tests/testdata/RCX*
 tests/testdata/mbr*
+.vscode
+*.Rcheck
+*.tar.gz

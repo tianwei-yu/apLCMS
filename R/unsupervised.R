@@ -1,3 +1,7 @@
+#' @import tools snow splines parallel doParallel
+NULL
+#> NULL
+
 as_feature_crosstab <- function(feature_names, sample_names, data) {
   colnames(data) <- c('mz', 'rt', 'mz_min', 'mz_max', sample_names)
   rownames(data) <- feature_names
@@ -81,9 +85,9 @@ recover_weaker_signals <- function(
   snow::clusterExport(cluster, c('recover.weaker'))
   snow::clusterEvalQ(cluster, library("splines"))
 
-  recovered <- snow::parLapply(cluster, seq_along(filenames), function(i) {
+  recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
-      loc = i,
+      sample_name = get_sample_name(filenames[i]),
       filename = filenames[[i]],
       this.f1 = extracted_features[[i]],
       this.f2 = corrected_features[[i]],

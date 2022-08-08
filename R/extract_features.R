@@ -1,3 +1,7 @@
+#' @import snow
+NULL
+#> NULL
+
 #' feature extraction
 #' 
 #' extract feature
@@ -67,7 +71,15 @@ extract_features <- function(
     'compute_mass_values',
     'compute_densities',
     'compute_breaks',
-    'rm.ridge'
+    'compute_boundaries',
+    'increment_counter',
+    'rm.ridge',
+    'compute_base_curve',
+    'compute_all_times',
+    'bigauss.mix',
+    'bigauss.esti',
+    'rev_cum_sum',
+    'compute_bounds'
   ))
 
   snow::parLapply(cluster, filenames, function(filename) {

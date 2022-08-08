@@ -1,3 +1,7 @@
+#' @import foreach
+NULL
+#> NULL
+
 to_attach <- function(pick, number_of_samples, use = "sum") {
     strengths <- rep(0, number_of_samples)
     if (is.null(nrow(pick))) {
@@ -134,7 +138,7 @@ feature.align <- function(features,
         
         # retention time alignment
         aligned.ftrs <-
-            foreach(i = seq_along(sel.labels), .combine = rbind) %do% {
+            foreach::foreach(i = seq_along(sel.labels), .combine = rbind) %do% {
                 if (i %% 100 == 0)
                     gc()
                 this.return <- NULL

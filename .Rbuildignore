@@ -1,0 +1,6 @@
+.github
+conda
+.devcontainer
+Dockerfile
+.gitignore
+.vscode
