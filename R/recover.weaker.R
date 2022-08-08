@@ -742,8 +742,7 @@ recover.weaker <- function(filename,
           )
         }
 
-        this.pos.diff <- abs(extracted_features$pos - this.rec$labels[this.sel])
-        this.pos.diff <- which(this.pos.diff == min(this.pos.diff))[1]
+        this.pos.diff <- which.min(abs(extracted_features$pos - this.rec$labels[this.sel]))
         this.f1 <- extracted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
           pos = this.rec$labels[this.sel],
