@@ -243,9 +243,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
         plot(x, y)
     }
     if (do.plot & !is.na(truth[1])) {
-      true.y1 <- dnorm(x[x < truth[1]], mean = truth[1], sd = truth[2]) * truth[2] * truth[4]
-      true.y2 <- dnorm(x[x >= truth[1]], mean = truth[1], sd = truth[3]) * truth[3] * truth[4]
-      lines(x, c(true.y1, true.y2), col = "green")
+      draw_chr_peaks()
     }
     max.y.0 <- max(y.0, na.rm = TRUE)
     y <- (y / max.y.0)^power
