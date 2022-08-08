@@ -220,6 +220,15 @@ compute_chromatographic_profile <- function(feature_table, ordered_rts, rt_range
   return (chr_profile)
 }
 
+compute_scale <- function(y, d) {
+    dy_ratio <- d^2 * log(y / d)
+    dy_ratio[is.na(dy_ratio)] <- 0
+    dy_ratio[is.infinite(dy_ratio)] <- 0
+
+    scale <- exp(sum(dy_ratio) / sum(d^2))
+    return (scale)
+}
+
 #' @export
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
   sel <- which(y > 1e-10)
@@ -294,11 +303,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     d <- c(d1 * s1, d2 * s2) # notice this "density" doesnt integrate to 1. Rather it integrates to (s1+s2)/2
     y <- y.0
 
-    dy.ratio <- d^2 * log(y / d)
-    dy.ratio[is.na(dy.ratio)] <- 0
-    dy.ratio[is.infinite(dy.ratio)] <- 0
-
-    scale <- exp(sum(dy.ratio) / sum(d^2))
+    scale <- compute_scale(y, d)
 
     if (do.plot) {
       fit.1 <- d * scale
