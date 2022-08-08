@@ -233,7 +233,7 @@ compute_scale <- function(y, d) {
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
   sel <- which(y > 1e-10)
   if (length(sel) < 2) {
-    to.return <- c(median(x), 1, 1, 0)
+    return (c(median(x), 1, 1, 0))
   } else {
     x <- x[sel]
     y <- y[sel]
