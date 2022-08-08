@@ -312,7 +312,7 @@ count_peaks <- function(roi, times) {
 #'
 #' @param features tibble Features with `mz`, `labels` and `intensities`.
 #' @param times vector Retention time values from the raw data file.
-#' @param bandwith flot Bandwidth to use in smoothing.
+#' @param bandwidth float Bandwidth to use in smoothing.
 #' @param target_rt float Retention time at which to recover the intensity.
 #' @param recover_min_count int Minimum number of peaks required in the area to recover the signal.
 #' @return Returns a list object with the following objects in it:
@@ -454,27 +454,44 @@ compute_peaks_and_valleys <- function(dens) {
   return(list(pks = pks, vlys = vlys))
 }
 
-
+#' Compute rectangle around feature with `aligned_feature_mz` and `target_rt` for recovery.
+#' 
+#' @param data_table tibble Feature table with `mz`, `labels` and `intensities` column.
+#' @param aligned_feature_mz float Mz value of feature in aligned feature table.
+#' @param breaks vector Integer boundaries of clusters in mz values.
+#' @param custom_mz_tol float Custom mz tolerance for the feature.
+#' @param orig_mz_tol float Flat original mz tolerance to use.
+#' @param use_intensity_weighting bool Whether to use intensity weighting.
+#' @param recover_min_count int Minimum number of peaks required in the area to recover the signal.
+#' @param target_rt float Target retention time value.
+#' @param custom_chr_tol float Custom chromatographic tolerance to use.
+#' @param times vector Raw retention time values from raw data file.
+#' @param delta_rt vector Differences between consecutive retention time values (diff(times)).
+#' @param aver_diff float Average retention time difference.
+#' @param bandwidth float Bandwidth to use in smoothing.
+#' @param min.bw float Minimum bandwidth to use.
+#' @param max.bw float Maximum bandwidth to use.
+#' @return tibble Tibble with `mz`, `labels` and `intensities` columns.
 compute_rectangle <- function(data_table,
-                              aligned_feature_mass,
+                              aligned_feature_mz,
                               breaks,
                               custom_mz_tol,
-                              orig.tol,
-                              intensity.weighted,
-                              recover.min.count,
+                              orig_mz_tol,
+                              use_intensity_weighting,
+                              recover_min_count,
                               target_rt,
                               custom_chr_tol,
                               times,
                               delta_rt,
-                              aver.diff,
+                              aver_diff,
                               bandwidth,
                               min.bw,
                               max.bw) {
   bounds <- get_mzrange_bound_indices(
-    aligned_feature_mass,
+    aligned_feature_mz,
     data_table$mz,
     breaks,
-    orig.tol
+    orig_mz_tol
   )
 
   features <- dplyr::slice(
@@ -484,13 +501,13 @@ compute_rectangle <- function(data_table,
 
   mass.den <- compute_mass_density(
     features,
-    bandwidth = 0.5 * orig.tol * aligned_feature_mass,
-    intensity_weighted = intensity.weighted
+    bandwidth = 0.5 * orig_mz_tol * aligned_feature_mz,
+    intensity_weighted = use_intensity_weighting
   )
 
   # find peaks in mz range in raw data
   mass_range <- compute_peaks_and_valleys(mass.den)
-  mass_range$pks <- mass_range$pks[abs(mass_range$pks - aligned_feature_mass) < custom_mz_tol / 1.5]
+  mass_range$pks <- mass_range$pks[abs(mass_range$pks - aligned_feature_mz) < custom_mz_tol / 1.5]
 
   this.rec <- tibble::tibble(mz = Inf, labels = Inf, intensities = Inf)
   for (peak in mass_range$pks) {
@@ -502,7 +519,7 @@ compute_rectangle <- function(data_table,
       dplyr::arrange_at("labels")
 
     # get values in RT region of interest?
-    if (nrow(that) > recover.min.count) {
+    if (nrow(that) > recover_min_count) {
       that.prof <- combine.seq.3(that)
       that.mass <- sum(that.prof$mz * that.prof$intensities) / sum(that.prof$intensities)
       curr.rec <- c(that.mass, NA, NA)
@@ -514,11 +531,11 @@ compute_rectangle <- function(data_table,
           custom_chr_tol
         )
 
-        if (length(thee.sel) > recover.min.count) {
+        if (length(thee.sel) > recover_min_count) {
           if (length(thee.sel) > 1) {
             curr.rec[3] <- interpol.area(that.prof$labels[thee.sel], that.prof$intensities[thee.sel], times, delta_rt)
           } else {
-            curr.rec[3] <- that.prof$intensities[thee.sel] * aver.diff
+            curr.rec[3] <- that.prof$intensities[thee.sel] * aver_diff
           }
           curr.rec[2] <- median(that.prof$labels[thee.sel])
           this.rec <- tibble::add_row(this.rec, tibble::tibble_row(mz = curr.rec[1], labels = curr.rec[2], intensities = curr.rec[3]))
@@ -532,7 +549,7 @@ compute_rectangle <- function(data_table,
           times,
           bw,
           target_rt,
-          recover.min.count
+          recover_min_count
         )
 
         for (peak in all$pks) {
@@ -541,7 +558,7 @@ compute_rectangle <- function(data_table,
             peak,
             all$vlys,
             labels_intensities,
-            aver.diff,
+            aver_diff,
             times,
             delta_rt
           )
