@@ -316,7 +316,6 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
   return(to.return)
 }
 
-#' @importFrom magittr %>%
 #' @importFrom dplyr filter arrange
 #' @export
 bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
@@ -334,8 +333,8 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
   last.num.pks <- Inf
 
   chr_profile_unfiltered <- chr_profile
-  chr_profile <- data.frame(chr_profile) %>%
-    filter(intensity > 1e-5) %>%
+  chr_profile <- data.frame(chr_profile) |>
+    filter(intensity > 1e-5) |>
     arrange(base_curve)
 
   for (bw.n in length(all.bw):1)
