@@ -500,13 +500,13 @@ compute_rectangle <- function(data_table,
   return(this.rec)
 }
 
-refine_selection <- function(this.sel, target_rt, rectangle, aligned_rt, chr_tol, mz_tol) {
+refine_selection <- function(this.sel, target_rt, rectangle, aligned_mz, chr_tol, mz_tol) {
   if (length(this.sel) > 1) {
     if (!is.na(target_rt)) {
-      this.d <- (rectangle[, 2] - target_rt)^2 / chr_tol^2 + (rectangle[, 1] - aligned_rt)^2 / mz_tol^2
+      this.d <- (rectangle$labels - target_rt)^2 / chr_tol^2 + (rectangle$mz - aligned_mz)^2 / mz_tol^2
       this.sel <- which(this.d == min(this.d))[1]
     } else {
-      this.d <- abs(rectangle[, 1] - aligned_rt)
+      this.d <- abs(rectangle$mz - aligned_mz)
       this.sel <- which(this.d == min(this.d))[1]
     }
   }
