@@ -1,3 +1,7 @@
+#' @import dplyr foreach
+NULL
+#> NULL
+
 compute_comb <- function(candi, template, this.feature, j){
     this.comb <- dplyr::bind_rows(dplyr::bind_cols(candi, label = rep(template, nrow(candi))),
                         dplyr::bind_cols(this.feature[, 1:2], label = rep(j, nrow(this.feature))))
