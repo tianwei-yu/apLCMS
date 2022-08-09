@@ -344,7 +344,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
 }
 
 #' Compute interpolated retention time and intensity values.
-#' 
+#'
 #' @param features tibble Features with `labels` and `intensities` columns.
 #' @param aver_diff float Average retention time difference.
 #' @return Returns a list object with the following objects in it:
@@ -455,7 +455,7 @@ compute_peaks_and_valleys <- function(dens) {
 }
 
 #' Compute rectangle around feature with `aligned_feature_mz` and `target_rt` for recovery.
-#' 
+#'
 #' @param data_table tibble Feature table with `mz`, `labels` and `intensities` column.
 #' @param aligned_feature_mz float Mz value of feature in aligned feature table.
 #' @param breaks vector Integer boundaries of clusters in mz values.
@@ -507,7 +507,8 @@ compute_rectangle <- function(data_table,
 
   # find peaks in mz range in raw data
   mass_range <- compute_peaks_and_valleys(mass.den)
-  mass_range$pks <- mass_range$pks[abs(mass_range$pks - aligned_feature_mz) < custom_mz_tol / 1.5]
+  pks_in_tol <- abs(mass_range$pks - aligned_feature_mz) < custom_mz_tol / 1.5
+  mass_range$pks <- mass_range$pks[pks_in_tol]
 
   this.rec <- tibble::tibble(mz = Inf, labels = Inf, intensities = Inf)
   for (peak in mass_range$pks) {
@@ -533,15 +534,30 @@ compute_rectangle <- function(data_table,
 
         if (length(thee.sel) > recover_min_count) {
           if (length(thee.sel) > 1) {
-            curr.rec[3] <- interpol.area(that.prof$labels[thee.sel], that.prof$intensities[thee.sel], times, delta_rt)
+            curr.rec[3] <- interpol.area(
+              that.prof$labels[thee.sel],
+              that.prof$intensities[thee.sel],
+              times,
+              delta_rt
+            )
           } else {
             curr.rec[3] <- that.prof$intensities[thee.sel] * aver_diff
           }
           curr.rec[2] <- median(that.prof$labels[thee.sel])
-          this.rec <- tibble::add_row(this.rec, tibble::tibble_row(mz = curr.rec[1], labels = curr.rec[2], intensities = curr.rec[3]))
+          this.rec <- tibble::add_row(
+            this.rec,
+            tibble::tibble_row(
+              mz = curr.rec[1],
+              labels = curr.rec[2],
+              intensities = curr.rec[3]
+            )
+          )
         }
       } else {
-        labels_intensities <- dplyr::select(that.prof, c("labels", "intensities")) |> dplyr::arrange_at("labels")
+        labels_intensities <- dplyr::select(
+          that.prof,
+          c("labels", "intensities")
+        ) |> dplyr::arrange_at("labels")
         bw <- min(max(bandwidth * (span(labels_intensities$labels)), min.bw), max.bw)
 
         all <- compute_pks_vlys_rt(
@@ -563,7 +579,14 @@ compute_rectangle <- function(data_table,
             delta_rt
           )
 
-          this.rec <- tibble::add_row(this.rec, tibble::tibble_row(mz = curr.rec[1], labels = curr.rec[2], intensities = curr.rec[3]))
+          this.rec <- tibble::add_row(
+            this.rec,
+            tibble::tibble_row(
+              mz = curr.rec[1],
+              labels = curr.rec[2],
+              intensities = curr.rec[3]
+            )
+          )
         }
       }
     }
@@ -581,7 +604,9 @@ compute_rectangle <- function(data_table,
 #' @return int Index of value in rectable closest to `target_rt` and `aligned_mz`.
 refine_selection <- function(target_rt, rectangle, aligned_mz, chr_tol, mz_tol) {
   if (!is.na(target_rt)) {
-    this.d <- (rectangle$labels - target_rt)^2 / chr_tol^2 + (rectangle$mz - aligned_mz)^2 / mz_tol^2
+    rt_term <- (rectangle$labels - target_rt)^2 / chr_tol^2
+    mz_term <- (rectangle$mz - aligned_mz)^2 / mz_tol^2
+    this.d <- rt_term + mz_term
   } else {
     this.d <- abs(rectangle$mz - aligned_mz)
   }
@@ -602,14 +627,19 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, chr_tol, mz_tol) 
 #' @param align.mz.tol the m/z tolerance used in the alignment.
 #' @param align.chr.tol the elution time tolerance in the alignment.
 #' @param extracted_features The matrix which is the output from proc.to.feature().
-#' @param adjusted_features The matrix which is the output from proc.to.feature(). The retention time in this object have been adjusted by the function adjust.time().
-#' @param mz.range The m/z around the feature m/z to search for observations. The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param chr.range The retention time around the feature retention time to search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
-#' @param use.observed.range If the value is TRUE, the actual range of the observed locations of the feature in all the spectra will be used.
+#' @param adjusted_features The matrix which is the output from proc.to.feature().
+#' The retention time in this object have been adjusted by the function adjust.time().
+#' @param mz.range The m/z around the feature m/z to search for observations.
+#' The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
+#' @param chr.range The retention time around the feature retention time to search for observations.
+#' The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
+#' @param use.observed.range If the value is TRUE, the actual range of the observed locations
+#' of the feature in all the spectra will be used.
 #' @param orig.tol The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.
 #' @param min.bw The minimum bandwidth to use in the kernel smoother.
 #' @param max.bw The maximum bandwidth to use in the kernel smoother.
-#' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps determine the bandwidth in the kernel smoother used for peak identification.
+#' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the
+#' time axis helps determine the bandwidth in the kernel smoother used for peak identification.
 #' @param recover.min.count minimum number of raw data points to support a recovery.
 #' @param intensity.weighted Whether to use intensity to weight mass density estimation.
 #' @return Returns a list object with the following objects in it:
