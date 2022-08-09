@@ -486,8 +486,8 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
     this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > prob.cut
     sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
   } else {
-    pks <- pks[order(pks)]
-    vlys <- vlys[order(vlys)]
+    pks <- sort(pks)
+    vlys <- sort(vlys)
     l <- length(pks)
     miu <- sigma <- sc <- pks
     w <- matrix(0, nrow = l, ncol = length(x))
