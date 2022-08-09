@@ -494,8 +494,10 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
 
     for (m in 1:l)
     {
+      # this pattern occurs multiple times in other scripts
       this.low <- max(vlys[vlys <= pks[m]])
       this.high <- min(vlys[vlys >= pks[m]])
+
       this.x <- x[x >= this.low & x <= this.high]
       this.y <- y[x >= this.low & x <= this.high]
 
