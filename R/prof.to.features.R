@@ -577,11 +577,17 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
       for (m in 1:l)
       {
         this.y <- y * w[m, ]
-        miu[m] <- sum(x * this.y) / sum(this.y)
-        sigma[m] <- sqrt(sum(this.y * (x - miu[m])^2) / sum(this.y))
+        rt_int_list_this <- list(labels = x, intensities = this.y)
+        mu_sc_std <- compute_mu_sc_std(rt_int_list_this, aver_diff)
+        miu[m] <- mu_sc_std$label
+        sc[m] <- mu_sc_std$intensity
+        sigma[m] <- mu_sc_std$sigma
+
+        # mu_sc_std$intensity == exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2))) is TRUE
+        # however, if I use the former instead of the latter the test breaks because data is different. R is fun.
         fitted <- dnorm(x, mean = miu[m], sd = sigma[m])
         this.sel <- this.y > 0 & fitted / dnorm(miu[m], mean = miu[m], sd = sigma[m]) > prob.cut
-        sc[m] <- exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
+        sc[m] <- exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2))) # this is equal to mu_sc_std$intensity
       }
       diff <- sum((miu.0 - miu)^2)
 
