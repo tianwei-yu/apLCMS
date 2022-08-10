@@ -1,22 +1,19 @@
 to_attach <- function(pick, number_of_samples, use = "sum") {
     strengths <- rep(0, number_of_samples)
     if (is.null(nrow(pick))) {
-        # this is very strange if it can ever happen
-        # maybe commas are missing? we want the same as below
-        # but also why if there are no rows...
         strengths[pick[6]] <- pick[5]
         return(c(pick[1], pick[2], pick[1], pick[1], strengths))
     } else {
         for (i in seq_along(strengths)) {
-            # select all areas from the same sample
-            areas <- pick[pick[, 6] == i, 5]
+            # select all areas/RTs from the same sample
+            values <- pick[pick[, 6] == i, 5]
             if (use == "sum")
-                strengths[i] <- sum(areas)
+                strengths[i] <- sum(values)
             if (use == "median")
-                strengths[i] <- median(areas)
+                strengths[i] <- median(values)
             # can be NA if pick does not contain any data from a sample
         }
-        # average of m/z, average of rt, min of rt, max of rt, sum/median of areas
+        # average of m/z, average of rt, min of m/z, max of m/z, sum/median of areas/RTs
         return(c(mean(pick[, 1]), mean(pick[, 2]), min(pick[, 1]),
                  max(pick[, 1]), strengths))
     }
