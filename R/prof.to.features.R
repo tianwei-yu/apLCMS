@@ -51,7 +51,7 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
 
   ## this function computes parameters of chromatographic peak shape if peaks are considered to be gaussian
 
-  chr_peak_shape <- normix.bic(chr_profile[, "base_curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+  chr_peak_shape <- normix.bic(chr_profile[, "base.curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
   if (nrow(chr_peak_shape) == 1) {
     chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
   } else {
@@ -218,10 +218,10 @@ compute_dx <- function(x) {
   return (dx)
 }
 
-compute_chromatographic_profile <- function(feature_table, ordered_rts, rt_range) {
+compute_chromatographic_profile <- function(feature_table, base.curve, rt_range) {
   rt_range <- range(feature_table[, "rt"])
-  chr_profile <- ordered_rts[between(ordered_rts[, "base_curve"], min(rt_range), max(rt_range)), ]
-  chr_profile[chr_profile[, "base_curve"] %in% feature_table[, "rt"], 2] <- feature_table[, "intensity"]
+  chr_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
+  chr_profile[chr_profile[, "base.curve"] %in% feature_table[, "rt"], 2] <- feature_table[, "intensity"]
   colnames(chr_profile)[2] <- "intensity"
 
   return (chr_profile)
@@ -344,12 +344,12 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
   chr_profile_unfiltered <- chr_profile
   chr_profile <- data.frame(chr_profile) |>
     filter(intensity > 1e-5) |>
-    arrange(base_curve)
+    arrange(base.curve)
 
   for (bw.n in length(all.bw):1)
   {
     bw <- all.bw[bw.n]
-    this.smooth <- ksmooth(chr_profile_unfiltered[, "base_curve"], chr_profile_unfiltered[, "intensity"], kernel = "normal", bandwidth = bw)
+    this.smooth <- ksmooth(chr_profile_unfiltered[, "base.curve"], chr_profile_unfiltered[, "intensity"], kernel = "normal", bandwidth = bw)
     turns <- find.turn.point(this.smooth$y)
     pks <- this.smooth$x[turns$pks]
     vlys <- c(-Inf, this.smooth$x[turns$vlys], Inf)
@@ -358,30 +358,30 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
     smoother.vly.rec[[bw.n]] <- vlys
     if (length(pks) != last.num.pks) {
       last.num.pks <- length(pks)
-      l <- length(chr_profile[, "base_curve"])
-      dx <- c(chr_profile[2, "base_curve"] - chr_profile[1, "base_curve"], (chr_profile[3:l, "base_curve"] - chr_profile[1:(l - 2), "base_curve"]) / 2, chr_profile[l, "base_curve"] - chr_profile[l - 1, "base_curve"])
+      l <- length(chr_profile[, "base.curve"])
+      dx <- c(chr_profile[2, "base.curve"] - chr_profile[1, "base.curve"], (chr_profile[3:l, "base.curve"] - chr_profile[1:(l - 2), "base.curve"]) / 2, chr_profile[l, "base.curve"] - chr_profile[l - 1, "base.curve"])
       if (l == 2) {
-        dx <- rep(diff(chr_profile[, "base_curve"]), 2)
+        dx <- rep(diff(chr_profile[, "base.curve"]), 2)
       }
 
       # initiation
       m <- s1 <- s2 <- delta <- pks
       for (i in 1:length(m))
       {
-        sel.1 <- which(chr_profile[, "base_curve"] >= max(vlys[vlys < m[i]]) & chr_profile[, "base_curve"] < m[i])
-        s1[i] <- sqrt(sum((chr_profile[sel.1, "base_curve"] - m[i])^2 * chr_profile[sel.1, "intensity"] * dx[sel.1]) / sum(chr_profile[sel.1, "intensity"] * dx[sel.1]))
+        sel.1 <- which(chr_profile[, "base.curve"] >= max(vlys[vlys < m[i]]) & chr_profile[, "base.curve"] < m[i])
+        s1[i] <- sqrt(sum((chr_profile[sel.1, "base.curve"] - m[i])^2 * chr_profile[sel.1, "intensity"] * dx[sel.1]) / sum(chr_profile[sel.1, "intensity"] * dx[sel.1]))
 
-        sel.2 <- which(chr_profile[, "base_curve"] >= m[i] & chr_profile[, "base_curve"] < min(vlys[vlys > m[i]]))
-        s2[i] <- sqrt(sum((chr_profile[sel.2, "base_curve"] - m[i])^2 * chr_profile[sel.2, "intensity"] * dx[sel.2]) / sum(chr_profile[sel.2, "intensity"] * dx[sel.2]))
+        sel.2 <- which(chr_profile[, "base.curve"] >= m[i] & chr_profile[, "base.curve"] < min(vlys[vlys > m[i]]))
+        s2[i] <- sqrt(sum((chr_profile[sel.2, "base.curve"] - m[i])^2 * chr_profile[sel.2, "intensity"] * dx[sel.2]) / sum(chr_profile[sel.2, "intensity"] * dx[sel.2]))
 
-        delta[i] <- (sum(chr_profile[sel.1, "intensity"] * dx[sel.1]) + sum(chr_profile[sel.2, "intensity"] * dx[sel.2])) / ((sum(dnorm(chr_profile[sel.1, "base_curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(chr_profile[sel.2, "base_curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
+        delta[i] <- (sum(chr_profile[sel.1, "intensity"] * dx[sel.1]) + sum(chr_profile[sel.2, "intensity"] * dx[sel.2])) / ((sum(dnorm(chr_profile[sel.1, "base.curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(chr_profile[sel.2, "base.curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
       }
       delta[is.na(delta)] <- 1e-10
       s1[is.na(s1)] <- 1e-10
       s2[is.na(s2)] <- 1e-10
 
 
-      fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base_curve"])) # this is the matrix of fitted values
+      fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
 
       this.change <- Inf
       counter <- 0
@@ -394,13 +394,13 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
         cuts <- c(-Inf, m, Inf)
         for (j in 2:length(cuts))
         {
-          sel <- which(chr_profile[, "base_curve"] >= cuts[j - 1] & chr_profile[, "base_curve"] < cuts[j])
+          sel <- which(chr_profile[, "base.curve"] >= cuts[j - 1] & chr_profile[, "base.curve"] < cuts[j])
           use.s1 <- which(1:length(m) >= (j - 1))
           s.to.use <- s2
           s.to.use[use.s1] <- s1[use.s1]
           for (i in 1:ncol(fit))
           {
-            fit[sel, i] <- dnorm(chr_profile[sel, "base_curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
+            fit[sel, i] <- dnorm(chr_profile[sel, "base.curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
           }
         }
         fit[is.na(fit)] <- 0
@@ -434,9 +434,9 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
         {
           this.y <- chr_profile[, "intensity"] * fit[, i]
           if (estim.method == "moment") {
-            this.fit <- bigauss.esti(chr_profile[, "base_curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+            this.fit <- bigauss.esti(chr_profile[, "base.curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
           } else {
-            this.fit <- bigauss.esti.EM(chr_profile[, "base_curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+            this.fit <- bigauss.esti.EM(chr_profile[, "base.curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
           }
           m[i] <- this.fit[1]
           s1[i] <- this.fit[2]
@@ -452,14 +452,14 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
       fit <- fit * 0
       for (j in 2:length(cuts))
       {
-        sel <- which(chr_profile[, "base_curve"] >= cuts[j - 1] & chr_profile[, "base_curve"] < cuts[j])
+        sel <- which(chr_profile[, "base.curve"] >= cuts[j - 1] & chr_profile[, "base.curve"] < cuts[j])
         use.s1 <- which(1:length(m) >= (j - 1))
         s.to.use <- s2
         s.to.use[use.s1] <- s1[use.s1]
         for (i in 1:ncol(fit))
         {
           if (s.to.use[i] != 0) {
-            fit[sel, i] <- dnorm(chr_profile[sel, "base_curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
+            fit[sel, i] <- dnorm(chr_profile[sel, "base.curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
           }
         }
       }
@@ -469,7 +469,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
       }
       area <- delta * (s1 + s2) / 2
       rss <- sum((chr_profile[, "intensity"] - apply(fit, 1, sum))^2)
-      l <- length(chr_profile[, "base_curve"])
+      l <- length(chr_profile[, "base.curve"])
       bic <- l * log(rss / l) + 4 * length(m) * log(l) * BIC.factor
       results[[bw.n]] <- cbind(m, s1, s2, delta, area)
       bic.rec[bw.n] <- bic
@@ -728,8 +728,10 @@ prof.to.features <- function(feature_table,
   min.bw <- bws[["min.bw"]]
   max.bw <- bws[["max.bw"]]
 
-  ordered_rts <- compute_base_curve(feature_table[, "rt"])
-  all_rts <- compute_all_times(ordered_rts)
+  # base.curve <- compute_base_curve(feature_table[, "rt"])
+  base.curve <- sort(unique(feature_table[, "rt"]))
+  base.curve <- cbind(base.curve, base.curve * 0)
+  all_rts <- compute_delta_rt(base.curve[, 1])
 
   keys <- c("mz", "pos", "sd1", "sd2", "area")
   processed_features <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
@@ -742,12 +744,12 @@ prof.to.features <- function(feature_table,
 
     num_features <- nrow(feature_group)
     if (between(num_features, 2, 10)) {
-      eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], ordered_rts[, "base_curve"], all_rts)
+      eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, "base.curve"], all_rts)
       chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
       processed_features <- rbind(processed_features, chr_peak_shape)
     }
     if (num_features < 2) {
-      time_weights <- all_rts[which(ordered_rts[, "base_curve"] %in% feature_group[2])]
+      time_weights <- all_rts[which(base.curve[, "base.curve"] %in% feature_group[2])]
       chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
       processed_features <- rbind(processed_features, chr_peak_shape)
     }
@@ -759,7 +761,7 @@ prof.to.features <- function(feature_table,
         bw <- c(max(min.bw, bw[1] / 2), bw)
       }
 
-      chr_profile <- compute_chromatographic_profile(feature_group, ordered_rts)
+      chr_profile <- compute_chromatographic_profile(feature_group, base.curve)
       if (shape.model == "Gaussian") {
         chr_peak_shape <- compute_gaussian_peak_shape(chr_profile, power, bw, component.eliminate, BIC.factor)
       } else {
