@@ -47,11 +47,11 @@ preprocess_feature_table <- function(feature_table) {
   return(data.frame(feature_table))
 }
 
-compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.eliminate, BIC.factor) {
+compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.eliminate, BIC.factor, aver_diff) {
 
   ## this function computes parameters of chromatographic peak shape if peaks are considered to be gaussian
 
-  chr_peak_shape <- normix.bic(chr_profile[, "base.curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor)$param
+  chr_peak_shape <- normix.bic(chr_profile[, "base.curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
   if (nrow(chr_peak_shape) == 1) {
     chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
   } else {
@@ -493,16 +493,16 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 }
 
 #' @export
-normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut = 1e-2) {
+normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut = 1e-2, aver_diff) {
   x <- that.curve[, 1]
   y <- that.curve[, 2]
+  rt_int_table <- list(labels = x, intensities = y)
 
   if (length(pks) == 1) {
-    miu <- sum(x * y) / sum(y)
-    sigma <- sqrt(sum(y * (x - miu)^2) / sum(y))
-    fitted <- dnorm(x, mean = miu, sd = sigma)
-    this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > prob.cut
-    sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
+    mu_sc_sigma <- compute_mu_sc_std(rt_int_table, aver_diff)
+    miu <- mu_sc_sigma$label
+    sc <- mu_sc_sigma$intensity
+    sigma <- mu_sc_sigma$sigma
   } else {
     pks <- sort(pks)
     vlys <- sort(vlys)
@@ -519,11 +519,17 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
       this.x <- x[x >= this.low & x <= this.high]
       this.y <- y[x >= this.low & x <= this.high]
 
-      miu[m] <- sum(this.x * this.y) / sum(this.y)
-      sigma[m] <- sqrt(sum(this.y * (this.x - miu[m])^2) / sum(this.y))
-      fitted <- dnorm(this.x, mean = miu[m], sd = sigma[m])
-      this.sel <- this.y > 0 & fitted / dnorm(miu[m], mean = miu[m], sd = sigma[m]) > prob.cut
-      sc[m] <- exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
+      if (length(this.x) == 0 | length(this.y) == 0) {
+        miu[m] <- NaN
+        sigma[m] <- NaN
+        sc[m] <- 1
+      } else {
+        rt_int_table_this <- list(labels = this.x, intensities = this.y)
+        mu_sc_sigma <- compute_mu_sc_std(rt_int_table_this, aver_diff)
+        miu[m] <- mu_sc_sigma$label
+        sc[m] <- mu_sc_sigma$intensity
+        sigma[m] <- mu_sc_sigma$sigma
+      }
     }
 
     to.erase <- which(is.na(miu) | is.na(sigma) | sigma == 0 | is.na(sc))
@@ -542,11 +548,10 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
     while (diff > 0.05 & iter < max.iter) {
       iter <- iter + 1
       if (l == 1) {
-        miu <- sum(x * y) / sum(y)
-        sigma <- sqrt(sum(y * (x - miu)^2) / sum(y))
-        fitted <- dnorm(x, mean = miu, sd = sigma)
-        this.sel <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > prob.cut
-        sc <- exp(sum(fitted[this.sel]^2 * log(y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2)))
+        mu_sc_sigma <- compute_mu_sc_std(rt_int_table, aver_diff)
+        miu <- mu_sc_sigma$label
+        sc <- mu_sc_sigma$intensity
+        sigma <- mu_sc_sigma$sigma
         break
       }
       miu.0 <- miu
@@ -613,7 +618,7 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
 }
 
 #' @export
-normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2) {
+normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2, aver_diff) {
   all.bw <- bw[order(bw)]
   sel <- y > 1e-5
   x <- x[sel]
@@ -644,7 +649,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
     smoother.vly.rec[[bw.n]] <- vlys
     if (length(pks) != last.num.pks) {
       last.num.pks <- length(pks)
-      aaa <- normix(cbind(x, y), pks = pks, vlys = vlys, ignore = eliminate, max.iter = max.iter)
+      aaa <- normix(cbind(x, y), pks = pks, vlys = vlys, ignore = eliminate, max.iter = max.iter, aver_diff = aver_diff)
 
       total.fit <- x * 0
       for (i in 1:nrow(aaa))
@@ -732,6 +737,7 @@ prof.to.features <- function(feature_table,
   base.curve <- sort(unique(feature_table[, "rt"]))
   base.curve <- cbind(base.curve, base.curve * 0)
   all_rts <- compute_delta_rt(base.curve[, 1])
+  aver_diff <- mean(diff(base.curve))
 
   keys <- c("mz", "pos", "sd1", "sd2", "area")
   processed_features <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
@@ -763,7 +769,7 @@ prof.to.features <- function(feature_table,
 
       chr_profile <- compute_chromatographic_profile(feature_group, base.curve)
       if (shape.model == "Gaussian") {
-        chr_peak_shape <- compute_gaussian_peak_shape(chr_profile, power, bw, component.eliminate, BIC.factor)
+        chr_peak_shape <- compute_gaussian_peak_shape(chr_profile, power, bw, component.eliminate, BIC.factor, aver_diff)
       } else {
         chr_peak_shape <- bigauss.mix(chr_profile, sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
       }
