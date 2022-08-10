@@ -89,8 +89,8 @@ recover_weaker_signals <- function(
     recover.weaker(
       sample_name = get_sample_name(filenames[i]),
       filename = filenames[[i]],
-      extracted_features = extracted_features[[i]],
-      adjusted_features = corrected_features[[i]],
+      extracted_features = as_tibble(extracted_features[[i]]),
+      adjusted_features = as_tibble(corrected_features[[i]]),
       pk.times = aligned_rt_crosstab,
       aligned.ftrs = aligned_int_crosstab,
       orig.tol = original_mz_tolerance,
@@ -287,7 +287,7 @@ unsupervised <- function(
     corrected_features = recovered$corrected_features,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
-    aligned_mz_toletance = as.numeric(aligned$mz_tolerance),
+    aligned_mz_tolerance = as.numeric(aligned$mz_tolerance),
     aligned_rt_tolerance = as.numeric(aligned$rt_tolerance)
   )
 }

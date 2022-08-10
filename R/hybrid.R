@@ -347,7 +347,7 @@ hybrid <- function(
     corrected_features = recovered_corrected,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
-    aligned_mz_toletance = as.numeric(recovered_aligned$mz_tolerance),
+    aligned_mz_tolerance = as.numeric(recovered_aligned$mz_tolerance),
     aligned_rt_tolerance = as.numeric(recovered_aligned$rt_tolerance),
     updated_known_table = as.data.frame(augmented$known_table),
     features_known_table_pairing = as.data.frame(augmented$pairing)
