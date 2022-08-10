@@ -212,7 +212,7 @@ compute_dx <- function(x) {
   return (dx)
 }
 
-compute_chromatographic_profile <- function(feature_table, base.curve, rt_range) {
+compute_chromatographic_profile <- function(feature_table, base.curve) {
   rt_range <- range(feature_table[, "rt"])
   chr_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
   chr_profile[chr_profile[, "base.curve"] %in% feature_table[, "rt"], 2] <- feature_table[, "intensity"]
