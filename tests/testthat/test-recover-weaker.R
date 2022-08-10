@@ -90,20 +90,20 @@ patrick::with_parameters_test_that(
     corrected_recovered_expected <- lapply(filenames, arrow::read_parquet)
 
     # preprocess dataframes
-    keys <- c("mz", "pos", "sd1", "sd2")
+    keys <- c("mz", "pos", "sd1", "sd2", "area")
 
     extracted_recovered_actual <- lapply(extracted_recovered_actual, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(keys)
     })
     corrected_recovered_actual <- lapply(corrected_recovered_actual, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(keys)
     })
 
     extracted_recovered_expected <- lapply(extracted_recovered_expected, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(keys)
     })
     corrected_recovered_expected <- lapply(corrected_recovered_expected, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(keys)
     })
 
     # compare files
@@ -112,33 +112,19 @@ patrick::with_parameters_test_that(
       actual_extracted_i <- extracted_recovered_actual[[i]]
       expected_extracted_i <- extracted_recovered_expected[[i]]
 
-      report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = files[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      expect_equal(actual_extracted_i, expected_extracted_i)
 
-      expect_true(nrow(report$rowMatching$inboth) >= 0.9 * nrow(expected_extracted_i))
-
-      incommon <- as.numeric(rownames(report$rowMatching$inboth))
-
-      subset_actual <- actual_extracted_i %>% dplyr::slice(incommon)
-      subset_expected <- expected_extracted_i %>% dplyr::slice(incommon)
-
-      expect_equal(subset_actual$area, subset_expected$area, tolerance = 0.01 * max(subset_expected$area))
+      # report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
+      # dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_extracted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
 
       # corrected recovered
       actual_corrected_i <- corrected_recovered_actual[[i]]
       expected_corrected_i <- corrected_recovered_expected[[i]]
 
-      report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = files[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      expect_equal(actual_corrected_i, expected_corrected_i)
 
-      expect_true(nrow(report$rowMatching$inboth) >= 0.9 * nrow(expected_corrected_i))
-
-      incommon <- as.numeric(rownames(report$rowMatching$inboth))
-
-      subset_actual <- actual_corrected_i %>% dplyr::slice(incommon)
-      subset_expected <- expected_corrected_i %>% dplyr::slice(incommon)
-
-      expect_equal(subset_actual$area, subset_expected$area, tolerance = 0.01 * max(subset_expected$area))
+      # report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
+      # dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_adjusted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
     }
   },
   patrick::cases(
@@ -154,12 +140,3 @@ patrick::with_parameters_test_that(
     )
   )
 )
-
-files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened")
-mz_tol = 1e-05
-recover_mz_range = NA
-recover_chr_range = NA
-use_observed_range = TRUE
-min_bandwidth = NA
-max_bandwidth = NA
-recover_min_count = 3
