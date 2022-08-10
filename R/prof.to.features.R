@@ -1,5 +1,5 @@
 
-#' Validate that provided inputs match expected, exit execution otherwise
+#' Validate that provided inputs match expected, exit execution otherwise.
 #' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
 #'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
 #' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
@@ -12,6 +12,20 @@ validate_inputs <- function(shape.model, estim.method) {
   }
 }
 
+#' Initialize minimum and maximum bandwidth values if none given. Ensure that minimum bandwidth is lower that maximum, else set minimum to 1/4 of maximum value.
+#' @param min.bw The minimum bandwidth to use in the kernel smoother.
+#' @param max.bw The maximum bandwidth to use in the kernel smoother.
+#' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
+#' \itemize{
+#'   \item mz - float - mass-to-charge ratio of feature
+#'   \item rt - float - retention time of features
+#'   \item intensity - float - intensity of features
+#'   \item group_number - integer - group number assigned to each feature based on their rt similarity
+#' }
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item min.bw - float - Minimum bandwidth.
+#'   \item max.bw - float - Maximum bandwidth
 preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
   if (is.na(min.bw)) {
     min.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 60
