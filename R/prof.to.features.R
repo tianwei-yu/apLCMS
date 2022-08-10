@@ -182,6 +182,9 @@ compute_end_bound <- function(x, right_sigma_ratio_lim) {
   return (end_bound)
 }
 
+#' @param x Cumulative intensity values
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @export
 compute_bounds <- function(x, sigma.ratio.lim) {
   start <- compute_start_bound(x, sigma.ratio.lim[1])
