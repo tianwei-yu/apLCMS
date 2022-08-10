@@ -40,6 +40,7 @@ preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
   return(list("min.bw" = min.bw, "max.bw" = max.bw))
 }
 
+#' Convert input matrix to a dataframe with column names (see source code for the names)
 preprocess_feature_table <- function(feature_table) {
   keys <- c("mz", "rt", "intensity", "group_number")
   colnames(feature_table) <- keys
@@ -47,10 +48,15 @@ preprocess_feature_table <- function(feature_table) {
   return(data.frame(feature_table))
 }
 
+#' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
+#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity"
+#' @return Returns a list object with the following objects:
+#' \itemize{
+#'   \item miu - float - mean value of the gaussian curve
+#'   \item sigma - float - standard deviation of the gaussian curve
+#'   \item scale - float - scale of the gaussian curve
+#'}
 compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.eliminate, BIC.factor, aver_diff) {
-
-  ## this function computes parameters of chromatographic peak shape if peaks are considered to be gaussian
-
   chr_peak_shape <- normix.bic(chr_profile[, "base.curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
   if (nrow(chr_peak_shape) == 1) {
     chr_peak_shape <- c(chr_peak_shape[1, 1:2], chr_peak_shape[1, 2], chr_peak_shape[1, 3])
@@ -62,6 +68,7 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
 
 #' @description
 #' Compute standard deviation of m/z values groupwise
+#' @export
 compute_mz_sd <- function(feature_groups) {
   mz_sd <- c()
   for (i in seq_along(feature_groups)) {
