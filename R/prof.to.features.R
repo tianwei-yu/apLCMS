@@ -1,4 +1,8 @@
 
+#' Validate that provided inputs match expected, exit execution otherwise
+#' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
+#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
+#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
 validate_inputs <- function(shape.model, estim.method) {
   if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
     stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
