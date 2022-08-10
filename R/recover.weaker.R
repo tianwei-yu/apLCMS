@@ -258,7 +258,7 @@ get_mzrange_bound_indices <- function(aligned_feature_mass,
 #' 1 if `target_time` is NA.
 #' @export
 get_rt_region_indices <- function(target_time, features, chr_tol) {
-  if (!is.na(target_time)) {
+  if (!is.null(target_time) && !is.na(target_time)) {
     selection <- which(abs(features$labels - target_time) < chr_tol)
   } else {
     selection <- 1
@@ -332,7 +332,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
 
   num_peaks <- count_peaks(roi, features$labels)
 
-  if (!is.na(target_rt)) {
+  if (!is.null (target_rt) && !is.na(target_rt)) {
     pks.d <- abs(pks - target_rt) # distance from the target peak location
     pks.d[num_peaks == 0] <- Inf
     pks <- pks[which.min(pks.d)]
@@ -706,17 +706,18 @@ recover.weaker <- function(filename,
   # # rounding is used to create a histogram of retention time values
   target_times <- compute_target_times(
     aligned.ftrs[, "rt"],
-    round(extracted_features[, "pos"], 5),
-    round(adjusted_features[, "pos"], 5)
+    round(extracted_features$pos, 5),
+    round(adjusted_features$pos, 5)
   )
 
   # IMPORTANT: THIS CODE SECTION COULD BE USED TO REPLACE COMPUTE_TARGET_TIMES FOR THE TEST CASES AND
   # IS A MASSIVE SIMPLIFICATION.
   # sp <- splines::interpSpline(
-  #   unique(extracted_features[, "pos"]) ~ unique(adjusted_features[, "pos"]),
+  #   unique(extracted_features$pos) ~ unique(adjusted_features$pos),
   #   na.action = na.omit
   # )
   # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
+
 
   breaks <- predict_mz_break_indices(data_table, orig.tol)
 
@@ -773,18 +774,19 @@ recover.weaker <- function(filename,
         }
 
         this.pos.diff <- which.min(abs(extracted_features$pos - this.rec$labels[this.sel]))
-        this.f1 <- extracted_features |> tibble::add_row(
+        extracted_features <- extracted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
           pos = this.rec$labels[this.sel],
           area = this.rec$intensities[this.sel]
         )
-        this.time.adjust <- (-this.f1$pos[this.pos.diff] + adjusted_features$pos[this.pos.diff])
+        
+        this.time.adjust <- (-extracted_features$pos[this.pos.diff] + adjusted_features$pos[this.pos.diff])
 
-        this.f2 <- adjusted_features |> tibble::add_row(
+        adjusted_features <- adjusted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
           pos = this.rec$labels[this.sel] + this.time.adjust,
           area = this.rec$intensities[this.sel],
-          V6 = grep(sample_name, colnames(aligned.ftrs))
+          V6 = grep(sample_name, colnames(aligned.ftrs)) - 4 # offset for other columns `mz`, `rt` etc
         )
 
         sample_intensities[i] <- this.rec$intensities[this.sel]
@@ -797,8 +799,8 @@ recover.weaker <- function(filename,
   to.return$this.mz <- this.mz
   to.return$this.ftrs <- sample_intensities
   to.return$this.times <- sample_times
-  to.return$this.f1 <- duplicate.row.remove(this.f1)
-  to.return$this.f2 <- duplicate.row.remove(this.f2)
+  to.return$this.f1 <- duplicate.row.remove(extracted_features)
+  to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
   return(to.return)
 }
