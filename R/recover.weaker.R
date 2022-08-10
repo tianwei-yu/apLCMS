@@ -101,6 +101,34 @@ compute_target_time <- function(aligned_rts, orig.time, adjusted.time) {
   }
 }
 
+#' Compute interpolated retention time and intensity values.
+#'
+#' @param features tibble Features with `labels` and `intensities` columns.
+#' @param aver_diff float Average retention time difference.
+#' @return Returns a list object with the following objects in it:
+#' \itemize{
+#'   \item intensity - float - Interpolated intensity value.
+#'   \item label - float - Interpolated retention time value.
+#' @export
+compute_mu_sc <- function(features, aver_diff) {
+  x <- features$labels
+  y <- features$intensities
+
+  sum_y <- sum(y)
+  miu <- sum(x * y) / sum_y # weighted retention time values
+  sigma <- sqrt(sum(y * (x - miu)^2) / sum_y)
+  if (sigma == 0) {
+    sc <- sum_y * aver_diff
+    miu <- miu
+  } else {
+    fitted <- dnorm(x, mean = miu, sd = sigma)
+    selection <- y > 0 & fitted / dnorm(miu, mean = miu, sd = sigma) > 1e-2
+    sc <- exp(sum(fitted[selection]^2 * log(y[selection] / fitted[selection]) / sum(fitted[selection]^2)))
+  }
+
+  return(list(intensity = sc, label = miu))
+}
+
 #' @export
 get_times_to_use <- function(orig.time, adjusted.time) {
   ttt.0 <- table(orig.time)
