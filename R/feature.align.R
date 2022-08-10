@@ -190,7 +190,6 @@ feature.align <- function(features,
             group_ids <- which(all_features$lab == i)
             # select m/z, rt and their group ID
             sample_grouped <- cbind(all_features$mz[group_ids], all_features$rt[group_ids], all_features$grps[group_ids])
-            # order them again? should be ordered already...
             sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]),]
             
             # update m/z, rt, area values with ordered ones
