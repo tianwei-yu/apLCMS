@@ -93,3 +93,19 @@ create_feature_sample_table <- function(features) {
 span <- function(x) {
   diff(range(x, na.rm = TRUE))
 }
+
+#' @description
+#' Compute standard deviation of m/z values groupwise
+#' @export
+compute_mz_sd <- function(feature_groups) {
+  mz_sd <- c()
+  for (i in seq_along(feature_groups)) {
+    group <- feature_groups[[i]]
+
+    if (nrow(group > 1)) {
+      group_sd <- sd(group[, "mz"])
+      mz_sd <- append(mz_sd, group_sd)
+    }
+  }
+  return(mz_sd)
+}

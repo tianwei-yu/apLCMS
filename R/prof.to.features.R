@@ -67,22 +67,6 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
 }
 
 #' @description
-#' Compute standard deviation of m/z values groupwise
-#' @export
-compute_mz_sd <- function(feature_groups) {
-  mz_sd <- c()
-  for (i in seq_along(feature_groups)) {
-    group <- feature_groups[[i]]
-
-    if (nrow(group > 1)) {
-      group_sd <- sd(group[, "mz"])
-      mz_sd <- append(mz_sd, group_sd)
-    }
-  }
-  return(mz_sd)
-}
-
-#' @description
 #' This function solves the value of a using the x, t, a from the previous step, and sigma.1, and sigma.2 (original authors' comment).
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
   w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
