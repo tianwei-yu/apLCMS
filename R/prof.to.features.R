@@ -496,13 +496,13 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut = 1e-2, aver_diff) {
   x <- that.curve[, 1]
   y <- that.curve[, 2]
-  rt_int_table <- list(labels = x, intensities = y)
+  rt_int_list <- list(labels = x, intensities = y)
 
   if (length(pks) == 1) {
-    mu_sc_sigma <- compute_mu_sc_std(rt_int_table, aver_diff)
-    miu <- mu_sc_sigma$label
-    sc <- mu_sc_sigma$intensity
-    sigma <- mu_sc_sigma$sigma
+    mu_sc_std <- compute_mu_sc_std(rt_int_list, aver_diff)
+    miu <- mu_sc_std$label
+    sc <- mu_sc_std$intensity
+    sigma <- mu_sc_std$sigma
   } else {
     pks <- sort(pks)
     vlys <- sort(vlys)
@@ -524,11 +524,11 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
         sigma[m] <- NaN
         sc[m] <- 1
       } else {
-        rt_int_table_this <- list(labels = this.x, intensities = this.y)
-        mu_sc_sigma <- compute_mu_sc_std(rt_int_table_this, aver_diff)
-        miu[m] <- mu_sc_sigma$label
-        sc[m] <- mu_sc_sigma$intensity
-        sigma[m] <- mu_sc_sigma$sigma
+        rt_int_list_this <- list(labels = this.x, intensities = this.y)
+        mu_sc_std <- compute_mu_sc_std(rt_int_list_this, aver_diff)
+        miu[m] <- mu_sc_std$label
+        sc[m] <- mu_sc_std$intensity
+        sigma[m] <- mu_sc_std$sigma
       }
     }
 
@@ -548,10 +548,10 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
     while (diff > 0.05 & iter < max.iter) {
       iter <- iter + 1
       if (l == 1) {
-        mu_sc_sigma <- compute_mu_sc_std(rt_int_table, aver_diff)
-        miu <- mu_sc_sigma$label
-        sc <- mu_sc_sigma$intensity
-        sigma <- mu_sc_sigma$sigma
+        mu_sc_std <- compute_mu_sc_std(rt_int_list, aver_diff)
+        miu <- mu_sc_std$label
+        sc <- mu_sc_std$intensity
+        sigma <- mu_sc_std$sigma
         break
       }
       miu.0 <- miu
