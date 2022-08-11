@@ -336,7 +336,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
 #' @export
 bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
 
-  all.bw <- bw[order(bw)]
+  all.bw <- sort(bw)
   results <- new("list")
   smoother.pk.rec <- smoother.vly.rec <- new("list")
   bic.rec <- all.bw
