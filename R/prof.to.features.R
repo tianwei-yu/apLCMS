@@ -240,6 +240,11 @@ compute_scale <- function(y, d) {
     return (scale)
 }
 
+#' @param x vector of RTs that lay in the same RT cluster
+#' @param y intensities that belong to x
+#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @export
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
   sel <- which(y > 1e-10)
