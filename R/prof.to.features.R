@@ -246,7 +246,8 @@ compute_scale <- function(y, d) {
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @export
-bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 3)) {
+bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.3, 3)) {
+  # even producing a dataframe with x and y as columns without actually using it causes the test to run forever
   sel <- which(y > 1e-10)
   if (length(sel) < 2) {
     return (c(median(x), 1, 1, 0))
@@ -257,9 +258,6 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, truth = NA, sigma.rat
     y.0 <- y
     if (do.plot) {
         plot(x, y)
-    }
-    if (do.plot & !is.na(truth[1])) {
-      draw_chr_normal_peaks(x, truth)
     }
     max.y.0 <- max(y.0, na.rm = TRUE)
     y <- (y / max.y.0)^power
