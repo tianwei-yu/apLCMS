@@ -131,7 +131,7 @@ feature.align <- function(features,
     
     number_of_samples <- nrow(summary(features))
     if (number_of_samples > 1) {
-        values <- get_feature_values(features, rt_colname)
+        values <- concatenate_feature_tables(features, rt_colname)
         mz_values <- values$mz
         rt <- values$rt
         sample_id <- values$sample_id

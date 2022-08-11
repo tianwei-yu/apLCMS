@@ -2,11 +2,15 @@
 NULL
 #> NULL
 
-get_feature_values <- function(features, rt_colname) {
+#' Concatenate multiple feature lists and add the sample id (origin of feature) as additional column.
+#' 
+#' @param features list List of tibbles containing extracted feature tables.
+#' @param rt_colname string Name of retention time information column, usually "pos".
+concatenate_feature_tables <- function(features, rt_colname) {
     mz <- c()
     rt <- c()
     sample_id <- c()
-    for (i in 1:length(features)) {
+    for (i in seq_along(features)) {
         sample_features <- dplyr::as_tibble(features[[i]])
         mz <- c(mz, sample_features$mz)
         rt <- c(rt, sample_features[[rt_colname]])
