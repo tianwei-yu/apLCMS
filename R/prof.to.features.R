@@ -195,7 +195,7 @@ compute_bounds <- function(x, sigma.ratio.lim) {
 #' @description
 #' Compute difference between neighbouring elements of a vector and apply a mask such that the maximum difference is no higher than 4-fold minimum difference.
 #'
-compute_dx <- function(x) {
+compute_dx <- function(x, threshold=TRUE) {
   l <- length(x)
   diff_x <- diff(x)
   if (l == 2) {
@@ -207,8 +207,10 @@ compute_dx <- function(x) {
       x[l] - x[l - 1]
     )
   }
-  diff_threshold <- min(diff_x) * 4
-  dx <- pmin(dx, diff_threshold)
+  if (threshold) {
+    diff_threshold <- min(diff_x) * 4
+    dx <- pmin(dx, diff_threshold)
+  }
   return (dx)
 }
 
@@ -396,10 +398,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
     if (length(pks) != last.num.pks) {
       last.num.pks <- length(pks)
       l <- length(chr_profile[, "base.curve"])
-      dx <- c(chr_profile[2, "base.curve"] - chr_profile[1, "base.curve"], (chr_profile[3:l, "base.curve"] - chr_profile[1:(l - 2), "base.curve"]) / 2, chr_profile[l, "base.curve"] - chr_profile[l - 1, "base.curve"])
-      if (l == 2) {
-        dx <- rep(diff(chr_profile[, "base.curve"]), 2)
-      }
+      dx <- compute_dx(chr_profile[, "base.curve"], threshold = FALSE)
 
       # initiation
       initiation_params <- compute_initiation_params(chr_profile, vlys, dx, pks)
