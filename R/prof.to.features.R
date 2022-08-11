@@ -614,11 +614,9 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut 
         sc[m] <- mu_sc_std$intensity
         sigma[m] <- mu_sc_std$sigma
 
-        # mu_sc_std$intensity == exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2))) is TRUE
-        # however, if I use the former instead of the latter the test breaks because data is different. R is fun.
-        fitted <- dnorm(x, mean = miu[m], sd = sigma[m])
-        this.sel <- this.y > 0 & fitted / dnorm(miu[m], mean = miu[m], sd = sigma[m]) > prob.cut
-        sc[m] <- exp(sum(fitted[this.sel]^2 * log(this.y[this.sel] / fitted[this.sel]) / sum(fitted[this.sel]^2))) # this is equal to mu_sc_std$intensity
+        if (sigma[m] == 0) {
+          sc[m] <- NA
+        }
       }
       diff <- sum((miu.0 - miu)^2)
 
