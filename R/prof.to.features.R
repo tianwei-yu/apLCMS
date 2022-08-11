@@ -212,6 +212,16 @@ compute_dx <- function(x) {
   return (dx)
 }
 
+#' Find base.curve RTs that lay within RT range of the whole feature table and append the intensities to these RTs
+#' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
+#' \itemize{
+#'   \item mz - float - mass-to-charge ratio of feature
+#'   \item rt - float - retention time of features
+#'   \item intensity - float - intensity of features
+#'   \item group_number - integer - group number assigned to each feature based on their rt similarity
+#' }
+#' @param base.curve Matrix that contains rts of feature in the same rt cluster
+#' @return dataframe with two columns
 compute_chromatographic_profile <- function(feature_table, base.curve) {
   rt_range <- range(feature_table[, "rt"])
   chr_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
