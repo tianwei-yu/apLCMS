@@ -29,7 +29,7 @@ patrick::with_parameters_test_that(
     doParallel::registerDoParallel(cluster)
     
     corrected <- adjust.time(
-      features = extracted,
+      extracted_features = extracted,
       mz_tol_relative = mz_tol,
       rt_tol_relative = chr_tol,
       mz_max_diff = find_tol_max_d,
