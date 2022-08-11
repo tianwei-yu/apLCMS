@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - r-base >= 3.5
+  - r-pkgload <= 1.2.4
   - r-devtools
   - r-biocmanager
   - r-mass
