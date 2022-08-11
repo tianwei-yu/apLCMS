@@ -132,8 +132,8 @@ compute_rt_tol_relative <- function(breaks,
 #' @examples
 #' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
 find.tol.time <- function(mz,
-                          chr,
-                          lab,
+                          rt,
+                          sample_id,
                           number_of_samples,
                           mz_tol_relative = 2e-5,
                           rt_tol_relative = NA,
