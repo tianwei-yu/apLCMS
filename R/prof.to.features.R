@@ -533,8 +533,16 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
   return(rec)
 }
 
+#' Reevaluate parameters of chromatographic gaussian curves.
+#' @param that.curve dataframe that stores RTs and intensities of features
+#' @param pks a vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @param vlys a vector of sorted RT-valley values at which the kernel estimate was computed.
+#' @param ignore in fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
+#' proportion of intensities less than this value, the component will be ignored.
+#' @param max.iter maximum number of iterations when reevaluating gaussian curves.
+#' @param aver_diff average retention time difference.
 #' @export
-normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, prob.cut = 1e-2, aver_diff) {
+normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff) {
   x <- that.curve[, 1]
   y <- that.curve[, 2]
   rt_int_list <- list(labels = x, intensities = y)
