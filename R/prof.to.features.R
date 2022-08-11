@@ -355,6 +355,30 @@ compute_initiation_params <- function(chr_profile, vlys, dx, pks) {
     delta = delta))
 }
 
+#' @param m a vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
+#' @param delta parameter computed by the initiation step.
+#' @param s1 parameter computed by the initiation step.
+#' @param s2 parameter computed by the initiation step.
+compute_e_step <- function(m, chr_profile, delta, s1, s2) {
+  fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
+  cuts <- c(-Inf, m, Inf)
+  for (j in 2:length(cuts))
+  {
+    sel <- which(chr_profile[, "base.curve"] >= cuts[j - 1] & chr_profile[, "base.curve"] < cuts[j])
+    use.s1 <- which(1:length(m) >= (j - 1))
+    s.to.use <- s2
+    s.to.use[use.s1] <- s1[use.s1]
+    for (i in 1:ncol(fit))
+    {
+      fit[sel, i] <- dnorm(chr_profile[sel, "base.curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
+    }
+  }
+  fit[is.na(fit)] <- 0
+  sum.fit <- apply(fit, 1, sum)
+  return(list(fit = fit, sum.fit = sum.fit))
+}
+
 #' @param chr_profile dataframe that stores RTs and intensities of features
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
@@ -410,9 +434,6 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
       s1[is.na(s1)] <- 1e-10
       s2[is.na(s2)] <- 1e-10
 
-
-      fit <- matrix(0, ncol = length(pks), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
-
       this.change <- Inf
       counter <- 0
 
@@ -422,20 +443,9 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
         old.m <- m
 
         # E step
-        cuts <- c(-Inf, m, Inf)
-        for (j in 2:length(cuts))
-        {
-          sel <- which(chr_profile[, "base.curve"] >= cuts[j - 1] & chr_profile[, "base.curve"] < cuts[j])
-          use.s1 <- which(1:length(m) >= (j - 1))
-          s.to.use <- s2
-          s.to.use[use.s1] <- s1[use.s1]
-          for (i in 1:ncol(fit))
-          {
-            fit[sel, i] <- dnorm(chr_profile[sel, "base.curve"], mean = m[i], sd = s.to.use[i]) * s.to.use[i] * delta[i]
-          }
-        }
-        fit[is.na(fit)] <- 0
-        sum.fit <- apply(fit, 1, sum)
+        fits <- compute_e_step(m, chr_profile, delta, s1, s2)
+        fit <- fits$fit
+        sum.fit <- fits$sum.fit
 
         # Elimination step
         fit <- fit / sum.fit
