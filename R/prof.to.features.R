@@ -332,6 +332,27 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
   return(to.return)
 }
 
+#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
+#' @param vlys a vector of sorted RT-valley values at which the kernel estimate was computed.
+#' @param dx difference between neighbouring RT values with step 2.
+#' @param pks a vector of sorted RT-peak values at which the kernel estimate was computed.
+compute_initiation_params <- function(chr_profile, vlys, dx, pks) {
+  m <- s1 <- s2 <- delta <- pks
+  for (i in 1:length(m))
+  {
+    sel.1 <- which(chr_profile[, "base.curve"] >= max(vlys[vlys < m[i]]) & chr_profile[, "base.curve"] < m[i])
+    s1[i] <- sqrt(sum((chr_profile[sel.1, "base.curve"] - m[i])^2 * chr_profile[sel.1, "intensity"] * dx[sel.1]) / sum(chr_profile[sel.1, "intensity"] * dx[sel.1]))
+
+    sel.2 <- which(chr_profile[, "base.curve"] >= m[i] & chr_profile[, "base.curve"] < min(vlys[vlys > m[i]]))
+    s2[i] <- sqrt(sum((chr_profile[sel.2, "base.curve"] - m[i])^2 * chr_profile[sel.2, "intensity"] * dx[sel.2]) / sum(chr_profile[sel.2, "intensity"] * dx[sel.2]))
+
+    delta[i] <- (sum(chr_profile[sel.1, "intensity"] * dx[sel.1]) + sum(chr_profile[sel.2, "intensity"] * dx[sel.2])) / ((sum(dnorm(chr_profile[sel.1, "base.curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(chr_profile[sel.2, "base.curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
+  }
+  return (list(s1 = s1,
+    s2 = s2,
+    delta = delta))
+}
+
 #' @param chr_profile dataframe that stores RTs and intensities of features
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
@@ -381,27 +402,22 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
       }
 
       # initiation
-      m <- s1 <- s2 <- delta <- pks
-      for (i in 1:length(m))
-      {
-        sel.1 <- which(chr_profile[, "base.curve"] >= max(vlys[vlys < m[i]]) & chr_profile[, "base.curve"] < m[i])
-        s1[i] <- sqrt(sum((chr_profile[sel.1, "base.curve"] - m[i])^2 * chr_profile[sel.1, "intensity"] * dx[sel.1]) / sum(chr_profile[sel.1, "intensity"] * dx[sel.1]))
+      initiation_params <- compute_initiation_params(chr_profile, vlys, dx, pks)
+      s1 <- initiation_params$s1
+      s2 <- initiation_params$s2
+      delta <- initiation_params$delta
 
-        sel.2 <- which(chr_profile[, "base.curve"] >= m[i] & chr_profile[, "base.curve"] < min(vlys[vlys > m[i]]))
-        s2[i] <- sqrt(sum((chr_profile[sel.2, "base.curve"] - m[i])^2 * chr_profile[sel.2, "intensity"] * dx[sel.2]) / sum(chr_profile[sel.2, "intensity"] * dx[sel.2]))
-
-        delta[i] <- (sum(chr_profile[sel.1, "intensity"] * dx[sel.1]) + sum(chr_profile[sel.2, "intensity"] * dx[sel.2])) / ((sum(dnorm(chr_profile[sel.1, "base.curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(chr_profile[sel.2, "base.curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
-      }
       delta[is.na(delta)] <- 1e-10
       s1[is.na(s1)] <- 1e-10
       s2[is.na(s2)] <- 1e-10
 
 
-      fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
+      fit <- matrix(0, ncol = length(pks), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
 
       this.change <- Inf
       counter <- 0
 
+      m <- pks
       while (this.change > 0.1 & counter <= max.iter) {
         counter <- counter + 1
         old.m <- m
