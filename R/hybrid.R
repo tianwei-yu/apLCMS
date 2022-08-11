@@ -257,7 +257,7 @@ hybrid <- function(
 
   message("**** time correction ****")
   corrected <- adjust.time(
-    features = extracted,
+    extracted_features = extracted,
     mz_tol_relative = align_mz_tol,
     rt_tol_relative = align_chr_tol,
     mz_max_diff = 10 * mz_tol,
@@ -305,7 +305,7 @@ hybrid <- function(
 
   message("**** second round time correction ****")
   recovered_corrected <- adjust.time(
-    features = recovered$extracted_features,
+    extracted_features = recovered$extracted_features,
     mz_tol_relative = align_mz_tol,
     rt_tol_relative = align_chr_tol,
     mz_max_diff = 10 * mz_tol,
