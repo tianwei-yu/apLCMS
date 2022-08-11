@@ -332,10 +332,19 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
   return(to.return)
 }
 
+#' @param chr_profile dataframe that stores RTs and intensities of features
+#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
+#' @param bw bandwidth vector to use in the kernel smoother
+#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored
+#' @param max.iter maximum number of iterations when executing the E step
+#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM
+#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#'  models with more peaks are penalized more.
 #' @importFrom dplyr filter arrange
 #' @export
 bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
-
   all.bw <- sort(bw)
   results <- new("list")
   smoother.pk.rec <- smoother.vly.rec <- new("list")
