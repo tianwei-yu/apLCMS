@@ -169,8 +169,9 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
   return(c(a.new, sigma$sigma.1, sigma$sigma.2, scale))
 }
 
-#' @description
 #' Computes vector of cumulative sums on reversed input. Returns cumulative sum vector going from the sum of all elements to one.
+#' @param x float - vector of numerical values
+#' @return Returns a vector
 #' @export
 rev_cum_sum <- function(x) {
   x <- rev(x)
@@ -202,6 +203,11 @@ compute_end_bound <- function(x, right_sigma_ratio_lim) {
 #' @param x Cumulative intensity values.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation.
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
+#' @return Returns a list with bounds with following items:
+#' \itemize{
+#'   \item start - start bound
+#'   \item end - end bound
+#'}
 #' @export
 compute_bounds <- function(x, sigma.ratio.lim) {
   start <- compute_start_bound(x, sigma.ratio.lim[1])
@@ -209,9 +215,11 @@ compute_bounds <- function(x, sigma.ratio.lim) {
   return(list(start = start, end = end))
 }
 
-#' @description
-#' Compute difference between neighbouring elements of a vector and apply a mask such that the maximum difference is no higher than 4-fold minimum difference.
-compute_dx <- function(x, threshold=TRUE) {
+#' Compute difference between neighbouring elements of a vector and optionally apply a mask such that the maximum difference is no higher than 4-fold minimum difference.
+#' @param x - float - a vector of numerical values.
+#' @param apply_mask - boolean - whether to apply threshold mask to the output vector.
+#' @return Returns vector of numeric differences between neighbouring values.
+compute_dx <- function(x, apply_mask=TRUE) {
   l <- length(x)
   diff_x <- diff(x)
   if (l == 2) {
@@ -223,7 +231,7 @@ compute_dx <- function(x, threshold=TRUE) {
       x[l] - x[l - 1]
     )
   }
-  if (threshold) {
+  if (apply_mask) {
     diff_threshold <- min(diff_x) * 4
     dx <- pmin(dx, diff_threshold)
   }
@@ -249,20 +257,32 @@ compute_chromatographic_profile <- function(feature_table, base.curve) {
   return (chr_profile)
 }
 
+#' Estimate total signal strength (total area of the estimated normal curve).
+#' @param y - float - a vector of intensities.
+#' @param d - float - a vector of \emph{y} values in a gaussian curve.
+#' @param scale - float - a vector of scaled intensity values.
 compute_scale <- function(y, d) {
-    dy_ratio <- d^2 * log(y / d)
-    dy_ratio[is.na(dy_ratio)] <- 0
-    dy_ratio[is.infinite(dy_ratio)] <- 0
+  dy_ratio <- d^2 * log(y / d)
+  dy_ratio[is.na(dy_ratio)] <- 0
+  dy_ratio[is.infinite(dy_ratio)] <- 0
 
-    scale <- exp(sum(dy_ratio) / sum(d^2))
-    return (scale)
+  scale <- exp(sum(dy_ratio) / sum(d^2))
+  return (scale)
 }
 
+#' Estimate the parameters of Bi-Gaussian curve.
 #' @param x vector of RTs that lay in the same RT cluster.
 #' @param y intensities that belong to x.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
+#' @return A vector with length 4. The items are as follows going from first to last:
+#' \itemize{
+#'   \item mean of gaussian curve
+#'   \item standard deviation at the left side of the gaussian curve
+#'   \item standard deviation at the right side of the gaussian curve
+#'   \item estimated total signal strength (total area of the estimated normal curve)
+#'}
 #' @export
 bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.3, 3)) {
   # even producing a dataframe with x and y as columns without actually using it causes the test to run forever
@@ -438,7 +458,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
     if (length(pks) != last.num.pks) {
       last.num.pks <- length(pks)
       l <- length(chr_profile[, "base.curve"])
-      dx <- compute_dx(chr_profile[, "base.curve"], threshold = FALSE)
+      dx <- compute_dx(chr_profile[, "base.curve"], apply_mask = FALSE)
 
       # initiation
       initiation_params <- compute_initiation_params(chr_profile, vlys, dx, pks)
