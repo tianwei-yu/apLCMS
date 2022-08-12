@@ -231,7 +231,7 @@ recover.weaker <- function(filename,
   target.time <- compute_target_time(
     aligned.ftrs[, "rt"],
     round(this.f1[, "pos"], 5),
-    round(this.f2[, "pos"], 5)
+    round(this.f2[, "rt"], 5)
   )
 
   breaks <- compute_breaks_2(data_table, orig.tol)
