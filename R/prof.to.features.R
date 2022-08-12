@@ -89,6 +89,7 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
 
 #' This function solves the value of a using the x, t, a from the previous step, and sigma.1, and sigma.2 (original authors' comment).
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
+  # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
   w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
   return(sum(t * w) / sum(w))
 }
@@ -96,6 +97,7 @@ solve.a <- function(x, t, a, sigma.1, sigma.2) {
 #' This function prepares the parameters required for latter compuation. u, v, and sum of x (original authors' comment).
 #' @export
 prep.uv <- function(x, t, a) {
+  # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
   temp <- (t - a)^2 * x
   u <- sum(temp * as.numeric(t < a))
   v <- sum(temp * as.numeric(t >= a))
@@ -109,6 +111,7 @@ prep.uv <- function(x, t, a) {
 #' This function takes the value intensity level x, retention time t and assumed breaking point a, calculates the square estimated of sigma.1 and sigma.2 (original authors' comment).
 #' @export
 solve.sigma <- function(x, t, a) {
+  # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
   tt <- prep.uv(x, t, a)
   sigma.1 <- tt$u / tt$x.sum * ((tt$v / tt$u)^(1 / 3) + 1)
   sigma.2 <- tt$v / tt$x.sum * ((tt$u / tt$v)^(1 / 3) + 1)
@@ -123,7 +126,7 @@ solve.sigma <- function(x, t, a) {
 #' a and a boolean variable on whether the termination criteria is satified upon the end of the program (original authors' comment).
 #' @export
 bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 1)) {
-  # this function is not covered by any test case
+  # This function is not covered by any test case
   sel <- which(x > 1e-10)
   if (length(sel) == 0) {
     return(c(median(t), 1, 1, 0))
