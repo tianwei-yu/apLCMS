@@ -95,7 +95,7 @@ extract_features <- function(
       cache = FALSE
     )
     features <- prof.to.features(
-      feature_table = profile,
+      profile = profile,
       min.bw = min_bandwidth,
       max.bw = max_bandwidth,
       sd.cut = sd_cut,
