@@ -40,7 +40,21 @@ preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
   return(list("min.bw" = min.bw, "max.bw" = max.bw))
 }
 
-#' Convert input matrix to a dataframe with column names (see source code for the names)
+#' Convert input matrix to a dataframe with column names (see source code for the names).
+#' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
+#' \itemize{
+#'   \item float - mass-to-charge ratio of feature
+#'   \item float - retention time of features
+#'   \item float - intensity of features
+#'   \item integer - group number assigned to each feature based on their rt similarity
+#' }
+#' @return  Returns a dataframe with shape number-of-features*4. The columns are as follows:
+#' \itemize{
+#'   \item mz - float - mass-to-charge ratio of feature
+#'   \item rt - float - retention time of features
+#'   \item intensity - float - intensity of features
+#'   \item group_number - integer - group number assigned to each feature based on their rt similarity
+#' }
 preprocess_feature_table <- function(feature_table) {
   keys <- c("mz", "rt", "intensity", "group_number")
   colnames(feature_table) <- keys
@@ -66,16 +80,13 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
   return(chr_peak_shape)
 }
 
-#' @description
 #' This function solves the value of a using the x, t, a from the previous step, and sigma.1, and sigma.2 (original authors' comment).
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
   w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
   return(sum(t * w) / sum(w))
 }
 
-#' @description
 #' This function prepares the parameters required for latter compuation. u, v, and sum of x (original authors' comment).
-#'
 #' @export
 prep.uv <- function(x, t, a) {
   temp <- (t - a)^2 * x
@@ -88,9 +99,7 @@ prep.uv <- function(x, t, a) {
   ))
 }
 
-#' @description
 #' This function takes the value intensity level x, retention time t and assumed breaking point a, calculates the square estimated of sigma.1 and sigma.2 (original authors' comment).
-#'
 #' @export
 solve.sigma <- function(x, t, a) {
   tt <- prep.uv(x, t, a)
@@ -105,7 +114,6 @@ solve.sigma <- function(x, t, a) {
 #' @description
 #' Function takes into x and t, and then computes the value of sigma.1, sigma.2 and a using iterative method. the returned values include estimated sigmas,
 #' a and a boolean variable on whether the termination criteria is satified upon the end of the program (original authors' comment).
-#'
 #' @export
 bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 1)) {
   # this function is not covered by any test case
@@ -153,7 +161,6 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
 
 #' @description
 #' Computes vector of cumulative sums on reversed input. Returns cumulative sum vector going from the sum of all elements to one.
-#'
 #' @export
 rev_cum_sum <- function(x) {
   x <- rev(x)
@@ -194,7 +201,6 @@ compute_bounds <- function(x, sigma.ratio.lim) {
 
 #' @description
 #' Compute difference between neighbouring elements of a vector and apply a mask such that the maximum difference is no higher than 4-fold minimum difference.
-#'
 compute_dx <- function(x, threshold=TRUE) {
   l <- length(x)
   diff_x <- diff(x)
@@ -801,7 +807,7 @@ prof.to.features <- function(feature_table,
   aver_diff <- mean(diff(base.curve))
 
   keys <- c("mz", "pos", "sd1", "sd2", "area")
-  processed_features <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
+  peak_parameters <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
 
   feature_groups <- split(feature_table, feature_table$group_number)
   for (i in seq_along(feature_groups))
@@ -813,12 +819,12 @@ prof.to.features <- function(feature_table,
     if (between(num_features, 2, 10)) {
       eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, "base.curve"], all_rts)
       chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
-      processed_features <- rbind(processed_features, chr_peak_shape)
+      peak_parameters <- rbind(peak_parameters, chr_peak_shape)
     }
     if (num_features < 2) {
       time_weights <- all_rts[which(base.curve[, "base.curve"] %in% feature_group[2])]
       chr_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
-      processed_features <- rbind(processed_features, chr_peak_shape)
+      peak_parameters <- rbind(peak_parameters, chr_peak_shape)
     }
     if (num_features > 10) {
       rt_range <- range(feature_group[, "rt"])
@@ -836,23 +842,23 @@ prof.to.features <- function(feature_table,
       }
 
       if (is.null(nrow(chr_peak_shape))) {
-        processed_features <- rbind(processed_features, c(median(feature_group[, "mz"]), chr_peak_shape))
+        peak_parameters <- rbind(peak_parameters, c(median(feature_group[, "mz"]), chr_peak_shape))
       } else {
         for (m in 1:nrow(chr_peak_shape))
         {
           rt_diff <- abs(feature_group[, "rt"] - chr_peak_shape[m, 1])
-          processed_features <- rbind(processed_features, c(mean(feature_group[which(rt_diff == min(rt_diff)), 1]), chr_peak_shape[m, ]))
+          peak_parameters <- rbind(peak_parameters, c(mean(feature_group[which(rt_diff == min(rt_diff)), 1]), chr_peak_shape[m, ]))
         }
       }
     }
   }
-  processed_features <- processed_features[order(processed_features[, "mz"], processed_features[, "pos"]), ]
-  processed_features <- processed_features[which(apply(processed_features[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(processed_features[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
-  rownames(processed_features) <- NULL
+  peak_parameters <- peak_parameters[order(peak_parameters[, "mz"], peak_parameters[, "pos"]), ]
+  peak_parameters <- peak_parameters[which(apply(peak_parameters[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(peak_parameters[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
+  rownames(peak_parameters) <- NULL
 
   if (do.plot) {
-    plot_peak_summary(feature_groups, processed_features)
+    plot_peak_summary(feature_groups, peak_parameters)
   }
 
-  return(processed_features)
+  return(peak_parameters)
 }
