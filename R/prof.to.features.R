@@ -63,13 +63,13 @@ preprocess_feature_table <- function(feature_table) {
 }
 
 #' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
-#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
+#' @param chr_profile A matrix with two columns: "base.curve" (rt) and "intensity".
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param bw bandwidth vector to use in the kernel smoother.
-#' @param component.eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored.
-#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param bw Bandwidth vector to use in the kernel smoother.
+#' @param component.eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #'  models with more peaks are penalized more.
-#' @param aver_diff average retention time difference across RTs of all features.
+#' @param aver_diff Average retention time difference across RTs of all features.
 #' @return Returns a single-row vector or a table object with the following items/columns:
 #' \itemize{
 #'   \item miu - float - mean value of the gaussian curve
@@ -271,8 +271,8 @@ compute_scale <- function(y, d) {
 }
 
 #' Estimate the parameters of Bi-Gaussian curve.
-#' @param x vector of RTs that lay in the same RT cluster.
-#' @param y intensities that belong to x.
+#' @param x Vector of RTs that lay in the same RT cluster.
+#' @param y Intensities that belong to x.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
@@ -370,10 +370,10 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
   return(to.return)
 }
 
-#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
-#' @param vlys a vector of sorted RT-valley values at which the kernel estimate was computed.
-#' @param dx difference between neighbouring RT values with step 2.
-#' @param pks a vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @param chr_profile A matrix with two columns: "base.curve" (rt) and "intensity".
+#' @param vlys A vector of sorted RT-valley values at which the kernel estimate was computed.
+#' @param dx Difference between neighbouring RT values with step 2.
+#' @param pks A vector of sorted RT-peak values at which the kernel estimate was computed.
 compute_initiation_params <- function(chr_profile, vlys, dx, pks) {
   m <- s1 <- s2 <- delta <- pks
   for (i in 1:length(m))
@@ -391,11 +391,11 @@ compute_initiation_params <- function(chr_profile, vlys, dx, pks) {
     delta = delta))
 }
 
-#' @param m a vector of sorted RT-peak values at which the kernel estimate was computed.
-#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
-#' @param delta parameter computed by the initiation step.
-#' @param s1 parameter computed by the initiation step.
-#' @param s2 parameter computed by the initiation step.
+#' @param m A vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @param chr_profile A matrix with two columns: "base.curve" (rt) and "intensity".
+#' @param delta Parameter computed by the initiation step.
+#' @param s1 Parameter computed by the initiation step.
+#' @param s2 Parameter computed by the initiation step.
 compute_e_step <- function(m, chr_profile, delta, s1, s2) {
   fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
   cuts <- c(-Inf, m, Inf)
@@ -415,15 +415,15 @@ compute_e_step <- function(m, chr_profile, delta, s1, s2) {
   return(list(fit = fit, sum.fit = sum.fit))
 }
 
-#' @param chr_profile dataframe that stores RTs and intensities of features.
+#' @param chr_profile Dataframe that stores RTs and intensities of features.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
-#' @param bw bandwidth vector to use in the kernel smoother.
-#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored.
-#' @param max.iter maximum number of iterations when executing the E step.
+#' @param bw Bandwidth vector to use in the kernel smoother.
+#' @param eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param max.iter Maximum number of iterations when executing the E step.
 #' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
-#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #'  models with more peaks are penalized more.
 #' @importFrom dplyr filter arrange
 #' @export
@@ -570,13 +570,13 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 }
 
 #' Reevaluate parameters of chromatographic gaussian curves.
-#' @param that.curve dataframe that stores RTs and intensities of features.
-#' @param pks a vector of sorted RT-peak values at which the kernel estimate was computed.
-#' @param vlys a vector of sorted RT-valley values at which the kernel estimate was computed.
-#' @param ignore in fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
+#' @param that.curve Dataframe that stores RTs and intensities of features.
+#' @param pks A vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @param vlys A vector of sorted RT-valley values at which the kernel estimate was computed.
+#' @param ignore In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
 #' proportion of intensities less than this value, the component will be ignored.
-#' @param max.iter maximum number of iterations when reevaluating gaussian curves.
-#' @param aver_diff average retention time difference across RTs of all features.
+#' @param max.iter Maximum number of iterations when reevaluating gaussian curves.
+#' @param aver_diff Average retention time difference across RTs of all features.
 #' @export
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff) {
   x <- that.curve[, 1]
@@ -706,14 +706,14 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
   return(rec)
 }
 
-#' @param x vector of RTs that lay in the same RT cluster.
-#' @param y intensities that belong to x.
+#' @param x Vector of RTs that lay in the same RT cluster.
+#' @param y Intensities that belong to x.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param bw bandwidth vector to use in the kernel smoother.
-#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored.
-#' @param max.iter maximum number of iterations when executing the E step.
-#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
-#' @param aver_diff average retention time difference across RTs of all features.
+#' @param bw Bandwidth vector to use in the kernel smoother.
+#' @param eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param max.iter Maximum number of iterations when executing the E step.
+#' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param aver_diff Average retention time difference across RTs of all features.
 #' @export
 normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2, aver_diff) {
   all.bw <- bw[order(bw)]
