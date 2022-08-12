@@ -49,7 +49,7 @@ preprocess_feature_table <- function(feature_table) {
 }
 
 #' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
-#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity"
+#' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
 #' @return Returns a list object with the following objects:
 #' \itemize{
 #'   \item miu - float - mean value of the gaussian curve
@@ -182,8 +182,8 @@ compute_end_bound <- function(x, right_sigma_ratio_lim) {
   return (end_bound)
 }
 
-#' @param x Cumulative intensity values
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#' @param x Cumulative intensity values.
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation.
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @export
 compute_bounds <- function(x, sigma.ratio.lim) {
@@ -214,7 +214,7 @@ compute_dx <- function(x, threshold=TRUE) {
   return (dx)
 }
 
-#' Find base.curve RTs that lay within RT range of the whole feature table and append the intensities to these RTs
+#' Find base.curve RTs that lay within RT range of the whole feature table and append the intensities to these RTs.
 #' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item mz - float - mass-to-charge ratio of feature
@@ -222,7 +222,7 @@ compute_dx <- function(x, threshold=TRUE) {
 #'   \item intensity - float - intensity of features
 #'   \item group_number - integer - group number assigned to each feature based on their rt similarity
 #' }
-#' @param base.curve Matrix that contains rts of feature in the same rt cluster
+#' @param base.curve Matrix that contains rts of feature in the same rt cluster.
 #' @return dataframe with two columns
 compute_chromatographic_profile <- function(feature_table, base.curve) {
   rt_range <- range(feature_table[, "rt"])
@@ -242,8 +242,8 @@ compute_scale <- function(y, d) {
     return (scale)
 }
 
-#' @param x vector of RTs that lay in the same RT cluster
-#' @param y intensities that belong to x
+#' @param x vector of RTs that lay in the same RT cluster.
+#' @param y intensities that belong to x.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
@@ -379,14 +379,14 @@ compute_e_step <- function(m, chr_profile, delta, s1, s2) {
   return(list(fit = fit, sum.fit = sum.fit))
 }
 
-#' @param chr_profile dataframe that stores RTs and intensities of features
+#' @param chr_profile dataframe that stores RTs and intensities of features.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
-#' @param bw bandwidth vector to use in the kernel smoother
-#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored
-#' @param max.iter maximum number of iterations when executing the E step
-#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM
+#' @param bw bandwidth vector to use in the kernel smoother.
+#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param max.iter maximum number of iterations when executing the E step.
+#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
 #' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #'  models with more peaks are penalized more.
 #' @importFrom dplyr filter arrange
@@ -534,7 +534,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 }
 
 #' Reevaluate parameters of chromatographic gaussian curves.
-#' @param that.curve dataframe that stores RTs and intensities of features
+#' @param that.curve dataframe that stores RTs and intensities of features.
 #' @param pks a vector of sorted RT-peak values at which the kernel estimate was computed.
 #' @param vlys a vector of sorted RT-valley values at which the kernel estimate was computed.
 #' @param ignore in fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
@@ -670,12 +670,12 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
   return(rec)
 }
 
-#' @param x vector of RTs that lay in the same RT cluster
-#' @param y intensities that belong to x
+#' @param x vector of RTs that lay in the same RT cluster.
+#' @param y intensities that belong to x.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param bw bandwidth vector to use in the kernel smoother
-#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored
-#' @param max.iter maximum number of iterations when executing the E step
+#' @param bw bandwidth vector to use in the kernel smoother.
+#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param max.iter maximum number of iterations when executing the E step.
 #' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #' @param aver_diff average retention time difference across RTs of all features.
 #' @export
@@ -745,7 +745,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
   return(rec)
 }
 
-#' Generate feature table from noise-removed LC/MS profile
+#' Generate feature table from noise-removed LC/MS profile.
 #'
 #' @description
 #' Each LC/MS profile is first processed by the function proc.cdf() to remove noise and reduce data size. A matrix containing m/z
