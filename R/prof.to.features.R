@@ -540,7 +540,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 #' @param ignore in fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
 #' proportion of intensities less than this value, the component will be ignored.
 #' @param max.iter maximum number of iterations when reevaluating gaussian curves.
-#' @param aver_diff average retention time difference.
+#' @param aver_diff average retention time difference across RTs of all features.
 #' @export
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff) {
   x <- that.curve[, 1]
@@ -670,6 +670,14 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
   return(rec)
 }
 
+#' @param x vector of RTs that lay in the same RT cluster
+#' @param y intensities that belong to x
+#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param bw bandwidth vector to use in the kernel smoother
+#' @param eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored
+#' @param max.iter maximum number of iterations when executing the E step
+#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param aver_diff average retention time difference across RTs of all features.
 #' @export
 normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2, aver_diff) {
   all.bw <- bw[order(bw)]
