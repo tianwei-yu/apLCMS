@@ -64,11 +64,18 @@ preprocess_feature_table <- function(feature_table) {
 
 #' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
 #' @param chr_profile a matrix with two columns: "base.curve" (rt) and "intensity".
-#' @return Returns a list object with the following objects:
+#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param bw bandwidth vector to use in the kernel smoother.
+#' @param component.eliminate when a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#'  models with more peaks are penalized more.
+#' @param aver_diff average retention time difference across RTs of all features.
+#' @return Returns a single-row vector or a table object with the following items/columns:
 #' \itemize{
 #'   \item miu - float - mean value of the gaussian curve
 #'   \item sigma - float - standard deviation of the gaussian curve
-#'   \item scale - float - scale of the gaussian curve
+#'   \item sigma - float - standard deviation of the gaussian curve
+#'   \item scale - float - estimated total signal strength (total area of the estimated normal curve)
 #'}
 compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.eliminate, BIC.factor, aver_diff) {
   chr_peak_shape <- normix.bic(chr_profile[, "base.curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
