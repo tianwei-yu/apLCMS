@@ -62,6 +62,8 @@ extract_features <- function(
     'load.lcms',
     'adaptive.bin',
     'find.turn.point',
+    'msExtrema',
+    'find_local_maxima',
     'combine.seq.3',
     'cont.index',
     'interpol.area',

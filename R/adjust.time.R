@@ -111,7 +111,10 @@ adjust.time <- function(features,
                       cex = 2)
         }
 
-        values <- get_feature_values(features, rt_colname)
+    features <- lapply(features, function(x) tibble::as_tibble(x) |> dplyr::rename(rt = pos))
+
+
+        values <- concatenate_feature_tables(features, rt_colname)
         mz <- values$mz
         chr <- values$rt
         lab <- values$sample_id
@@ -148,7 +151,7 @@ adjust.time <- function(features,
             that <- cbind(all.ft$mz[sel], all.ft$rt[sel], all.ft$grps[sel])
             this <- this[order(this[, 1], this[, 2]), ]
             that <- that[order(that[, 1], that[, 2]), ]
-            this <- cbind(this, V6=rep(i, nrow(this)), V7=that[, 3])
+            this <- cbind(this, sample_id=rep(i, nrow(this)), rt_cluster=that[, 3])
             features[[i]] <- this
         }
         
