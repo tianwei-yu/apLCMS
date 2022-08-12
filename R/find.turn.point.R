@@ -3,6 +3,7 @@
 #' @param y The y values of a curve in x-y plane.
 #' @param ties.method specifies the method rank uses to break ties.
 #' @return boolean row with local maxima turn point.
+#' @export
 find_local_maxima <- function(y, ties.method) {
     padded_y <- rev(as.vector(c(-Inf, y, -Inf)))
 
@@ -24,6 +25,7 @@ find_local_maxima <- function(y, ties.method) {
 #' Compute maxima and minima turn points. 
 #' @param y The y values of a curve in x-y plane.
 #' @return boolean row with local maxima and minima turn points.
+#' @export
 msExtrema <- function(y) {
     index1 <- find_local_maxima(y, ties.method = "first")
     index2 <- find_local_maxima(-y, ties.method = "last")
