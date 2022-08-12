@@ -15,7 +15,7 @@ validate_inputs <- function(shape.model, estim.method) {
 #' Initialize minimum and maximum bandwidth values if none given. Ensure that minimum bandwidth is lower that maximum, else set minimum to 1/4 of maximum value.
 #' @param min.bw The minimum bandwidth to use in the kernel smoother.
 #' @param max.bw The maximum bandwidth to use in the kernel smoother.
-#' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
+#' @param profile Profile table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item mz - float - mass-to-charge ratio of feature
 #'   \item rt - float - retention time of features
@@ -26,12 +26,12 @@ validate_inputs <- function(shape.model, estim.method) {
 #' \itemize{
 #'   \item min.bw - float - Minimum bandwidth.
 #'   \item max.bw - float - Maximum bandwidth
-preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
+preprocess_bandwidth <- function(min.bw, max.bw, profile) {
   if (is.na(min.bw)) {
-    min.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 60
+    min.bw <- diff(range(profile[, 2], na.rm = TRUE)) / 60
   }
   if (is.na(max.bw)) {
-    max.bw <- diff(range(feature_table[, 2], na.rm = TRUE)) / 15
+    max.bw <- diff(range(profile[, 2], na.rm = TRUE)) / 15
   }
   if (min.bw >= max.bw) {
     min.bw <- max.bw / 4
@@ -41,7 +41,7 @@ preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
 }
 
 #' Convert input matrix to a dataframe with column names (see source code for the names).
-#' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
+#' @param profile Profile table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item float - mass-to-charge ratio of feature
 #'   \item float - retention time of features
@@ -55,11 +55,11 @@ preprocess_bandwidth <- function(min.bw, max.bw, feature_table) {
 #'   \item intensity - float - intensity of features
 #'   \item group_number - integer - group number assigned to each feature based on their rt similarity
 #' }
-preprocess_feature_table <- function(feature_table) {
+preprocess_profile <- function(profile) {
   keys <- c("mz", "rt", "intensity", "group_number")
-  colnames(feature_table) <- keys
+  colnames(profile) <- keys
 
-  return(data.frame(feature_table))
+  return(data.frame(profile))
 }
 
 #' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
@@ -239,7 +239,7 @@ compute_dx <- function(x, apply_mask=TRUE) {
 }
 
 #' Find base.curve RTs that lay within RT range of the whole feature table and append the intensities to these RTs.
-#' @param feature_table Feature table with shape number-of-features*4. The table contains following columns:
+#' @param profile Profile table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item mz - float - mass-to-charge ratio of feature
 #'   \item rt - float - retention time of features
@@ -248,10 +248,10 @@ compute_dx <- function(x, apply_mask=TRUE) {
 #' }
 #' @param base.curve Matrix that contains rts of feature in the same rt cluster.
 #' @return dataframe with two columns
-compute_chromatographic_profile <- function(feature_table, base.curve) {
-  rt_range <- range(feature_table[, "rt"])
+compute_chromatographic_profile <- function(profile, base.curve) {
+  rt_range <- range(profile[, "rt"])
   chr_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
-  chr_profile[chr_profile[, "base.curve"] %in% feature_table[, "rt"], 2] <- feature_table[, "intensity"]
+  chr_profile[chr_profile[, "base.curve"] %in% profile[, "rt"], 2] <- profile[, "intensity"]
   colnames(chr_profile)[2] <- "intensity"
 
   return (chr_profile)
@@ -788,7 +788,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
 #' value, retention time, intensity, and group number is output from proc.cdf(). This matrix is then fed to the function
 #' prof.to.features() to generate a feature list. Every detected feature is summarized into a single row in the output matrix from this function.
 #'
-#' @param feature_table The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
+#' @param profile The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
 #' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps
 #'  determine the bandwidth in the kernel smoother used for peak identification.
 #' @param min.bw The minimum bandwidth to use in the kernel smoother.
@@ -810,7 +810,7 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
 #' @export
 #' @examples
 #' prof.to.features(extracted_features, sd.cut = sd_cut, sigma.ratio.lim = sigma_ratio_lim, do.plot = FALSE)
-prof.to.features <- function(feature_table,
+prof.to.features <- function(profile,
                              bandwidth = 0.5,
                              min.bw = NA,
                              max.bw = NA,
@@ -824,14 +824,14 @@ prof.to.features <- function(feature_table,
                              BIC.factor = 2) {
   validate_inputs(shape.model, estim.method)
 
-  feature_table <- preprocess_feature_table(feature_table)
+  profile <- preprocess_profile(profile)
 
-  bws <- preprocess_bandwidth(min.bw, max.bw, feature_table)
+  bws <- preprocess_bandwidth(min.bw, max.bw, profile)
   min.bw <- bws[["min.bw"]]
   max.bw <- bws[["max.bw"]]
 
-  # base.curve <- compute_base_curve(feature_table[, "rt"])
-  base.curve <- sort(unique(feature_table[, "rt"]))
+  # base.curve <- compute_base_curve(profile[, "rt"])
+  base.curve <- sort(unique(profile[, "rt"]))
   base.curve <- cbind(base.curve, base.curve * 0)
   all_rts <- compute_delta_rt(base.curve[, 1])
   aver_diff <- mean(diff(base.curve))
@@ -839,7 +839,7 @@ prof.to.features <- function(feature_table,
   keys <- c("mz", "pos", "sd1", "sd2", "area")
   peak_parameters <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
 
-  feature_groups <- split(feature_table, feature_table$group_number)
+  feature_groups <- split(profile, profile$group_number)
   for (i in seq_along(feature_groups))
   {
     feature_group <- feature_groups[[i]]
