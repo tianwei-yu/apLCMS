@@ -494,7 +494,7 @@ compute_rectangle <- function(data_table,
   features <- dplyr::slice(
     data_table,
     (breaks[bounds$start] + 1):breaks[bounds$end]
-  )
+  ) |> dplyr::arrange_at("labels")
 
   mass.den <- compute_mass_density(
     features,
@@ -513,8 +513,7 @@ compute_rectangle <- function(data_table,
     mass <- compute_boundaries(mass_range$vlys, peak)
 
     that <- features |>
-      dplyr::filter(mz > mass$lower & mz <= mass$upper) |>
-      dplyr::arrange_at("labels")
+      dplyr::filter(mz > mass$lower & mz <= mass$upper)
 
     # get values in RT region of interest?
     if (nrow(that) > recover_min_count) {
