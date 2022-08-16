@@ -846,7 +846,7 @@ prof.to.features <- function(profile,
     feature_group <- feature_group[order(feature_group[, "rt"]), ]
 
     num_features <- nrow(feature_group)
-    if (between(num_features, 2, 10)) {
+    if (dplyr::between(num_features, 2, 10)) {
       eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, "base.curve"], all_rts)
       chr_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
       peak_parameters <- rbind(peak_parameters, chr_peak_shape)
