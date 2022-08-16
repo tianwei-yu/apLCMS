@@ -91,3 +91,7 @@ create_feature_sample_table <- function(features) {
   )
   return(table)
 }
+
+span <- function(x) {
+  diff(range(x, na.rm = TRUE))
+}

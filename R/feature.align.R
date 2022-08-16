@@ -177,7 +177,7 @@ feature.align <- function(features,
         return(x)
     })
 
-    number_of_samples <- nrow(summary(features))
+    number_of_samples <- length(features)
     if (number_of_samples > 1) {
         values <- concatenate_feature_tables(features, rt_colname) |> dplyr::arrange_at(c("mz", "rt"))
 
@@ -231,7 +231,7 @@ feature.align <- function(features,
         message(paste("time tolerance level:", rt_tol_relative))
 
         # create zero vectors of length number_of_samples + 4 ?
-        aligned_features <- pk.times <- rep(0, 4 + number_of_samples)
+        aligned_features <- pk.times <- NULL
         mz_sd <- 0
 
         labels <- unique(all_features$grps)
@@ -304,9 +304,10 @@ feature.align <- function(features,
                 min_occurrence,
                 number_of_samples
             )
+
             aligned_features <- rbind(aligned_features, rows)
         }
-        aligned_features <- aligned_features[-1, ]
+        #aligned_features <- aligned_features[-1, ]
 
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
         pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
