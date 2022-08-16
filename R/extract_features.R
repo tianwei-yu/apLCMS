@@ -4,7 +4,7 @@ NULL
 
 #' feature extraction
 #' 
-#' extract feature
+#' extract features
 #' 
 #' @param cluster The number of CPU cores to be used
 #' @param filenames The CDF file names.
@@ -35,8 +35,7 @@ NULL
 #'  model in an EIC.
 #' @param BIC_factor The factor that is multiplied on the number of parameters to modify the BIC criterion. 
 #'  If larger than 1, models with more peaks are penalized more.
-#' @examples
-#' extract_features(cluster, filenames, min_pres, min_run, mz_tol, 0, 0.05, intensity_weighted, NA, NA, sd_cut, sigma_ratio_lim, "bi-Gaussian", "moment", 0.01, 1, 2.0)
+#' @export
 extract_features <- function(
   cluster,
   filenames,
@@ -76,7 +75,6 @@ extract_features <- function(
     'compute_boundaries',
     'increment_counter',
     'rm.ridge',
-    #'compute_base_curve',
     'compute_delta_rt',
     'bigauss.mix',
     'bigauss.esti',
