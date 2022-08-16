@@ -11,25 +11,29 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
         for (i in seq_along(strengths)) {
             # select all areas/RTs from the same sample
             values <- pick[pick[, 6] == i, 5]
-            if (use == "sum")
+            if (use == "sum") {
                 strengths[i] <- sum(values)
-            if (use == "median")
+            }
+            if (use == "median") {
                 strengths[i] <- median(values)
+            }
             # can be NA if pick does not contain any data from a sample
         }
         # average of m/z, average of rt, min of m/z, max of m/z, sum/median of areas/RTs
-        return(c(mean(pick[, 1]), mean(pick[, 2]), min(pick[, 1]),
-                 max(pick[, 1]), strengths))
+        return(c(
+            mean(pick[, 1]), mean(pick[, 2]), min(pick[, 1]),
+            max(pick[, 1]), strengths
+        ))
     }
 }
 
 
 create_output <- function(sample_grouped, number_of_samples, deviation) {
-    return(c(to_attach(sample_grouped, number_of_samples, use = "sum"),
-             to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
-             deviation
-    )
-    )
+    return(c(
+        to_attach(sample_grouped, number_of_samples, use = "sum"),
+        to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
+        deviation
+    ))
 }
 
 
@@ -81,27 +85,63 @@ select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, 
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 1, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
-            return(select_rt(sample_grouped, rt_tol_relative, min_occurrence, number_of_samples)) 
+            return(select_rt(sample_grouped, rt_tol_relative, min_occurrence, number_of_samples))
         }
     }
 }
 
 
+create_rows <- function(i,
+                        grps,
+                        sel.labels,
+                        mz_values,
+                        rt,
+                        area,
+                        sample_id,
+                        mz_tol_relative,
+                        rt_tol_relative,
+                        min_occurrence,
+                        number_of_samples) {
+    if (i %% 100 == 0) {
+        gc()
+    } # call Garbage Collection for performance improvement?
+    # select a group
+    group_ids <- which(grps == sel.labels[i])
+    if (length(group_ids) > 1) {
+        # select data from the group
+        sample <- cbind(
+            mz_values[group_ids], rt[group_ids], rt[group_ids],
+            rt[group_ids], area[group_ids], sample_id[group_ids]
+        )
+        # continue if data is from at least 'min_occurrence' samples
+        if (validate_contents(sample, min_occurrence)) {
+            return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples))
+        }
+    } else if (min_occurrence == 1) {
+        sample_grouped <- c(
+            mz_values[group_ids], rt[group_ids], rt[group_ids],
+            rt[group_ids], area[group_ids], sample_id[group_ids]
+        )
+        return(create_output(sample_grouped, number_of_samples, NA))
+    }
+    return(NULL)
+}
+
 #' Align peaks from spectra into a feature table.
-#' 
+#'
 #' Identifies which of the peaks from the profiles correspond to the same feature.
-#' 
+#'
 #' @param features A list object. Each component is a matrix which is the output from proc.to.feature().
 #' @param min_occurrence  A feature has to show up in at least this number of profiles to be included in the final result.
 #' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
-#'  program to search for the tolerance level based on the data. This value is expressed as the 
+#'  program to search for the tolerance level based on the data. This value is expressed as the
 #'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
-#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which 
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which
 #'  allows the program to search for the tolerance level based on the data.
-#' @param mz_max_diff Argument passed to find.tol(). Consider only m/z diffs smaller than this value. 
+#' @param mz_max_diff Argument passed to find.tol(). Consider only m/z diffs smaller than this value.
 #'  This is only used when the mz_tol_relative is NA.
-#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable 
-#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly 
+#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable
+#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
 #' @param rt_colname Name of the column containing the retention time information.
@@ -128,141 +168,175 @@ feature.align <- function(features,
         draw_plot(label = "Feature alignment", cex = 2)
         draw_plot()
     }
-    
-    number_of_samples <- nrow(summary(features))
+
+    features <- lapply(features, function(x) {
+        x <- tibble::as_tibble(x) 
+        if("pos" %in% colnames(x)) {
+            x <- x |> dplyr::rename(rt = pos)
+        }
+        return(x)
+    })
+
+    number_of_samples <- length(features)
     if (number_of_samples > 1) {
-        values <- get_feature_values(features, rt_colname)
+        values <- concatenate_feature_tables(features, rt_colname) |> dplyr::arrange_at(c("mz", "rt"))
+
         mz_values <- values$mz
         rt <- values$rt
         sample_id <- values$sample_id
-        
+
         # sort all values by m/z, if equal by rt
-        ordering <- order(mz_values, rt)
-        mz_values <- mz_values[ordering]
-        rt <- rt[ordering]
-        sample_id <- sample_id[ordering]
-        
+        # ordering <- order(mz_values, rt)
+        # mz_values <- mz_values[ordering]
+        # rt <- rt[ordering]
+        # sample_id <- sample_id[ordering]
+
         # find relative m/z tolerance level
         if (is.na(mz_tol_relative)) {
             mz_tol_relative <- find.tol(mz_values, mz_max_diff = mz_max_diff, do.plot = do.plot)
             if (length(mz_tol_relative) == 0) {
                 mz_tol_relative <- 1e-5
-                warning("Automatic tolerance finding failed, 10 ppm was assigned. 
+                warning("Automatic tolerance finding failed, 10 ppm was assigned.
                         May need to manually assign alignment mz tolerance level.")
             }
         } else if (do.plot) {
-            draw_plot(main = "alignment m/z tolerance level given", 
-                      label = mz_tol_relative, cex = 1.2)
+            draw_plot(
+                main = "alignment m/z tolerance level given",
+                label = mz_tol_relative, cex = 1.2
+            )
         }
-        
+
         if (!is.na(rt_tol_relative) && do.plot) {
-            draw_plot(main = "retention time \n tolerance level given", 
-                      label = rt_tol_relative, cex = 1.2)
+            draw_plot(
+                main = "retention time \n tolerance level given",
+                label = rt_tol_relative, cex = 1.2
+            )
         }
-        
+
         # find relative retention time tolerance level
         # also does some preprocessing grouping steps
         all_features <- find.tol.time(mz_values,
-                                      rt,
-                                      sample_id,
-                                      number_of_samples = number_of_samples,
-                                      mz_tol_relative = mz_tol_relative,
-                                      rt_tol_relative = rt_tol_relative,
-                                      mz_tol_absolute = mz_tol_absolute,
-                                      do.plot = do.plot)
+            rt,
+            sample_id,
+            number_of_samples = number_of_samples,
+            mz_tol_relative = mz_tol_relative,
+            rt_tol_relative = rt_tol_relative,
+            mz_tol_absolute = mz_tol_absolute,
+            do.plot = do.plot
+        )
         rt_tol_relative <- all_features$rt.tol
-        
+
         message("**** performing feature alignment ****")
         message(paste("m/z tolerance level: ", mz_tol_relative))
         message(paste("time tolerance level:", rt_tol_relative))
-        
+
         # create zero vectors of length number_of_samples + 4 ?
-        aligned_features <- pk.times <- rep(0, 4 + number_of_samples)
+        aligned_features <- pk.times <- NULL
         mz_sd <- 0
-        
+
         labels <- unique(all_features$grps)
         area <- grps <- mz_values
-        
+
         # grouping the features based on their m/z values (assuming the tolerance level)
         sizes <- c(0, cumsum(sapply(features, nrow)))
         for (i in 1:number_of_samples) {
             sample <- features[[i]]
             # order by m/z then by rt
-            sample <- sample[order(sample[, 1], sample[, 2]),]
-            
+            # sample <- sample[order(sample[, 1], sample[, 2]),]
+            sample <- features[[i]] |> dplyr::arrange_at(c("mz", "rt"))
+
             # select preprocessed features belonging to current sample
             group_ids <- which(all_features$lab == i)
             # select m/z, rt and their group ID
-            sample_grouped <- cbind(all_features$mz[group_ids], all_features$rt[group_ids], all_features$grps[group_ids])
-            sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]),]
-            
+            # sample_grouped <- cbind(all_features$mz[group_ids], all_features$rt[group_ids], all_features$grps[group_ids])
+            sample_grouped <- tibble::tibble(mz = all_features$mz[group_ids], rt = all_features$rt[group_ids], grps = all_features$grps[group_ids])
+
+            # sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]),]
+            sample_grouped <- sample_grouped |> dplyr::arrange_at(c("mz", "rt"))
+
+
             # update m/z, rt, area values with ordered ones
-            mz_values[(sizes[i] + 1):sizes[i + 1]] <- sample[, 1]
-            rt[(sizes[i] + 1):sizes[i + 1]] <- sample[, 2]
-            area[(sizes[i] + 1):sizes[i + 1]] <- sample[, 5]
+            mz_values[(sizes[i] + 1):sizes[i + 1]] <- sample$mz
+            rt[(sizes[i] + 1):sizes[i + 1]] <- sample$rt
+            area[(sizes[i] + 1):sizes[i + 1]] <- sample$area
             # assign row identifier
-            grps[(sizes[i] + 1):sizes[i + 1]] <- sample_grouped[, 3]
+            grps[(sizes[i] + 1):sizes[i + 1]] <- sample_grouped$grps
             # assign batch identifier
             sample_id[(sizes[i] + 1):sizes[i + 1]] <- i
         }
-        
+
         # table with number of values per group
         groups_cardinality <- table(all_features$grps)
-        # count those with minimal occurrence 
+        # count those with minimal occurrence
         # (times 3 ? shouldn't be number of samples) !!!
         curr.row <- sum(groups_cardinality >= min_occurrence) * 3
         mz_sd <- rep(0, curr.row)
-        
+
         sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
-        
+
         # retention time alignment
-        aligned_features <-
-            foreach::foreach(i = seq_along(sel.labels), .combine = rbind) %do% {
-                if (i %% 100 == 0)
-                    gc() # call Garbage Collection for performance improvement?
-                # select a group
-                group_ids <- which(grps == sel.labels[i])
-                if (length(group_ids) > 1) {
-                    # select data from the group
-                    sample <- cbind(mz_values[group_ids], rt[group_ids], rt[group_ids], 
-                                    rt[group_ids], area[group_ids], sample_id[group_ids])
-                    # continue if data is from at least 'min_occurrence' samples
-                    if (validate_contents(sample, min_occurrence)) {
-                        return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples))
-                    }
-                } else if (min_occurrence == 1) {
-                    sample_grouped <- c(mz_values[group_ids], rt[group_ids], rt[group_ids], 
-                                        rt[group_ids], area[group_ids], sample_id[group_ids])
-                    return(create_output(sample_grouped, number_of_samples, NA))
-                }
-                return(NULL)
-            }
-        
+        # aligned_features <-
+        #     foreach::foreach(i = seq_along(sel.labels), .combine = rbind) %do%
+        #     create_rows(
+        #         i,
+        #         grps,
+        #         sel.labels,
+        #         mz_values,
+        #         rt,
+        #         area,
+        #         sample_id,
+        #         mz_tol_relative,
+        #         rt_tol_relative,
+        #         min_occurrence,
+        #         number_of_samples
+        #     )
+        for(i in seq_along(sel.labels)) {
+            rows <- create_rows(
+                i,
+                grps,
+                sel.labels,
+                mz_values,
+                rt,
+                area,
+                sample_id,
+                mz_tol_relative,
+                rt_tol_relative,
+                min_occurrence,
+                number_of_samples
+            )
+
+            aligned_features <- rbind(aligned_features, rows)
+        }
+        #aligned_features <- aligned_features[-1, ]
+
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
         pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
         mz_sd <- aligned_features[, ncol(aligned_features)]
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, sum of areas per sample (the first to_attach call)
         aligned_features <- aligned_features[, 1:(4 + number_of_samples)]
-        
+
         # rename columns on both tables, samples are called "exp_i"
         colnames(aligned_features) <-
             colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:number_of_samples))
-        
+
         # return both tables and both computed tolerances
         rec <- new("list")
         rec$aligned.ftrs <- aligned_features
         rec$pk.times <- pk.times
         rec$mz.tol <- mz_tol_relative
         rec$chr.tol <- rt_tol_relative
-        
+
         if (do.plot) {
-            hist(mz_sd, xlab = "m/z SD", ylab = "Frequency",
-                 main = "m/z SD distribution")
-            hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE), 
-                 xlab = "Retention time SD", ylab = "Frequency",
-                 main = "Retention time SD distribution")
+            hist(mz_sd,
+                xlab = "m/z SD", ylab = "Frequency",
+                main = "m/z SD distribution"
+            )
+            hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE),
+                xlab = "Retention time SD", ylab = "Frequency",
+                main = "Retention time SD distribution"
+            )
         }
-        
+
         return(rec)
     } else {
         message("There is but one experiment.  What are you trying to align?")

@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - r-base >= 3.5
+  - r-pkgload <= 1.2.4
   - r-devtools
   - r-biocmanager
   - r-mass
@@ -21,7 +22,7 @@ dependencies:
   - r-rocr
   - r-rocs
   - r-rcpp
-  - r-arrow
+  - r-arrow <= 8.0.0
   - r-dplyr
   - r-tidyr
   - r-stringr
@@ -33,3 +34,4 @@ dependencies:
   - r-datacomparer
   - r-patrick
   - radian
+  - r-httpgd

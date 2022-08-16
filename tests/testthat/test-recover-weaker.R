@@ -19,8 +19,10 @@ patrick::with_parameters_test_that(
       file.path(testdata, "adjusted", paste0(x, ".parquet"))
     })
 
-    adjusted <- lapply(filenames, arrow::read_parquet)
-    adjusted <- lapply(adjusted, as.data.frame)
+    adjusted <- lapply(filenames, function(x) {
+       arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
+    })
+    #adjusted <- lapply(adjusted, as.data.frame)
 
     aligned <- load_aligned_features(
       file.path(testdata, "aligned", "rt_cross_table.parquet"),
@@ -87,23 +89,24 @@ patrick::with_parameters_test_that(
       file.path(testdata, "recovered", "recovered-corrected", paste0(x, ".parquet"))
     })
 
-    corrected_recovered_expected <- lapply(filenames, arrow::read_parquet)
-
+    corrected_recovered_expected <- lapply(filenames, function(x) {
+       arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
+    })
     # preprocess dataframes
-    keys <- c("mz", "pos", "sd1", "sd2", "area")
+    keys <- c("mz", "sd1", "sd2", "area")
 
     extracted_recovered_actual <- lapply(extracted_recovered_actual, function(x) {
-      x |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "pos"))
     })
     corrected_recovered_actual <- lapply(corrected_recovered_actual, function(x) {
-      x |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "rt"))
     })
 
     extracted_recovered_expected <- lapply(extracted_recovered_expected, function(x) {
-      x |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "pos"))
     })
     corrected_recovered_expected <- lapply(corrected_recovered_expected, function(x) {
-      x |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "rt"))
     })
 
     # compare files

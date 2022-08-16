@@ -14,25 +14,22 @@ NULL
 #' @return Returns the same table with duplicate rows removed.
 #' @export
 duplicate.row.remove <- function(features, tolerance = 1e-10) {
-  new.table <- features |> dplyr::arrange_at(c("mz", "pos", "area"))
+  new.table <- features |> dplyr::arrange_at(c("mz", "rt", "area"))
   n <- 1
-  m <- 2
-  to.remove <- rep(0, nrow(new.table))
+  to.remove <- c()
 
-  while (m <= nrow(new.table)) {
+  for (m in 2:nrow(new.table)) {
     if (abs(new.table$mz[m] - new.table$mz[n]) < tolerance &
-      abs(new.table$pos[m] - new.table$pos[n]) < tolerance &
+      abs(new.table$rt[m] - new.table$rt[n]) < tolerance &
       abs(new.table$area[m] - new.table$area[n]) < tolerance) {
-      to.remove[m] <- 1
-      m <- m + 1
+      to.remove <- c(to.remove, m)
     } else {
       n <- m
-      m <- m + 1
     }
   }
 
-  if (sum(to.remove) > 0) {
-    new.table <- new.table[-which(to.remove == 1), ]
+  if(length(to.remove) > 0) {
+    new.table <- new.table[-to.remove, ]
   }
   new.table
 }
@@ -261,7 +258,7 @@ get_rt_region_indices <- function(target_time, features, chr_tol) {
   if (!is.null(target_time) && !is.na(target_time)) {
     selection <- which(abs(features$labels - target_time) < chr_tol)
   } else {
-    selection <- 1
+    selection <- 1:nrow(features)
   }
   return(selection)
 }
@@ -499,7 +496,7 @@ compute_rectangle <- function(data_table,
   features <- dplyr::slice(
     data_table,
     (breaks[bounds$start] + 1):breaks[bounds$end]
-  )
+  ) |> dplyr::arrange_at("labels")
 
   mass.den <- compute_mass_density(
     features,
@@ -518,8 +515,7 @@ compute_rectangle <- function(data_table,
     mass <- compute_boundaries(mass_range$vlys, peak)
 
     that <- features |>
-      dplyr::filter(mz > mass$lower & mz <= mass$upper) |>
-      dplyr::arrange_at("labels")
+      dplyr::filter(mz > mass$lower & mz <= mass$upper)
 
     # get values in RT region of interest?
     if (nrow(that) > recover_min_count) {
@@ -709,13 +705,13 @@ recover.weaker <- function(filename,
   target_times <- compute_target_times(
     aligned.ftrs[, "rt"],
     round(extracted_features$pos, 5),
-    round(adjusted_features$pos, 5)
+    round(adjusted_features$rt, 5)
   )
 
   # IMPORTANT: THIS CODE SECTION COULD BE USED TO REPLACE COMPUTE_TARGET_TIMES FOR THE TEST CASES AND
   # IS A MASSIVE SIMPLIFICATION.
   # sp <- splines::interpSpline(
-  #   unique(extracted_features$pos) ~ unique(adjusted_features$pos),
+  #   unique(extracted_features$pos) ~ unique(adjusted_features$rt),
   #   na.action = na.omit
   # )
   # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
@@ -782,13 +778,13 @@ recover.weaker <- function(filename,
           area = this.rec$intensities[this.sel]
         )
         
-        this.time.adjust <- (-extracted_features$pos[this.pos.diff] + adjusted_features$pos[this.pos.diff])
+        this.time.adjust <- (-extracted_features$pos[this.pos.diff] + adjusted_features$rt[this.pos.diff])
 
         adjusted_features <- adjusted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
-          pos = this.rec$labels[this.sel] + this.time.adjust,
+          rt = this.rec$labels[this.sel] + this.time.adjust,
           area = this.rec$intensities[this.sel],
-          V6 = grep(sample_name, colnames(aligned.ftrs)) - 4 # offset for other columns `mz`, `rt` etc
+          sample_id = grep(sample_name, colnames(aligned.ftrs)) - 4 # offset for other columns `mz`, `rt` etc
         )
 
         sample_intensities[i] <- this.rec$intensities[this.sel]
@@ -801,7 +797,7 @@ recover.weaker <- function(filename,
   to.return$this.mz <- this.mz
   to.return$this.ftrs <- sample_intensities
   to.return$this.times <- sample_times
-  to.return$this.f1 <- duplicate.row.remove(extracted_features)
+  to.return$this.f1 <- duplicate.row.remove(extracted_features |> dplyr::rename(rt = pos)) |> dplyr::rename(pos = rt)
   to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
   return(to.return)
