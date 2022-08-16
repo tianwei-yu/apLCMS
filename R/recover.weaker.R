@@ -258,7 +258,7 @@ get_rt_region_indices <- function(target_time, features, chr_tol) {
   if (!is.null(target_time) && !is.na(target_time)) {
     selection <- which(abs(features$labels - target_time) < chr_tol)
   } else {
-    selection <- seq_len(features)
+    selection <- 1:nrow(features)
   }
   return(selection)
 }
