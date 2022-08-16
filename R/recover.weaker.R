@@ -16,23 +16,20 @@ NULL
 duplicate.row.remove <- function(features, tolerance = 1e-10) {
   new.table <- features |> dplyr::arrange_at(c("mz", "rt", "area"))
   n <- 1
-  m <- 2
-  to.remove <- rep(0, nrow(new.table))
+  to.remove <- c()
 
-  while (m <= nrow(new.table)) {
+  for (m in 2:nrow(new.table)) {
     if (abs(new.table$mz[m] - new.table$mz[n]) < tolerance &
       abs(new.table$rt[m] - new.table$rt[n]) < tolerance &
       abs(new.table$area[m] - new.table$area[n]) < tolerance) {
-      to.remove[m] <- 1
-      m <- m + 1
+      to.remove <- c(to.remove, m)
     } else {
       n <- m
-      m <- m + 1
     }
   }
 
-  if (sum(to.remove) > 0) {
-    new.table <- new.table[-which(to.remove == 1), ]
+  if(length(to.remove) > 0) {
+    new.table <- new.table[-to.remove, ]
   }
   new.table
 }
@@ -261,7 +258,7 @@ get_rt_region_indices <- function(target_time, features, chr_tol) {
   if (!is.null(target_time) && !is.na(target_time)) {
     selection <- which(abs(features$labels - target_time) < chr_tol)
   } else {
-    selection <- 1:nrow(features)
+    selection <- seq_len(features)
   }
   return(selection)
 }
