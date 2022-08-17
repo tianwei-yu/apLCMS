@@ -42,7 +42,7 @@ patrick::with_parameters_test_that(
     })
     
     expected <- lapply(expected_filenames, function(x) {
-      tibble::as_tibble(arrow::read_parquet(x)) |> dplyr::rename( rt = pos, sample_id = V6, rt_cluster = V7)
+      tibble::as_tibble(arrow::read_parquet(x)) |> dplyr::rename( rt = pos, sample_id = V6, cluster = V7)
     })
     
     corrected <- lapply(corrected, tibble::as_tibble)

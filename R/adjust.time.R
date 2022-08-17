@@ -74,6 +74,17 @@ fill_missing_values <- function(orig.feature, this.feature) {
   return(this.feature)
 }
 
+add_sample_id_and_rt_cluster <- function(sample, all.ft, current_sample_id) {
+    sample <- sample[order(sample[, 1], sample[, 2]), ]
+    group_ids <- which(all.ft$sample_id == current_sample_id)
+
+    sample_grouped <- cbind(all.ft$mz[group_ids], all.ft$rt[group_ids], all.ft$grps[group_ids])
+    sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]), ]
+    
+    features <- cbind(sample, sample_id = rep(current_sample_id, nrow(sample)), cluster = sample_grouped[, 3])
+    return(features)
+}
+
 #' Adjust retention time across spectra.
 #'
 #' This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
@@ -121,12 +132,16 @@ adjust.time <- function(extracted_features,
   extracted_features <- lapply(extracted_features, function(x) tibble::as_tibble(x) |> dplyr::rename(rt = pos))
 
   values <- concatenate_feature_tables(extracted_features, rt_colname)
-  mz <- values$mz
-  chr <- values$rt
-  lab <- values$sample_id
+  all_mz <- values$mz
+  all_rt <- values$rt
+  all_sample_ids <- values$sample_id
 
   if (is.na(mz_tol_relative)) {
-    mz_tol_relative <- find.tol(mz, mz_max_diff = mz_max_diff, do.plot = do.plot)
+    mz_tol_relative <- find.tol(
+      all_mz,
+      mz_max_diff = mz_max_diff,
+      do.plot = do.plot
+    )
   } else if (do.plot) {
     draw_plot(
       main = "m/z tolerance level given",
@@ -141,9 +156,10 @@ adjust.time <- function(extracted_features,
     )
   }
 
-  all.ft <- find.tol.time(mz,
-    chr,
-    lab,
+  all.ft <- find.tol.time(
+    all_mz,
+    all_rt,
+    all_sample_ids,
     number_of_samples = number_of_samples,
     mz_tol_relative = mz_tol_relative,
     rt_tol_relative = rt_tol_relative,
@@ -157,17 +173,16 @@ adjust.time <- function(extracted_features,
   message(paste("time tolerance level:", rt_tol_relative))
 
   for (i in 1:number_of_samples) {
-    features <- extracted_features[[i]]
-    sel <- which(all.ft$lab == i)
-
-    feature_subset <- cbind(all.ft$mz[sel], all.ft$rt[sel], all.ft$grps[sel])
-    features <- features[order(features[, 1], features[, 2]), ]
-    feature_subset <- feature_subset[order(feature_subset[, 1], feature_subset[, 2]), ]
-    features <- cbind(features, sample_id = rep(i, nrow(features)), rt_cluster = feature_subset[, 3])
+    sample <- extracted_features[[i]]
+    features <- add_sample_id_and_rt_cluster(
+      sample,
+      all.ft,
+      i
+    )
     extracted_features[[i]] <- features
   }
 
-  num.ftrs <- as.vector(table(all.ft$lab))
+  num.ftrs <- sapply(extracted_features, nrow)#as.vector(table(all.ft$sample_id))
   template <- which(num.ftrs == max(num.ftrs))[1]
   message(paste("the template is sample", template))
 

@@ -84,7 +84,7 @@ adaptive.bin <- function(x,
 
   cat(c("m/z tolerance is: ", tol, "\n"))
 
-  times <- sort(unique(data_table$labels))
+  times <- x$times #sort(unique(data_table$labels))
 
   rm(x)
   min_time <- min(times)

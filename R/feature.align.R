@@ -185,15 +185,13 @@ feature.align <- function(features,
         rt <- values$rt
         sample_id <- values$sample_id
 
-        # sort all values by m/z, if equal by rt
-        # ordering <- order(mz_values, rt)
-        # mz_values <- mz_values[ordering]
-        # rt <- rt[ordering]
-        # sample_id <- sample_id[ordering]
-
         # find relative m/z tolerance level
         if (is.na(mz_tol_relative)) {
-            mz_tol_relative <- find.tol(mz_values, mz_max_diff = mz_max_diff, do.plot = do.plot)
+            mz_tol_relative <- find.tol(
+                mz_values,
+                mz_max_diff = mz_max_diff,
+                do.plot = do.plot
+            )
             if (length(mz_tol_relative) == 0) {
                 mz_tol_relative <- 1e-5
                 warning("Automatic tolerance finding failed, 10 ppm was assigned.
@@ -215,7 +213,8 @@ feature.align <- function(features,
 
         # find relative retention time tolerance level
         # also does some preprocessing grouping steps
-        all_features <- find.tol.time(mz_values,
+        all_features <- find.tol.time(
+            mz_values,
             rt,
             sample_id,
             number_of_samples = number_of_samples,
@@ -235,38 +234,30 @@ feature.align <- function(features,
         mz_sd <- 0
 
         labels <- unique(all_features$grps)
-        area <- grps <- mz_values
+        area <- grps <- mz_values <- NULL
 
         # grouping the features based on their m/z values (assuming the tolerance level)
         sizes <- c(0, cumsum(sapply(features, nrow)))
+        all_table <- NULL
         for (i in 1:number_of_samples) {
-            sample <- features[[i]]
-            # order by m/z then by rt
-            # sample <- sample[order(sample[, 1], sample[, 2]),]
-            sample <- features[[i]] |> dplyr::arrange_at(c("mz", "rt"))
-
-            # select preprocessed features belonging to current sample
-            group_ids <- which(all_features$lab == i)
-            # select m/z, rt and their group ID
-            # sample_grouped <- cbind(all_features$mz[group_ids], all_features$rt[group_ids], all_features$grps[group_ids])
-            sample_grouped <- tibble::tibble(mz = all_features$mz[group_ids], rt = all_features$rt[group_ids], grps = all_features$grps[group_ids])
-
-            # sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]),]
-            sample_grouped <- sample_grouped |> dplyr::arrange_at(c("mz", "rt"))
-
-
-            # update m/z, rt, area values with ordered ones
-            mz_values[(sizes[i] + 1):sizes[i + 1]] <- sample$mz
-            rt[(sizes[i] + 1):sizes[i + 1]] <- sample$rt
-            area[(sizes[i] + 1):sizes[i + 1]] <- sample$area
-            # assign row identifier
-            grps[(sizes[i] + 1):sizes[i + 1]] <- sample_grouped$grps
-            # assign batch identifier
-            sample_id[(sizes[i] + 1):sizes[i + 1]] <- i
+            sample <- add_sample_id_and_rt_cluster(
+              features[[i]],
+              all_features,
+              i
+            )
+            all_table <- rbind(all_table, sample)
         }
 
+        mz_values <- all_table$mz
+        rt <- all_table$rt
+        area <- all_table$area
+        grps <- all_table$cluster
+        sample_id <- all_table$sample_id
+
+        browser()
+
         # table with number of values per group
-        groups_cardinality <- table(all_features$grps)
+        groups_cardinality <- table(grps)
         # count those with minimal occurrence
         # (times 3 ? shouldn't be number of samples) !!!
         curr.row <- sum(groups_cardinality >= min_occurrence) * 3
@@ -275,21 +266,6 @@ feature.align <- function(features,
         sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
 
         # retention time alignment
-        # aligned_features <-
-        #     foreach::foreach(i = seq_along(sel.labels), .combine = rbind) %do%
-        #     create_rows(
-        #         i,
-        #         grps,
-        #         sel.labels,
-        #         mz_values,
-        #         rt,
-        #         area,
-        #         sample_id,
-        #         mz_tol_relative,
-        #         rt_tol_relative,
-        #         min_occurrence,
-        #         number_of_samples
-        #     )
         for(i in seq_along(sel.labels)) {
             rows <- create_rows(
                 i,
