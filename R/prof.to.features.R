@@ -3,6 +3,7 @@
 #' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
 #'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
 #' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
+#' @export
 validate_inputs <- function(shape.model, estim.method) {
   if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
     stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
@@ -26,6 +27,7 @@ validate_inputs <- function(shape.model, estim.method) {
 #' \itemize{
 #'   \item min.bw - float - Minimum bandwidth.
 #'   \item max.bw - float - Maximum bandwidth
+#' @export
 preprocess_bandwidth <- function(min.bw, max.bw, profile) {
   if (is.na(min.bw)) {
     min.bw <- diff(range(profile[, 2], na.rm = TRUE)) / 60
@@ -55,6 +57,7 @@ preprocess_bandwidth <- function(min.bw, max.bw, profile) {
 #'   \item intensity - float - intensity of features
 #'   \item group_number - integer - group number assigned to each feature based on their rt similarity
 #' }
+#' @export
 preprocess_profile <- function(profile) {
   keys <- c("mz", "rt", "intensity", "group_number")
   colnames(profile) <- keys
@@ -77,6 +80,7 @@ preprocess_profile <- function(profile) {
 #'   \item sigma - float - standard deviation of the gaussian curve
 #'   \item scale - float - estimated total signal strength (total area of the estimated normal curve)
 #'}
+#' @export
 compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.eliminate, BIC.factor, aver_diff) {
   chr_peak_shape <- normix.bic(chr_profile[, "base.curve"], chr_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
   if (nrow(chr_peak_shape) == 1) {
@@ -88,6 +92,7 @@ compute_gaussian_peak_shape <- function(chr_profile, power, bw, component.elimin
 }
 
 #' This function solves the value of a using the x, t, a from the previous step, and sigma.1, and sigma.2 (original authors' comment).
+#' @export
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
   # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
   w <- x * (as.numeric(t < a) / sigma.1 + as.numeric(t >= a) / sigma.2)
@@ -178,6 +183,8 @@ rev_cum_sum <- function(x) {
   return(rev(cumsum(x)))
 }
 
+#' TODO: Document
+#' @export
 compute_start_bound <- function(x, left_sigma_ratio_lim) {
   start_bound <- 1
   
@@ -189,6 +196,8 @@ compute_start_bound <- function(x, left_sigma_ratio_lim) {
   return (start_bound)
 }
 
+#' TODO: Document
+#' @export
 compute_end_bound <- function(x, right_sigma_ratio_lim) {
   len_x <- length(x)
   end_bound <- len_x - 1
@@ -219,6 +228,7 @@ compute_bounds <- function(x, sigma.ratio.lim) {
 #' @param x - float - a vector of numerical values.
 #' @param apply_mask - boolean - whether to apply threshold mask to the output vector.
 #' @return Returns vector of numeric differences between neighbouring values.
+#' @export
 compute_dx <- function(x, apply_mask=TRUE) {
   l <- length(x)
   diff_x <- diff(x)
@@ -248,6 +258,7 @@ compute_dx <- function(x, apply_mask=TRUE) {
 #' }
 #' @param base.curve Matrix that contains rts of feature in the same rt cluster.
 #' @return dataframe with two columns
+#' @export
 compute_chromatographic_profile <- function(profile, base.curve) {
   rt_range <- range(profile[, "rt"])
   chr_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
@@ -261,6 +272,7 @@ compute_chromatographic_profile <- function(profile, base.curve) {
 #' @param y - float - a vector of intensities.
 #' @param d - float - a vector of \emph{y} values in a gaussian curve.
 #' @param scale - float - a vector of scaled intensity values.
+#' @export
 compute_scale <- function(y, d) {
   dy_ratio <- d^2 * log(y / d)
   dy_ratio[is.na(dy_ratio)] <- 0
@@ -374,6 +386,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
 #' @param vlys A vector of sorted RT-valley values at which the kernel estimate was computed.
 #' @param dx Difference between neighbouring RT values with step 2.
 #' @param pks A vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @export
 compute_initiation_params <- function(chr_profile, vlys, dx, pks) {
   m <- s1 <- s2 <- delta <- pks
   for (i in 1:length(m))
@@ -396,6 +409,7 @@ compute_initiation_params <- function(chr_profile, vlys, dx, pks) {
 #' @param delta Parameter computed by the initiation step.
 #' @param s1 Parameter computed by the initiation step.
 #' @param s2 Parameter computed by the initiation step.
+#' @export
 compute_e_step <- function(m, chr_profile, delta, s1, s2) {
   fit <- matrix(0, ncol = length(m), nrow = length(chr_profile[, "base.curve"])) # this is the matrix of fitted values
   cuts <- c(-Inf, m, Inf)
