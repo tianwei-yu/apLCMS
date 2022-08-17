@@ -19,8 +19,10 @@ patrick::with_parameters_test_that(
       file.path(testdata, "adjusted", paste0(x, ".parquet"))
     })
 
-    adjusted <- lapply(filenames, arrow::read_parquet)
-    adjusted <- lapply(adjusted, as.data.frame)
+    adjusted <- lapply(filenames, function(x) {
+       arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
+    })
+    #adjusted <- lapply(adjusted, as.data.frame)
 
     aligned <- load_aligned_features(
       file.path(testdata, "aligned", "rt_cross_table.parquet"),
@@ -28,33 +30,12 @@ patrick::with_parameters_test_that(
       file.path(testdata, "aligned", "tolerances.parquet")
     )
 
-    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      cluster <- 2L
-    } else {
-      # use all cores in devtools::test()
-      cluster <- parallel::detectCores()
-    }
-
-    if (!is(cluster, "cluster")) {
-      cluster <- parallel::makeCluster(cluster)
-      on.exit(parallel::stopCluster(cluster))
-    }
-
-    clusterExport(cluster, c(
-      "recover.weaker", "load.lcms", "find.turn.point",
-      "combine.seq.3", "interpol.area", "duplicate.row.remove", "compute_all_times", "load_file"
-    ))
-    clusterEvalQ(cluster, library("splines"))
-
     recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
         filename = ms_files[[i]],
         sample_name = get_sample_name(files[i]),
-        this.f1 = extracted[[i]],
-        this.f2 = adjusted[[i]],
+        extracted_features = extracted[[i]],
+        adjusted_features = adjusted[[i]],
         pk.times = aligned$rt_crosstab,
         aligned.ftrs = aligned$int_crosstab,
         orig.tol = mz_tol,
@@ -108,23 +89,24 @@ patrick::with_parameters_test_that(
       file.path(testdata, "recovered", "recovered-corrected", paste0(x, ".parquet"))
     })
 
-    corrected_recovered_expected <- lapply(filenames, arrow::read_parquet)
-
+    corrected_recovered_expected <- lapply(filenames, function(x) {
+       arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
+    })
     # preprocess dataframes
-    keys <- c("mz", "pos", "sd1", "sd2")
+    keys <- c("mz", "sd1", "sd2", "area")
 
     extracted_recovered_actual <- lapply(extracted_recovered_actual, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "pos"))
     })
     corrected_recovered_actual <- lapply(corrected_recovered_actual, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "rt"))
     })
 
     extracted_recovered_expected <- lapply(extracted_recovered_expected, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "pos"))
     })
     corrected_recovered_expected <- lapply(corrected_recovered_expected, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(c(keys, "rt"))
     })
 
     # compare files
@@ -133,33 +115,19 @@ patrick::with_parameters_test_that(
       actual_extracted_i <- extracted_recovered_actual[[i]]
       expected_extracted_i <- extracted_recovered_expected[[i]]
 
-      report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = files[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      expect_equal(actual_extracted_i, expected_extracted_i)
 
-      expect_true(nrow(report$rowMatching$inboth) >= 0.9 * nrow(expected_extracted_i))
-
-      incommon <- as.numeric(rownames(report$rowMatching$inboth))
-
-      subset_actual <- actual_extracted_i %>% dplyr::slice(incommon)
-      subset_expected <- expected_extracted_i %>% dplyr::slice(incommon)
-
-      expect_equal(subset_actual$area, subset_expected$area, tolerance = 0.01 * max(subset_expected$area))
+      # report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
+      # dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_extracted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
 
       # corrected recovered
       actual_corrected_i <- corrected_recovered_actual[[i]]
       expected_corrected_i <- corrected_recovered_expected[[i]]
 
-      report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = files[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      expect_equal(actual_corrected_i, expected_corrected_i)
 
-      expect_true(nrow(report$rowMatching$inboth) >= 0.9 * nrow(expected_corrected_i))
-
-      incommon <- as.numeric(rownames(report$rowMatching$inboth))
-
-      subset_actual <- actual_corrected_i %>% dplyr::slice(incommon)
-      subset_expected <- expected_corrected_i %>% dplyr::slice(incommon)
-
-      expect_equal(subset_actual$area, subset_expected$area, tolerance = 0.01 * max(subset_expected$area))
+      # report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
+      # dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_adjusted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
     }
   },
   patrick::cases(
@@ -175,12 +143,3 @@ patrick::with_parameters_test_that(
     )
   )
 )
-
-files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened")
-mz_tol = 1e-05
-recover_mz_range = NA
-recover_chr_range = NA
-use_observed_range = TRUE
-min_bandwidth = NA
-max_bandwidth = NA
-recover_min_count = 3

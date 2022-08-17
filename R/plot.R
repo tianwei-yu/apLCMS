@@ -15,6 +15,13 @@ tolerance_plot <- function(x, y, exp_y, selected, main) {
 }
 
 #' @export
+draw_chr_normal_peaks <- function(x, truth) {
+  true.y1 <- dnorm(x[x < truth[1]], mean = truth[1], sd = truth[2]) * truth[2] * truth[4]
+  true.y2 <- dnorm(x[x >= truth[1]], mean = truth[1], sd = truth[3]) * truth[3] * truth[4]
+  lines(x, c(true.y1, true.y2), col = "green")
+}
+
+#' @export
 plot_raw_profile_histogram <- function(raw.prof,
                                        min.pres,
                                        baseline.correct,
@@ -71,4 +78,40 @@ plot_raw_profile_histogram <- function(raw.prof,
     nclass = 20,
     main = "Group % present signal distribution"
   )
+}
+
+#' @export
+plot_peak_summary <- function(feature_groups, processed_features) {
+  mz_sd <- compute_mz_sd(feature_groups)
+
+  par(mfrow = c(2, 2))
+  plot(c(-1, 1), c(-1, 1), type = "n", xlab = "", ylab = "", main = "", axes = FALSE)
+  text(x = 0, y = 0, "Estimate peak \n area/location", cex = 1.5)
+  hist(mz_sd, xlab = "m/z SD", ylab = "Frequency", main = "m/z SD distribution")
+  hist(c(processed_features[, "sd1"], processed_features[, "sd2"]), xlab = "Retention time SD", ylab = "Frequency", main = "Retention time SD distribution")
+  hist(log10(processed_features[, "area"]), xlab = "peak strength (log scale)", ylab = "Frequency", main = "Peak strength distribution")
+}
+
+#' @export
+plot_chr_profile <- function(chr_profile, bw, fit, m) {
+  plot(chr_profile[, "base_curve"], chr_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
+  sum.fit <- apply(fit, 1, sum)
+  lines(chr_profile[, "base_curve"], sum.fit)
+  abline(v = m)
+  cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
+  for (i in 1:length(m))
+  {
+    lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
+  }
+}
+
+#' @export
+plot_normix_bic <- function(x, y, bw, aaa) {
+  plot(x, y, cex = .1, main = paste("bw=", bw))
+  abline(v = aaa[, 1])
+  cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
+  for (i in 1:nrow(aaa))
+  {
+    lines(x, dnorm(x, mean = aaa[i, 1], sd = aaa[i, 2]) * aaa[i, 3], col = cols[i])
+  }
 }
