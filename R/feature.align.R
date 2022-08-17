@@ -167,8 +167,8 @@ feature.align <- function(features,
     }
 
     features <- lapply(features, function(x) {
-        x <- tibble::as_tibble(x) 
-        if("pos" %in% colnames(x)) {
+        x <- tibble::as_tibble(x)
+        if ("pos" %in% colnames(x)) {
             x <- x |> dplyr::rename(rt = pos)
         }
         return(x)
@@ -177,33 +177,28 @@ feature.align <- function(features,
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
         res <- compute_clusters(
-          features,
-          mz_tol_relative,
-          mz_tol_absolute,
-          mz_max_diff,
-          rt_tol_relative
+            features,
+            mz_tol_relative,
+            mz_tol_absolute,
+            mz_max_diff,
+            rt_tol_relative
         )
-        
+
         all_table <- dplyr::bind_rows(res$feature_tables)
         rt_tol_relative <- res$rt_tol_relative
         mz_tol_relative <- res$mz_tol_relative
-        
+
         # create zero vectors of length number_of_samples + 4 ?
         aligned_features <- pk.times <- NULL
-        mz_sd <- 0
-
 
         # table with number of values per group
         groups_cardinality <- table(all_table$cluster)
         # count those with minimal occurrence
         # (times 3 ? shouldn't be number of samples) !!!
-        curr.row <- sum(groups_cardinality >= min_occurrence) * 3
-        mz_sd <- rep(0, curr.row)
-
         sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
 
         # retention time alignment
-        for(i in seq_along(sel.labels)) {
+        for (i in seq_along(sel.labels)) {
             rows <- create_rows(
                 all_table,
                 i,
@@ -216,11 +211,9 @@ feature.align <- function(features,
 
             aligned_features <- rbind(aligned_features, rows)
         }
-        #aligned_features <- aligned_features[-1, ]
 
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
         pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
-        mz_sd <- aligned_features[, ncol(aligned_features)]
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, sum of areas per sample (the first to_attach call)
         aligned_features <- aligned_features[, 1:(4 + number_of_samples)]
 
@@ -236,13 +229,9 @@ feature.align <- function(features,
         rec$chr.tol <- rt_tol_relative
 
         if (do.plot) {
-            hist(mz_sd,
-                xlab = "m/z SD", ylab = "Frequency",
-                main = "m/z SD distribution"
-            )
-            hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE),
-                xlab = "Retention time SD", ylab = "Frequency",
-                main = "Retention time SD distribution"
+            plot_rt_histograms(
+                pk.times,
+                aligned_features[, ncol(aligned_features)]
             )
         }
 
@@ -252,3 +241,4 @@ feature.align <- function(features,
         return(0)
     }
 }
+

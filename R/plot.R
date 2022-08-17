@@ -145,3 +145,16 @@ draw_rt_correction_plot <- function(colors,
     )
   }
 }
+
+#' @export
+plot_rt_histograms <- function(pk.times,
+                               mz_sd) {
+    hist(mz_sd,
+        xlab = "m/z SD", ylab = "Frequency",
+        main = "m/z SD distribution"
+    )
+    hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE),
+        xlab = "Retention time SD", ylab = "Frequency",
+        main = "Retention time SD distribution"
+    )
+}
