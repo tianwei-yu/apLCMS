@@ -75,28 +75,6 @@ compute_rt_tol_relative <- function(breaks,
         }
     }
 
-    # #' Calculation of kernel density estimation to estimate the rt_tol_relative
-    # da <- da[!is.na(da)]
-    # uppermost <- max(da)
-    # n <- min(max.bins, max(min.bins, round(length(da) / aver.bin.size)))
-    # des <- density(da,
-    #     kernel = "gaussian", n = n,
-    #     bw = uppermost / n * 2, from = 0
-    # )
-    # y <- des$y[des$x > 0]
-    # x <- des$x[des$x > 0]
-
-    # this.l <- lm(y[x > uppermost / 4] ~ x[x > uppermost / 4])
-    # exp.y <- this.l$coef[1] + this.l$coef[2] * x
-    # y2 <- y[1:(length(y) - 1)]
-    # y3 <- y[2:(length(y))]
-    # y2[which(y2 < y3)] <- y3[which(y2 < y3)]
-    # y[1:(length(y) - 1)] <- y2
-
-    # yy <- cumsum(y > 1.5 * exp.y)
-    # yi <- seq_along(yy)
-    # sel <- min(which(yy < yi)) - 1
-    # rt_tol_relative <- x[sel]
 
     # a long vector of distances between rt values (with no particular order)
     distances <- distances[!is.na(distances)]
