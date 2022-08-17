@@ -159,7 +159,7 @@ find.tol.time <- function(mz,
                           mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
-    features <- tibble::tibble(mz = mz, rt = rt, labels = sample_id)
+    features <- tibble::tibble(mz = mz, rt = rt, sample_id = sample_id)
     features <- dplyr::arrange_at(features, "mz")
 
     min_mz_tol <- compute_min_mz_tolerance(
@@ -205,9 +205,8 @@ find.tol.time <- function(mz,
     list(
         mz = features$mz,
         rt = features$rt,
-        lab = features$labels,
+        sample_id = features$sample_id,
         grps = features$grps,
-        rt.tol = rt_tol_relative,
-        mz.tol = mz_tol_relative
+        rt.tol = rt_tol_relative
     )
 }
