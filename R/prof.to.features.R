@@ -65,7 +65,7 @@ preprocess_profile <- function(profile) {
   return(data.frame(profile))
 }
 
-#' Compute parameters of rtomatographic peak shape if peaks are considered to be gaussian
+#' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
 #' @param rt_profile A matrix with two columns: "base.curve" (rt) and "intensity".
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param bw Bandwidth vector to use in the kernel smoother.
@@ -259,7 +259,7 @@ compute_dx <- function(x, apply_mask=TRUE) {
 #' @param base.curve Matrix that contains rts of feature in the same rt cluster.
 #' @return dataframe with two columns
 #' @export
-compute_rtomatographic_profile <- function(profile, base.curve) {
+compute_chromatographic_profile <- function(profile, base.curve) {
   rt_range <- range(profile[, "rt"])
   rt_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
   rt_profile[rt_profile[, "base.curve"] %in% profile[, "rt"], 2] <- profile[, "intensity"]
@@ -878,7 +878,7 @@ prof.to.features <- function(profile,
         bw <- c(max(min.bw, bw[1] / 2), bw)
       }
 
-      rt_profile <- compute_rtomatographic_profile(feature_group, base.curve)
+      rt_profile <- compute_chromatographic_profile(feature_group, base.curve)
       if (shape.model == "Gaussian") {
         rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff)
       } else {
