@@ -19,12 +19,18 @@ compute_min_mz_tolerance <- function(mz, mz_tol_relative, mz_tol_absolute) {
 #' @description
 #' Compute indices of mass differences greater than min_mz_tol.
 #' @param mz mz values of all peaks in all profiles in the study.
-#' @param min_mz_tol float Minimum tolerance value.
+#' @param tolerance tolerance value.
 #' @return breaks Integer indices of mass differences to use.
-compute_breaks_3 <- function(mz, min_mz_tol) {
-    l <- length(mz)
-    mass_differences <- diff(mz)
-    indices <- which(mass_differences > min_mz_tol)
+compute_breaks_3 <- function(values, tolerance = NA) {
+    l <- length(values)
+
+    if(!is.na(tolerance)) {
+        differences <- diff(values)
+        indices <- which(differences > tolerance)
+    } else {
+        indices <- which(values[2:l] != values[1:(l-1)])
+    }
+
     breaks <- c(0, indices, l)
     return(breaks)
 }
