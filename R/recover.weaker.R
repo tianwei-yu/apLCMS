@@ -92,33 +92,33 @@ compute_mass_density <- function(features,
   return(mass_density)
 }
 
-#' Compute custom chromatographic tolerance.
+#' Compute custom rtomatographic tolerance.
 #' @description
-#' Compute chromatographic tolerance for each feature. If `use_observed_range == TRUE`,
+#' Compute rtomatographic tolerance for each feature. If `use_observed_range == TRUE`,
 #' the whole range of retention times for all peaks is used to compute the tolerance,
-#' otherwise `chr_range` is used for each feature.
-#' @param use_observed_range bool Whether to use the observed chromatographic range for computation or not.
+#' otherwise `rt_range` is used for each feature.
+#' @param use_observed_range bool Whether to use the observed rtomatographic range for computation or not.
 #' @param peak_rts data.frame Retention time cross table with all peak rts.
-#' @param chr_range float Default chromatographic tolerance to use.
+#' @param rt_range float Default rtomatographic tolerance to use.
 #' @param aligned_features data.frame Aligned feature table.
-#' @return vector Custom chromatographic tolerances to use for each feature.
+#' @return vector Custom rtomatographic tolerances to use for each feature.
 #' @export
-get_custom_chr_tol <- function(use_observed_range,
+get_custom_rt_tol <- function(use_observed_range,
                                peak_rts,
-                               chr_range,
+                               rt_range,
                                aligned_features) {
-  custom_chr_tol <- rep(chr_range, nrow(aligned_features))
+  custom_rt_tol <- rep(rt_range, nrow(aligned_features))
 
   if (use_observed_range) {
     # check observed rt range across ALL SAMPLES
     all_peak_rts <- peak_rts[, 5:ncol(peak_rts)]
-    observed.chr.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
+    observed.rt.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
     sufficient_rts <- apply(!is.na(all_peak_rts), 1, sum) >= 5
-    selection <- which(sufficient_rts & custom_chr_tol > observed.chr.range)
-    custom_chr_tol[selection] <- observed.chr.range[selection]
+    selection <- which(sufficient_rts & custom_rt_tol > observed.rt.range)
+    custom_rt_tol[selection] <- observed.rt.range[selection]
   }
 
-  return(custom_chr_tol)
+  return(custom_rt_tol)
 }
 
 #' Compute target times for regions of interest for recovery.
@@ -247,16 +247,16 @@ get_mzrange_bound_indices <- function(aligned_feature_mass,
   return(list(start = min(all_indices), end = max(all_indices)))
 }
 
-#' Get indices where rt in `features` is within `chr_tol` of `target_time`.
+#' Get indices where rt in `features` is within `rt_tol` of `target_time`.
 #' @param target_time float Target retention time region.
 #' @param features tibble Feature table including `labels` column.
-#' @param chr_tol float Retention time tolerance.
-#' @return vector Indices which are within `chr_tol` from `target_time` or
+#' @param rt_tol float Retention time tolerance.
+#' @return vector Indices which are within `rt_tol` from `target_time` or
 #' 1 if `target_time` is NA.
 #' @export
-get_rt_region_indices <- function(target_time, features, chr_tol) {
+get_rt_region_indices <- function(target_time, features, rt_tol) {
   if (!is.null(target_time) && !is.na(target_time)) {
-    selection <- which(abs(features$labels - target_time) < chr_tol)
+    selection <- which(abs(features$labels - target_time) < rt_tol)
   } else {
     selection <- 1:nrow(features)
   }
@@ -463,7 +463,7 @@ compute_peaks_and_valleys <- function(dens) {
 #' @param use_intensity_weighting bool Whether to use intensity weighting.
 #' @param recover_min_count int Minimum number of peaks required in the area to recover the signal.
 #' @param target_rt float Target retention time value.
-#' @param custom_chr_tol float Custom chromatographic tolerance to use.
+#' @param custom_rt_tol float Custom rtomatographic tolerance to use.
 #' @param times vector Raw retention time values from raw data file.
 #' @param delta_rt vector Differences between consecutive retention time values (diff(times)).
 #' @param aver_diff float Average retention time difference.
@@ -479,7 +479,7 @@ compute_rectangle <- function(data_table,
                               use_intensity_weighting,
                               recover_min_count,
                               target_rt,
-                              custom_chr_tol,
+                              custom_rt_tol,
                               times,
                               delta_rt,
                               aver_diff,
@@ -527,7 +527,7 @@ compute_rectangle <- function(data_table,
         thee.sel <- get_rt_region_indices(
           target_rt,
           that.prof,
-          custom_chr_tol
+          custom_rt_tol
         )
 
         if (length(thee.sel) > recover_min_count) {
@@ -597,12 +597,12 @@ compute_rectangle <- function(data_table,
 #' @param rectangle tibble Features with columns `labels` and `mz`.
 #' @param aligned_mz float Mz value in the aligned feature table of the
 #' feature to be recovered.
-#' @param chr_tol float Retention time tolerance.
+#' @param rt_tol float Retention time tolerance.
 #' @param mz_tol float Mz tolerance to use.
 #' @return int Index of value in rectable closest to `target_rt` and `aligned_mz`.
-refine_selection <- function(target_rt, rectangle, aligned_mz, chr_tol, mz_tol) {
+refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
   if (!is.na(target_rt)) {
-    rt_term <- (rectangle$labels - target_rt)^2 / chr_tol^2
+    rt_term <- (rectangle$labels - target_rt)^2 / rt_tol^2
     mz_term <- (rectangle$mz - aligned_mz)^2 / mz_tol^2
     this.d <- rt_term + mz_term
   } else {
@@ -623,13 +623,13 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, chr_tol, mz_tol) 
 #' @param aligned.ftrs matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
 #' @param pk.times matrix, with columns of m/z, median elution time, and elution times in each spectrum.
 #' @param align.mz.tol the m/z tolerance used in the alignment.
-#' @param align.chr.tol the elution time tolerance in the alignment.
+#' @param align.rt.tol the elution time tolerance in the alignment.
 #' @param extracted_features The matrix which is the output from proc.to.feature().
 #' @param adjusted_features The matrix which is the output from proc.to.feature().
 #' The retention time in this object have been adjusted by the function adjust.time().
 #' @param mz.range The m/z around the feature m/z to search for observations.
 #' The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param chr.range The retention time around the feature retention time to search for observations.
+#' @param rt.range The retention time around the feature retention time to search for observations.
 #' The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
 #' @param use.observed.range If the value is TRUE, the actual range of the observed locations
 #' of the feature in all the spectra will be used.
@@ -645,21 +645,21 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, chr_tol, mz_tol) 
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, and signal strengths in each spectrum.
 #'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
 #'   \item mz.tol - The m/z tolerance in the aligned object.
-#'   \item chr.tol - The elution time tolerance in the aligned object.
+#'   \item rt.tol - The elution time tolerance in the aligned object.
 #' }
 #' @export
 #' @examples
-#' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.chr.tol, this.f1, this.f2)
+#' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.rt.tol, this.f1, this.f2)
 recover.weaker <- function(filename,
                            sample_name,
                            aligned.ftrs,
                            pk.times,
                            align.mz.tol,
-                           align.chr.tol,
+                           align.rt.tol,
                            extracted_features,
                            adjusted_features,
                            mz.range = NA,
-                           chr.range = NA,
+                           rt.range = NA,
                            use.observed.range = TRUE,
                            orig.tol = 1e-5,
                            min.bw = NA,
@@ -680,7 +680,7 @@ recover.weaker <- function(filename,
 
   # Initialize parameters with default values
   if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
-  if (is.na(chr.range)) chr.range <- align.chr.tol / 2
+  if (is.na(rt.range)) rt.range <- align.rt.tol / 2
   if (is.na(min.bw)) min.bw <- span(times) / 60
   if (is.na(max.bw)) max.bw <- span(times) / 15
   if (min.bw >= max.bw) min.bw <- max.bw / 4
@@ -694,10 +694,10 @@ recover.weaker <- function(filename,
   sample_times <- pk.times[, sample_name]
 
   custom.mz.tol <- mz.range * aligned.ftrs$mz
-  custom.chr.tol <- get_custom_chr_tol(
+  custom.rt.tol <- get_custom_rt_tol(
     use.observed.range,
     pk.times,
-    chr.range,
+    rt.range,
     aligned.ftrs
   )
 
@@ -744,7 +744,7 @@ recover.weaker <- function(filename,
         intensity.weighted,
         recover.min.count,
         target_times[i],
-        custom.chr.tol[i] * 2,
+        custom.rt.tol[i] * 2,
         times,
         vec_delta_rt,
         aver.diff,
@@ -756,7 +756,7 @@ recover.weaker <- function(filename,
       this.sel <- get_rt_region_indices(
         target_times[i],
         this.rec,
-        custom.chr.tol[i]
+        custom.rt.tol[i]
       )
       this.sel <- this.sel[this.sel != 1]
 
@@ -766,7 +766,7 @@ recover.weaker <- function(filename,
             target_times[i],
             this.rec,
             aligned.ftrs[i, 1],
-            custom.chr.tol[i],
+            custom.rt.tol[i],
             custom.mz.tol[i]
           )
         }

@@ -132,13 +132,13 @@ adjust.time <- function(extracted_features,
   extracted_features <- lapply(extracted_features, function(x) tibble::as_tibble(x) |> dplyr::rename(rt = pos))
 
   values <- concatenate_feature_tables(extracted_features, rt_colname)
-  all_mz <- values$mz
-  all_rt <- values$rt
-  all_sample_ids <- values$sample_id
+  mz <- values$mz
+  rt <- values$rt
+  sample_id <- values$sample_id
 
   if (is.na(mz_tol_relative)) {
     mz_tol_relative <- find.tol(
-      all_mz,
+      mz,
       mz_max_diff = mz_max_diff,
       do.plot = do.plot
     )
@@ -157,9 +157,9 @@ adjust.time <- function(extracted_features,
   }
 
   all.ft <- find.tol.time(
-    all_mz,
-    all_rt,
-    all_sample_ids,
+    mz,
+    rt,
+    sample_id,
     number_of_samples = number_of_samples,
     mz_tol_relative = mz_tol_relative,
     rt_tol_relative = rt_tol_relative,

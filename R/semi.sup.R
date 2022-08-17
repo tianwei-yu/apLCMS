@@ -40,7 +40,7 @@ NULL
 #' @param moment.power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param align.mz.tol The user can provide the m/z tolerance level for peak alignment to override the program's selection. 
 #'  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
-#' @param align.chr.tol The user can provide the elution time tolerance level to override the program's selection. This value is 
+#' @param align.rt.tol The user can provide the elution time tolerance level to override the program's selection. This value is 
 #'  in the same unit as the elution time, normaly seconds.
 #' @param max.align.mz.diff As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable 
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
@@ -49,7 +49,7 @@ NULL
 #'  tables for each spectra and save the files. It allows manually dividing the task to multiple machines.
 #' @param recover.mz.range A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. 
 #'  The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param recover.chr.range A parameter of the recover.weaker() function. The retention time around the feature retention time to 
+#' @param recover.rt.range A parameter of the recover.weaker() function. The retention time around the feature retention time to 
 #'  search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object 
 #'  will be used.
 #' @param use.observed.range A parameter of the recover.weaker() function. If the value is TRUE, the actual range of the observed 
@@ -67,7 +67,7 @@ NULL
 #'   \item final.ftrs - Feature table after weak signal recovery. This is the end product of the function.
 #'   \item final.times - Table of feature elution time after weak signal recovery.
 #'   \item align.mz.tol - The m/z tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.
-#'   \item align.chr.tol - The retention time tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.
+#'   \item align.rt.tol - The retention time tolerance level in the alignment across spectra, either input from the user or automatically selected when the user input is NA.
 #'   \item mz.tol - The input mz.tol value by the user.
 #'   \item updated.known.table - The known table updated using the newly processed data. It should be used for future datasets generated using the same machine and LC column.
 #'   \item ftrs.known.table.pairing - The paring information between the feature table of the current dataset and the known feature table.
@@ -96,11 +96,11 @@ semi.sup <- function(
     component.eliminate=0.01,
     moment.power=1,
     align.mz.tol=NA,
-    align.chr.tol=NA,
+    align.rt.tol=NA,
     max.align.mz.diff=0.01,
     pre.process=FALSE,
     recover.mz.range=NA,
-    recover.chr.range=NA,
+    recover.rt.range=NA,
     use.observed.range=TRUE,
     match.tol.ppm=NA,
     new.feature.min.count=2,
@@ -185,7 +185,7 @@ semi.sup <- function(
     
     ###############################################################################################
     message("** correcting time...")
-    suf<-paste(suf,align.mz.tol,align.chr.tol,files[1],files[length(files)],sep="_")
+    suf<-paste(suf,align.mz.tol,align.rt.tol,files[1],files[length(files)],sep="_")
     this.name<-paste("time_correct_done_",suf,".bin",sep="")
     
     all.files<-dir()
@@ -204,7 +204,7 @@ semi.sup <- function(
             adjust.time(
               features,
               mz_tol_relative = align.mz.tol,
-              rt_tol_relative = align.chr.tol,
+              rt_tol_relative = align.rt.tol,
               mz_max_diff = 10 * mz.tol,
               mz_tol_absolute = max.align.mz.diff
             )
@@ -241,7 +241,7 @@ semi.sup <- function(
               f2,
               min_occurrence = min.exp,
               mz_tol_relative = align.mz.tol,
-              rt_tol_relative = align.chr.tol,
+              rt_tol_relative = align.rt.tol,
               mz_max_diff = 10 * mz.tol,
               mz_tol_absolute = max.align.mz.diff
             )
@@ -258,18 +258,18 @@ semi.sup <- function(
 
     ###############################################################################################
     message("** merging to known peak table")
-    if(is.na(match.tol.ppm)) match.tol.ppm<-aligned$mz.tol*1e6
+    if(is.na(match.tol.ppm)) match.tol.ppm<-aligned$mz_tol_relative*1e6
     
     this.name<-paste("merge_done_", suf, ".bin", sep="")
     all.files<-dir()
     is.done<-all.files[which(all.files == this.name)]
     if(length(is.done)==0)
     {
-        mass.d2<-mass.match(aligned$aligned.ftrs[,1], known.table[,6],match.tol.ppm)
+        mass.d2<-mass.match(aligned$aligned_features[,1], known.table[,6],match.tol.ppm)
         mass.matched.pos<-which(mass.d2>0)
         
         known.assigned<-rep(0, nrow(known.table))
-        new.assigned<-rep(0, nrow(aligned$aligned.ftrs))
+        new.assigned<-rep(0, nrow(aligned$aligned_features))
         new.known.pairing<-matrix(0, ncol=2, nrow=1)
         
         for(i in mass.matched.pos)
@@ -278,10 +278,10 @@ semi.sup <- function(
             {
                 #find all potentially related known/newly found peaks
                 old.sel.new<-i
-                this.mz.thres<-aligned$aligned.ftrs[i,1]*match.tol.ppm/1e6
-                sel.known<-which(abs(known.table[,6]-aligned$aligned.ftrs[i,1]) < this.mz.thres)
+                this.mz.thres<-aligned$aligned_features[i,1]*match.tol.ppm/1e6
+                sel.known<-which(abs(known.table[,6]-aligned$aligned_features[i,1]) < this.mz.thres)
                 sel.new<-NULL
-                for(m in 1:length(sel.known)) sel.new<-c(sel.new, which(abs(aligned$aligned.ftrs[,1]-known.table[sel.known[m], 6]) < this.mz.thres))
+                for(m in 1:length(sel.known)) sel.new<-c(sel.new, which(abs(aligned$aligned_features[,1]-known.table[sel.known[m], 6]) < this.mz.thres))
                 sel.known<-unique(sel.known)
                 sel.new<-unique(sel.new)
                 
@@ -289,9 +289,9 @@ semi.sup <- function(
                 {
                     old.sel.new<-sel.new
                     sel.known<-NULL
-                    for(m in 1:length(sel.new)) sel.known<-c(sel.known, which(abs(known.table[,6]-aligned$aligned.ftrs[sel.new[m],1]) < this.mz.thres))
+                    for(m in 1:length(sel.new)) sel.known<-c(sel.known, which(abs(known.table[,6]-aligned$aligned_features[sel.new[m],1]) < this.mz.thres))
                     sel.new<-NULL
-                    for(m in 1:length(sel.known)) sel.new<-c(sel.new, which(abs(aligned$aligned.ftrs[,1]-known.table[sel.known[m], 6]) < this.mz.thres))
+                    for(m in 1:length(sel.known)) sel.new<-c(sel.new, which(abs(aligned$aligned_features[,1]-known.table[sel.known[m], 6]) < this.mz.thres))
                     sel.known<-unique(sel.known)
                     sel.new<-unique(sel.new)
                 }
@@ -303,15 +303,15 @@ semi.sup <- function(
                 
                 for(k in 1:length(sel.known))
                 {
-                    time.matched[k,]<-abs(aligned$aligned.ftrs[sel.new,2]-known.table[sel.known[k],11])
-                    mass.matched[k,]<-abs(known.table[sel.known[k],6]-aligned$aligned.ftrs[sel.new,1])
+                    time.matched[k,]<-abs(aligned$aligned_features[sel.new,2]-known.table[sel.known[k],11])
+                    mass.matched[k,]<-abs(known.table[sel.known[k],6]-aligned$aligned_features[sel.new,1])
                 }
                 mass.matched<-1*(mass.matched/median(known.table[sel.known,6]) <= match.tol.ppm*1e-6)
                 time.matched[mass.matched == 0] <- 1e10
                 
                 
-                time.matched[is.na(time.matched)]<-aligned$chr.tol/2
-                both.matched<-find.match(time.matched, unacceptable=aligned$chr.tol/2)
+                time.matched[is.na(time.matched)]<-aligned$rt_tol_relative/2
+                both.matched<-find.match(time.matched, unacceptable=aligned$rt_tol_relative/2)
                 
                 for(m in 1:length(sel.new))
                 {
@@ -331,8 +331,8 @@ semi.sup <- function(
         colnames(new.known.pairing)<-c("new","known")
         new.known.pairing<-new.known.pairing[-1,]
         
-        to.add.ftrs<-matrix(0, ncol=ncol(aligned$aligned.ftrs), nrow=nrow(known.table)-nrow(new.known.pairing))
-        to.add.times<-matrix(NA, ncol=ncol(aligned$aligned.ftrs), nrow=nrow(known.table)-nrow(new.known.pairing))
+        to.add.ftrs<-matrix(0, ncol=ncol(aligned$aligned_features), nrow=nrow(known.table)-nrow(new.known.pairing))
+        to.add.times<-matrix(NA, ncol=ncol(aligned$aligned_features), nrow=nrow(known.table)-nrow(new.known.pairing))
         sel<-1:nrow(known.table)
         if(nrow(new.known.pairing)>0) sel<-sel[-(new.known.pairing[,2])]
         
@@ -341,9 +341,9 @@ semi.sup <- function(
         to.add.ftrs[,3]<-to.add.times[,3]<-known.table[sel, 9]
         to.add.ftrs[,4]<-to.add.times[,4]<-known.table[sel, 10]
         
-        aligned.ftrs<-rbind(aligned$aligned.ftrs, to.add.ftrs)
-        pk.times<-rbind(aligned$pk.times, to.add.times)
-        new.known.pairing<-rbind(new.known.pairing, cbind(1:nrow(to.add.ftrs)+nrow(aligned$aligned.ftrs), sel))
+        aligned.ftrs<-rbind(aligned$aligned_features, to.add.ftrs)
+        pk.times<-rbind(aligned$peak_times, to.add.times)
+        new.known.pairing<-rbind(new.known.pairing, cbind(1:nrow(to.add.ftrs)+nrow(aligned$aligned_features), sel))
         
         merged<-new("list")
         merged$aligned.ftrs<-aligned.ftrs
@@ -363,7 +363,7 @@ semi.sup <- function(
     
     ###############################################################################################
     message("** recovering weaker signals")
-    suf<-paste(suf,recover.mz.range, recover.chr.range, use.observed.range,match.tol.ppm,new.feature.min.count,recover.min.count,sep="_")
+    suf<-paste(suf,recover.mz.range, recover.rt.range, use.observed.range,match.tol.ppm,new.feature.min.count,recover.min.count,sep="_")
     
     worklist<-paste(matrix(unlist(strsplit(tolower(files),"\\.")),nrow=2)[1,],suf,"semi_sup.recover",sep="_")
     to.do<-which(!(worklist %in% dir()))    
@@ -383,7 +383,7 @@ semi.sup <- function(
             for(j in this.subset)
             {
                 this.name<-paste(strsplit(tolower(files[j]),"\\.")[[1]][1],suf,"semi_sup.recover",sep="_")
-                this.recovered<-recover.weaker(filename=files[j], sample_name = files[j], aligned.ftrs=aligned.ftrs, pk.times=pk.times, align.mz.tol=aligned$mz.tol, align.chr.tol=aligned$chr.tol, extracted_features=features[[j]], adjusted_features=f2[[j]], mz.range=recover.mz.range, chr.range=recover.chr.range, use.observed.range=use.observed.range, orig.tol=mz.tol, min.bw=min.bw, max.bw=max.bw, bandwidth=.5, recover.min.count=recover.min.count)
+                this.recovered<-recover.weaker(filename=files[j], sample_name = files[j], aligned.ftrs=aligned.ftrs, pk.times=pk.times, align.mz.tol=aligned$mz_tol_relative, align.rt.tol=aligned$rt_tol_relative, extracted_features=features[[j]], adjusted_features=f2[[j]], mz.range=recover.mz.range, rt.range=recover.rt.range, use.observed.range=use.observed.range, orig.tol=mz.tol, min.bw=min.bw, max.bw=max.bw, bandwidth=.5, recover.min.count=recover.min.count)
                 save(this.recovered, file=this.name)
             }
         }
@@ -423,7 +423,7 @@ semi.sup <- function(
             adjust.time(
               features.recov,
               mz_tol_relative = align.mz.tol,
-              rt_tol_relative = align.chr.tol,
+              rt_tol_relative = align.rt.tol,
               mz_max_diff = 10 * mz.tol,
               mz_tol_absolute = max.align.mz.diff
             )
@@ -455,7 +455,7 @@ semi.sup <- function(
               f2,
               min_occurrence = min.exp,
               mz_tol_relative = align.mz.tol,
-              rt_tol_relative = align.chr.tol,
+              rt_tol_relative = align.rt.tol,
               mz_max_diff = 10 * mz.tol,
               mz_tol_absolute = max.align.mz.diff
             )
@@ -516,8 +516,8 @@ semi.sup <- function(
             time.matched[mass.matched == 0] <- 1e10
             
             
-            time.matched[is.na(time.matched)]<-aligned$chr.tol/2-0.0000001
-            both.matched<-find.match(time.matched, unacceptable=aligned$chr.tol/2)
+            time.matched[is.na(time.matched)]<-aligned$rt_tol_relative/2-0.0000001
+            both.matched<-find.match(time.matched, unacceptable=aligned$rt_tol_relative/2)
             
             for(m in 1:length(sel.new))
             {
@@ -547,7 +547,7 @@ semi.sup <- function(
         
         for(i in 1:nrow(new.known.pairing))
         {
-            known.2[new.known.pairing[i,2],]<-peak.characterize(existing.row=known.2[new.known.pairing[i,2],],ftrs.row=aligned.recov$aligned.ftrs[new.known.pairing[i,1],], chr.row=aligned.recov$pk.times[new.known.pairing[i,1],])
+            known.2[new.known.pairing[i,2],]<-peak.characterize(existing.row=known.2[new.known.pairing[i,2],],ftrs.row=aligned.recov$aligned.ftrs[new.known.pairing[i,1],], rt.row=aligned.recov$pk.times[new.known.pairing[i,1],])
         }
         
         
@@ -557,7 +557,7 @@ semi.sup <- function(
         {
             if(num.exp.found[i] >= new.feature.min.count)
             {
-                this.row<-peak.characterize(existing.row=NA,ftrs.row=aligned.recov$aligned.ftrs[i,], chr.row=aligned.recov$pk.times[i,])
+                this.row<-peak.characterize(existing.row=NA,ftrs.row=aligned.recov$aligned.ftrs[i,], rt.row=aligned.recov$pk.times[i,])
                 known.2<-rbind(known.2, this.row)
                 new.known.pairing<-rbind(new.known.pairing, c(i,nrow(known.2)))
             }
@@ -566,15 +566,15 @@ semi.sup <- function(
     #################################################################################################
     
     rec<-new("list")
-    colnames(aligned$aligned.ftrs)<-colnames(aligned$pk.times)<-colnames(aligned.recov$aligned.ftrs)<-colnames(aligned.recov$pk.times)<-c("mz","time","mz.min","mz.max",files)
+    colnames(aligned$aligned_features)<-colnames(aligned$peak_times)<-colnames(aligned.recov$aligned.ftrs)<-colnames(aligned.recov$pk.times)<-c("mz","time","mz.min","mz.max",files)
     rec$features<-features.recov
     rec$features2<-f2.recov
-    rec$aligned.ftrs<-aligned$aligned.ftrs
-    rec$pk.times<-aligned$pk.times
+    rec$aligned.ftrs<-aligned$aligned_features
+    rec$pk.times<-aligned$peak_times
     rec$final.ftrs<-aligned.recov$aligned.ftrs
     rec$final.times<-aligned.recov$pk.times
     rec$align.mz.tol<-aligned.recov$mz.tol
-    rec$align.chr.tol<-aligned.recov$chr.tol
+    rec$align.rt.tol<-aligned.recov$rt.tol
     rec$mz.tol<-mz.tol
     rec$updated.known.table<-known.2
     rec$ftrs.known.table.pairing<-new.known.pairing

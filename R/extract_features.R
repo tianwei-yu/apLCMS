@@ -84,7 +84,7 @@ extract_features <- function(
     'preprocess_bandwidth',
     'preprocess_profile',
     'compute_gaussian_peak_shape',
-    'compute_chromatographic_profile',
+    'compute_rtomatographic_profile',
     'compute_dx',
     'compute_initiation_params',
     'compute_e_step',
