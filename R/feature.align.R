@@ -124,6 +124,36 @@ create_rows <- function(features,
     return(NULL)
 }
 
+create_aligned_feature_table <- function(all_table,
+                                         min_occurrence,
+                                         number_of_samples,
+                                         rt_tol_relative,
+                                         mz_tol_relative) {
+    aligned_features <- pk.times <- NULL
+
+    # table with number of values per group
+    groups_cardinality <- table(all_table$cluster)
+    # count those with minimal occurrence
+    # (times 3 ? shouldn't be number of samples) !!!
+    sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
+
+    # retention time alignment
+    for (i in seq_along(sel.labels)) {
+        rows <- create_rows(
+            all_table,
+            i,
+            sel.labels,
+            mz_tol_relative,
+            rt_tol_relative,
+            min_occurrence,
+            number_of_samples
+        )
+
+        aligned_features <- rbind(aligned_features, rows)
+    }
+    return(aligned_features)
+}
+
 #' Align peaks from spectra into a feature table.
 #'
 #' Identifies which of the peaks from the profiles correspond to the same feature.
@@ -189,28 +219,13 @@ feature.align <- function(features,
         mz_tol_relative <- res$mz_tol_relative
 
         # create zero vectors of length number_of_samples + 4 ?
-        aligned_features <- pk.times <- NULL
-
-        # table with number of values per group
-        groups_cardinality <- table(all_table$cluster)
-        # count those with minimal occurrence
-        # (times 3 ? shouldn't be number of samples) !!!
-        sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
-
-        # retention time alignment
-        for (i in seq_along(sel.labels)) {
-            rows <- create_rows(
-                all_table,
-                i,
-                sel.labels,
-                mz_tol_relative,
-                rt_tol_relative,
-                min_occurrence,
-                number_of_samples
-            )
-
-            aligned_features <- rbind(aligned_features, rows)
-        }
+        aligned_features <- create_aligned_feature_table(
+            all_table,
+            min_occurrence,
+            number_of_samples,
+            rt_tol_relative,
+            mz_tol_relative
+        )
 
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
         pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
@@ -241,4 +256,3 @@ feature.align <- function(features,
         return(0)
     }
 }
-
