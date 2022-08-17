@@ -92,16 +92,16 @@ compute_mass_density <- function(features,
   return(mass_density)
 }
 
-#' Compute custom rtomatographic tolerance.
+#' Compute custom chromatographic tolerance.
 #' @description
-#' Compute rtomatographic tolerance for each feature. If `use_observed_range == TRUE`,
+#' Compute chromatographic tolerance for each feature. If `use_observed_range == TRUE`,
 #' the whole range of retention times for all peaks is used to compute the tolerance,
 #' otherwise `rt_range` is used for each feature.
-#' @param use_observed_range bool Whether to use the observed rtomatographic range for computation or not.
+#' @param use_observed_range bool Whether to use the observed chromatographic range for computation or not.
 #' @param peak_rts data.frame Retention time cross table with all peak rts.
-#' @param rt_range float Default rtomatographic tolerance to use.
+#' @param rt_range float Default chromatographic tolerance to use.
 #' @param aligned_features data.frame Aligned feature table.
-#' @return vector Custom rtomatographic tolerances to use for each feature.
+#' @return vector Custom chromatographic tolerances to use for each feature.
 #' @export
 get_custom_rt_tol <- function(use_observed_range,
                                peak_rts,
@@ -463,7 +463,7 @@ compute_peaks_and_valleys <- function(dens) {
 #' @param use_intensity_weighting bool Whether to use intensity weighting.
 #' @param recover_min_count int Minimum number of peaks required in the area to recover the signal.
 #' @param target_rt float Target retention time value.
-#' @param custom_rt_tol float Custom rtomatographic tolerance to use.
+#' @param custom_rt_tol float Custom chromatographic tolerance to use.
 #' @param times vector Raw retention time values from raw data file.
 #' @param delta_rt vector Differences between consecutive retention time values (diff(times)).
 #' @param aver_diff float Average retention time difference.
