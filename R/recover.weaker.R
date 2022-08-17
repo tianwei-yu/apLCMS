@@ -274,7 +274,7 @@ get_rt_region_indices <- function(target_time, features, chr_tol) {
 #'   \item vlys - vector - The points in the data where the density is low
 #'                         (forming a valley in the function).
 get_features_in_rt_range <- function(features, times, bw) {
-  time_curve <- times[times >= min(features$labels) & times <= max(features$labels)]
+  time_curve <- times[between(times, min(features$labels), max(features$labels))]
 
   this.curve <- cbind(time_curve, time_curve * 0)
   this.curve[this.curve[, 1] %in% features$labels, 2] <- features$intensities
