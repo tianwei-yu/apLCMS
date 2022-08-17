@@ -91,13 +91,9 @@ select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, 
 }
 
 
-create_rows <- function(i,
-                        grps,
+create_rows <- function(features,
+                        i,
                         sel.labels,
-                        mz_values,
-                        rt,
-                        area,
-                        sample_id,
                         mz_tol_relative,
                         rt_tol_relative,
                         min_occurrence,
@@ -105,13 +101,14 @@ create_rows <- function(i,
     if (i %% 100 == 0) {
         gc()
     } # call Garbage Collection for performance improvement?
+
     # select a group
-    group_ids <- which(grps == sel.labels[i])
+    group_ids <- which(features$cluster == sel.labels[i])
     if (length(group_ids) > 1) {
         # select data from the group
         sample <- cbind(
-            mz_values[group_ids], rt[group_ids], rt[group_ids],
-            rt[group_ids], area[group_ids], sample_id[group_ids]
+            features$mz[group_ids], features$rt[group_ids], features$rt[group_ids],
+            features$rt[group_ids], features$area[group_ids], features$sample_id[group_ids]
         )
         # continue if data is from at least 'min_occurrence' samples
         if (validate_contents(sample, min_occurrence)) {
@@ -119,8 +116,8 @@ create_rows <- function(i,
         }
     } else if (min_occurrence == 1) {
         sample_grouped <- c(
-            mz_values[group_ids], rt[group_ids], rt[group_ids],
-            rt[group_ids], area[group_ids], sample_id[group_ids]
+            features$mz[group_ids], features$rt[group_ids], features$rt[group_ids],
+            features$rt[group_ids], features$area[group_ids], features$sample_id[group_ids]
         )
         return(create_output(sample_grouped, number_of_samples, NA))
     }
@@ -179,7 +176,6 @@ feature.align <- function(features,
 
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
-        
         res <- compute_clusters(
           features,
           mz_tol_relative,
@@ -209,13 +205,9 @@ feature.align <- function(features,
         # retention time alignment
         for(i in seq_along(sel.labels)) {
             rows <- create_rows(
+                all_table,
                 i,
-                all_table$cluster,
                 sel.labels,
-                all_table$mz,
-                all_table$rt,
-                all_table$area,
-                all_table$sample_id,
                 mz_tol_relative,
                 rt_tol_relative,
                 min_occurrence,
