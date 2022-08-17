@@ -100,6 +100,11 @@ compute_clusters <- function(feature_tables,
       mz_max_diff = mz_max_diff,
       do.plot = do.plot
     )
+    if (length(mz_tol_relative) == 0) {
+      mz_tol_relative <- 1e-5
+      warning("Automatic tolerance finding failed, 10 ppm was assigned.
+                        May need to manually assign alignment mz tolerance level.")
+    }
   } else if (do.plot) {
     draw_plot(
       main = "m/z tolerance level given",
@@ -250,4 +255,3 @@ adjust.time <- function(extracted_features,
     return(corrected_features)
   }
 }
-
