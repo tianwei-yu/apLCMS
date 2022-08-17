@@ -340,7 +340,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
   return(list(pks = pks, vlys = vlys))
 }
 
-#' Compute interpolated retention time and intensity values.
+#' Compute interpolated retention time, its standard deviation, and intensity values,.
 #'
 #' @param features tibble Features with `labels` and `intensities` columns.
 #' @param aver_diff float Average retention time difference.
@@ -348,7 +348,9 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
 #' \itemize{
 #'   \item intensity - float - Interpolated intensity value.
 #'   \item label - float - Interpolated retention time value.
-compute_mu_sc <- function(features, aver_diff) {
+#'   \item sigma - float - Standard deviation of retention times
+#' @export
+compute_mu_sc_std <- function(features, aver_diff) {
   x <- features$labels
   y <- features$intensities
 
@@ -364,7 +366,7 @@ compute_mu_sc <- function(features, aver_diff) {
     sc <- exp(sum(fitted[selection]^2 * log(y[selection] / fitted[selection]) / sum(fitted[selection]^2)))
   }
 
-  return(list(intensity = sc, label = miu))
+  return(list(intensity = sc, label = miu, sigma = sigma))
 }
 
 #' Compute the rectangle around recovered features given that enough peaks are present.
@@ -395,7 +397,7 @@ compute_curr_rec_with_enough_peaks <- function(mz,
     intensity <- subset$intensities * aver_diff
     label <- subset$labels
   } else if (nrow(subset) >= 10) {
-    res <- compute_mu_sc(subset, aver_diff)
+    res <- compute_mu_sc_std(subset, aver_diff)
     intensity <- res$intensity
     label <- res$label
   } else {

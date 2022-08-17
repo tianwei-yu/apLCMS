@@ -9,6 +9,7 @@ patrick::with_parameters_test_that(
       extracted_features,
       sd.cut = sd_cut,
       sigma.ratio.lim = sigma_ratio_lim,
+      shape.model = shape_model,
       do.plot = FALSE
     )
 
@@ -22,25 +23,36 @@ patrick::with_parameters_test_that(
       filename = c("mbr_test0_cdf.Rds"),
       expected_filename = "mbr_test0_features.Rds",
       sd_cut = c(0.1, 100),
-      sigma_ratio_lim = c(0.1, 10)
+      sigma_ratio_lim = c(0.1, 10),
+      shape_model = "bi-Gaussian"
+    ),
+    RCX_01_shortened_gaussian = list(
+      filename = c("RCX_06_shortened_cdf.Rds"),
+      expected_filename = "RCX_06_shortened_gaussian_features.Rds",
+      sd_cut = c(0.01, 500),
+      sigma_ratio_lim = c(0.01, 100),
+      shape_model = "Gaussian"
     ),
     RCX_01_shortened_v2 = list(
       filename = c("RCX_06_shortened_cdf.Rds"),
       expected_filename = "RCX_06_shortened_features.Rds",
       sd_cut = c(0.01, 500),
-      sigma_ratio_lim = c(0.01, 100)
+      sigma_ratio_lim = c(0.01, 100),
+      shape_model = "bi-Gaussian"
     ),
     RCX_09_shortened_v2 = list(
       filename = c("RCX_07_shortened_cdf.Rds"),
       expected_filename = "RCX_07_shortened_features.Rds",
       sd_cut = c(0.01, 500),
-      sigma_ratio_lim = c(0.01, 100)
+      sigma_ratio_lim = c(0.01, 100),
+      shape_model = "bi-Gaussian"
     ),
     RCX_16_shortened_v2 = list(
       filename = c("RCX_08_shortened_cdf.Rds"),
       expected_filename = "RCX_08_shortened_features.Rds",
       sd_cut = c(0.01, 500),
-      sigma_ratio_lim = c(0.01, 100)
+      sigma_ratio_lim = c(0.01, 100),
+      shape_model = "bi-Gaussian"
     )
   )
 )

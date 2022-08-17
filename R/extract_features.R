@@ -79,8 +79,22 @@ extract_features <- function(
     'bigauss.mix',
     'bigauss.esti',
     'rev_cum_sum',
-    'compute_bounds'
+    'compute_bounds',
+    'validate_inputs',
+    'preprocess_bandwidth',
+    'preprocess_profile',
+    'compute_gaussian_peak_shape',
+    'compute_chromatographic_profile',
+    'compute_dx',
+    'compute_initiation_params',
+    'compute_e_step',
+    'compute_start_bound',
+    'compute_end_bound',
+    'compute_bounds',
+    'compute_scale'
   ))
+  snow::clusterEvalQ(cluster, library("dplyr"))
+
 
   snow::parLapply(cluster, filenames, function(filename) {
     profile <- proc.cdf(
@@ -95,7 +109,7 @@ extract_features <- function(
       cache = FALSE
     )
     features <- prof.to.features(
-      a = profile,
+      profile = profile,
       min.bw = min_bandwidth,
       max.bw = max_bandwidth,
       sd.cut = sd_cut,
