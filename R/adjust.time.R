@@ -202,7 +202,7 @@ adjust.time <- function(extracted_features,
   rt_tol_relative <- res$rt_tol_relative
   mz_tol_relative <- res$mz_tol_relative
 
-  num.ftrs <- sapply(extracted_features, nrow) # as.vector(table(all.ft$sample_id))
+  num.ftrs <- sapply(extracted_features, nrow)
   template <- which(num.ftrs == max(num.ftrs))[1]
   message(paste("the template is sample", template))
 
