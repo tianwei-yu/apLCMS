@@ -300,7 +300,7 @@ count_peaks <- function(roi, times) {
 
   for (m in seq_along(roi$pks)) {
     boundaries <- compute_boundaries(roi$vlys, roi$pks[m])
-    num_peaks[m] <- sum(times >= boundaries$lower & times <= boundaries$upper)
+    num_peaks[m] <- sum(between(times, boundaries$lower, boundaries$upper))
   }
   return(num_peaks)
 }
@@ -379,6 +379,7 @@ compute_mu_sc_std <- function(features, aver_diff) {
 #' @param aver_diff float Average retention time difference.
 #' @param times vector Raw retention time values from raw data file.
 #' @param delta_rt vector Differences between consecutive retention time values (diff(times)).
+#' @importFrom dplyr between
 #' @return list Triplet of mz, label and intensity for the feature.
 compute_curr_rec_with_enough_peaks <- function(mz,
                                                peak,
@@ -391,7 +392,7 @@ compute_curr_rec_with_enough_peaks <- function(mz,
   boundaries <- compute_boundaries(valleys, peak)
 
   subset <- features |>
-    dplyr::filter(labels >= boundaries$lower & labels <= boundaries$upper)
+    dplyr::filter(between(labels, boundaries$lower, boundaries$upper))
 
   if (nrow(subset) == 1) {
     intensity <- subset$intensities * aver_diff
