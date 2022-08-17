@@ -21,6 +21,7 @@ compute_min_mz_tolerance <- function(mz, mz_tol_relative, mz_tol_absolute) {
 #' @param mz mz values of all peaks in all profiles in the study.
 #' @param tolerance tolerance value.
 #' @return breaks Integer indices of mass differences to use.
+#' @export
 compute_breaks_3 <- function(values, tolerance = NA) {
     l <- length(values)
 
