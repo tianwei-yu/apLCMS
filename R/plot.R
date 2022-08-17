@@ -115,3 +115,33 @@ plot_normix_bic <- function(x, y, bw, aaa) {
     lines(x, dnorm(x, mean = aaa[i, 1], sd = aaa[i, 2]) * aaa[i, 3], col = cols[i])
   }
 }
+
+#' @export
+draw_rt_correction_plot <- function(colors,
+                                    extracted_features,
+                                    corrected_features,
+                                    rt_tol_relative) {
+  number_of_samples <- length(extracted_features)
+  if (is.na(colors[1])) {
+    colors <- c(
+      "red", "blue", "dark blue", "orange", "green", "yellow",
+      "cyan", "pink", "violet", "bisque", "azure", "brown",
+      "chocolate", rep("grey", number_of_samples)
+    )
+  }
+
+  draw_plot(
+    x = range(extracted_features[[1]][, 2]),
+    y = c(-rt_tol_relative, rt_tol_relative),
+    xlab = "Original Retention time",
+    ylab = "Retention time deviation",
+    axes = TRUE
+  )
+
+  for (i in 1:number_of_samples) {
+    extracted_features[[i]] <- extracted_features[[i]][order(extracted_features[[i]][, 1], extracted_features[[i]][, 2]), ]
+    points(extracted_features[[i]][, 2], corrected_features[[i]][, 2] - extracted_features[[i]][, 2],
+      col = colors[i], cex = .2
+    )
+  }
+}

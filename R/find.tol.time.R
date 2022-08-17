@@ -147,9 +147,7 @@ compute_rt_tol_relative <- function(breaks,
 #'  by the elution time.
 #' @examples
 #' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
-find.tol.time <- function(mz,
-                          rt,
-                          sample_id,
+find.tol.time <- function(features,
                           number_of_samples,
                           mz_tol_relative = 2e-5,
                           rt_tol_relative = NA,
@@ -159,7 +157,6 @@ find.tol.time <- function(mz,
                           mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
-    features <- tibble::tibble(mz = mz, rt = rt, sample_id = sample_id)
     features <- dplyr::arrange_at(features, "mz")
 
     min_mz_tol <- compute_min_mz_tolerance(

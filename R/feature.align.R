@@ -179,85 +179,26 @@ feature.align <- function(features,
 
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
-        values <- concatenate_feature_tables(features, rt_colname) |> dplyr::arrange_at(c("mz", "rt"))
-
-        mz_values <- values$mz
-        rt <- values$rt
-        sample_id <- values$sample_id
-
-        # find relative m/z tolerance level
-        if (is.na(mz_tol_relative)) {
-            mz_tol_relative <- find.tol(
-                mz_values,
-                mz_max_diff = mz_max_diff,
-                do.plot = do.plot
-            )
-            if (length(mz_tol_relative) == 0) {
-                mz_tol_relative <- 1e-5
-                warning("Automatic tolerance finding failed, 10 ppm was assigned.
-                        May need to manually assign alignment mz tolerance level.")
-            }
-        } else if (do.plot) {
-            draw_plot(
-                main = "alignment m/z tolerance level given",
-                label = mz_tol_relative, cex = 1.2
-            )
-        }
-
-        if (!is.na(rt_tol_relative) && do.plot) {
-            draw_plot(
-                main = "retention time \n tolerance level given",
-                label = rt_tol_relative, cex = 1.2
-            )
-        }
-
-        # find relative retention time tolerance level
-        # also does some preprocessing grouping steps
-        all_features <- find.tol.time(
-            mz_values,
-            rt,
-            sample_id,
-            number_of_samples = number_of_samples,
-            mz_tol_relative = mz_tol_relative,
-            rt_tol_relative = rt_tol_relative,
-            mz_tol_absolute = mz_tol_absolute,
-            do.plot = do.plot
+        
+        res <- compute_clusters(
+          features,
+          mz_tol_relative,
+          mz_tol_absolute,
+          mz_max_diff,
+          rt_tol_relative
         )
-        rt_tol_relative <- all_features$rt.tol
-
-        message("**** performing feature alignment ****")
-        message(paste("m/z tolerance level: ", mz_tol_relative))
-        message(paste("time tolerance level:", rt_tol_relative))
-
+        
+        all_table <- dplyr::bind_rows(res$feature_tables)
+        rt_tol_relative <- res$rt_tol_relative
+        mz_tol_relative <- res$mz_tol_relative
+        
         # create zero vectors of length number_of_samples + 4 ?
         aligned_features <- pk.times <- NULL
         mz_sd <- 0
 
-        labels <- unique(all_features$grps)
-        area <- grps <- mz_values <- NULL
-
-        # grouping the features based on their m/z values (assuming the tolerance level)
-        sizes <- c(0, cumsum(sapply(features, nrow)))
-        all_table <- NULL
-        for (i in 1:number_of_samples) {
-            sample <- add_sample_id_and_rt_cluster(
-              features[[i]],
-              all_features,
-              i
-            )
-            all_table <- rbind(all_table, sample)
-        }
-
-        mz_values <- all_table$mz
-        rt <- all_table$rt
-        area <- all_table$area
-        grps <- all_table$cluster
-        sample_id <- all_table$sample_id
-
-        browser()
 
         # table with number of values per group
-        groups_cardinality <- table(grps)
+        groups_cardinality <- table(all_table$cluster)
         # count those with minimal occurrence
         # (times 3 ? shouldn't be number of samples) !!!
         curr.row <- sum(groups_cardinality >= min_occurrence) * 3
@@ -269,12 +210,12 @@ feature.align <- function(features,
         for(i in seq_along(sel.labels)) {
             rows <- create_rows(
                 i,
-                grps,
+                all_table$cluster,
                 sel.labels,
-                mz_values,
-                rt,
-                area,
-                sample_id,
+                all_table$mz,
+                all_table$rt,
+                all_table$area,
+                all_table$sample_id,
                 mz_tol_relative,
                 rt_tol_relative,
                 min_occurrence,
