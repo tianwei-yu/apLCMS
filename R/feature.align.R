@@ -2,15 +2,15 @@
 NULL
 #> NULL
 
-to_attach <- function(pick, number_of_samples, use = "sum") {
+to_attach <- function(peak, number_of_samples, use = "sum") {
     strengths <- rep(0, number_of_samples)
-    if (is.null(nrow(pick))) {
-        strengths[pick[6]] <- pick[5]
-        return(c(pick[1], pick[2], pick[1], pick[1], strengths))
+    if (is.null(nrow(peak))) {
+        strengths[peak[6]] <- peak[5]
+        return(c(peak[1], peak[2], peak[1], peak[1], strengths))
     } else {
         for (i in seq_along(strengths)) {
             # select all areas/RTs from the same sample
-            values <- pick[pick[, 6] == i, 5]
+            values <- peak[peak[, 6] == i, 5]
             if (use == "sum") {
                 strengths[i] <- sum(values)
             }
@@ -21,8 +21,8 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
         }
         # average of m/z, average of rt, min of m/z, max of m/z, sum/median of areas/RTs
         return(c(
-            mean(pick[, 1]), mean(pick[, 2]), min(pick[, 1]),
-            max(pick[, 1]), strengths
+            mean(peak[, 1]), mean(peak[, 2]), min(peak[, 1]),
+            max(peak[, 1]), strengths
         ))
     }
 }
@@ -32,8 +32,12 @@ create_output <- function(sample_grouped, number_of_samples, deviation) {
     return(c(
         to_attach(sample_grouped, number_of_samples, use = "sum"),
         to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
-        deviation
+        deviation #mz standard deviation
     ))
+
+    # variable_metadata_row <- (feature_id, mean_mz, min_mz, max_mz, mean_rt, min_rt, max_rt, num_peaks, sample_presence)
+    # intensity_row <- (feature_id, sample_0_intensity, sample_1_intensity, ...)
+    # rt_row <- (feature_id, sample_0_rt, sample_1_rt, ...)
 }
 
 
@@ -81,7 +85,8 @@ select_rt <- function(sample, rt_tol_relative, min_occurrence, number_of_samples
 
 select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples) {
     # turns for m/z
-    turns <- find_optima(sample[, 1], bandwidth = mz_tol_relative * median(sample[, 1]))
+    mz <- sample[, 1]
+    turns <- find_optima(mz, bandwidth = mz_tol_relative * median(mz))
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 1, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
@@ -106,9 +111,15 @@ create_rows <- function(features,
     group_ids <- which(features$cluster == sel.labels[i])
     if (length(group_ids) > 1) {
         # select data from the group
+        # dplyr::slice(group_ids)
+        
         sample <- cbind(
-            features$mz[group_ids], features$rt[group_ids], features$rt[group_ids],
-            features$rt[group_ids], features$area[group_ids], features$sample_id[group_ids]
+            features$mz[group_ids],
+            features$rt[group_ids],
+            features$rt[group_ids], # pseudo mz.min
+            features$rt[group_ids], # pseudo mz.max
+            features$area[group_ids],
+            features$sample_id[group_ids]
         )
         # continue if data is from at least 'min_occurrence' samples
         if (validate_contents(sample, min_occurrence)) {
@@ -129,7 +140,7 @@ create_aligned_feature_table <- function(all_table,
                                          number_of_samples,
                                          rt_tol_relative,
                                          mz_tol_relative) {
-    aligned_features <- pk.times <- NULL
+    aligned_features <- NULL
 
     # table with number of values per group
     groups_cardinality <- table(all_table$cluster)
