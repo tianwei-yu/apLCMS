@@ -7,6 +7,7 @@
 #' @param y2 Intensity vector.
 #' @param bw Bandwidth for the kernel smoother. A very wide one is used here.
 #' @return A vector of intensity value is returned.
+#' @importFrom dplyr between
 #' @export
 #' @examples
 #' rm.ridge(rt, intensi, bw)
@@ -17,7 +18,7 @@ function(x,y2, bw)
     max.x.sel<-max(x[sel])
     min.x.sel<-min(x[sel])
     
-    in.sel<-which(x>=min.x.sel & x<=max.x.sel)
+    in.sel<-which(between(x, min.x.sel, max.x.sel))
     over.sel<-which(x>max.x.sel)
     under.sel<-which(x<min.x.sel)
     
