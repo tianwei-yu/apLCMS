@@ -591,6 +591,7 @@ bigauss.mix <- function(chr_profile, power = 1, do.plot = FALSE, sigma.ratio.lim
 #' proportion of intensities less than this value, the component will be ignored.
 #' @param max.iter Maximum number of iterations when reevaluating gaussian curves.
 #' @param aver_diff Average retention time difference across RTs of all features.
+#' @importFrom dplyr between
 #' @export
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff) {
   x <- that.curve[, 1]
@@ -615,8 +616,9 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
       this.low <- max(vlys[vlys <= pks[m]])
       this.high <- min(vlys[vlys >= pks[m]])
 
-      this.x <- x[x >= this.low & x <= this.high]
-      this.y <- y[x >= this.low & x <= this.high]
+      indices <- between(x, this.low, this.high)
+      this.x <- x[indices]
+      this.y <- y[indices]
 
       if (length(this.x) == 0 | length(this.y) == 0) {
         miu[m] <- NaN
