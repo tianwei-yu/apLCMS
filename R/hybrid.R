@@ -7,11 +7,11 @@ NULL
     match_tol_ppm <- aligned$mz_tolerance * 1e+06
   }
 
-  features <- as.matrix(aligned$int_crosstab)
+  features <- tibble::as_tibble(aligned$int_crosstab)
   known_mz <- known_table[, 6]
   known_rt <- known_table[, 11]
 
-  mass_d2 <- mass.match(features[, 1], known_mz, match_tol_ppm)
+  mass_d2 <- mass.match(features$mz, known_mz, match_tol_ppm)
   mass_matched_pos <- which(mass_d2 > 0)
 
   known_assigned <- rep(0, nrow(known_table))
@@ -23,12 +23,12 @@ NULL
     if (new_assigned[i] == 0) {
       # find all potentially related known/newly found peaks
       prev_sel_new <- i
-      threshold <- features[i, 1] * match_tol_ppm / 1e+06
+      threshold <- features$mz[i] * match_tol_ppm / 1e+06
 
-      sel_known <- which(abs(known_mz - features[i, 1]) < threshold)
+      sel_known <- which(abs(known_mz - features$mz[i]) < threshold)
       sel_new <- NULL
       for (m in seq_along(sel_known)) {
-        distance <- abs(features[, 1] - known_mz[sel_known[m]])
+        distance <- abs(features$mz - known_mz[sel_known[m]])
         sel_new <- c(sel_new, which(distance < threshold))
       }
       sel_known <- unique(sel_known)
@@ -39,13 +39,13 @@ NULL
 
         sel_known <- NULL
         for (m in seq_along(sel_new)) {
-          distance <- abs(known_mz - features[sel_new[m], 1])
+          distance <- abs(known_mz - features$mz[sel_new[m]])
           sel_known <- c(sel_known, which(distance < threshold))
         }
 
         sel_new <- NULL
         for (m in seq_along(sel_known)) {
-          distance <- abs(features[, 1] - known_mz[sel_known[m]])
+          distance <- abs(features$mz - known_mz[sel_known[m]])
           sel_new <- c(sel_new, which(distance < threshold))
         }
 
@@ -57,8 +57,8 @@ NULL
         matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
 
       for (k in seq_along(sel_known)) {
-        time_matched[k, ] <- abs(features[sel_new, 2] - known_rt[sel_known[k]])
-        mass_matched[k, ] <- abs(features[sel_new, 1] - known_mz[sel_known[k]])
+        time_matched[k, ] <- abs(features$rt[sel_new] - known_rt[sel_known[k]])
+        mass_matched[k, ] <- abs(features$mz[sel_new] - known_mz[sel_known[k]])
       }
       mass_matched <- mass_matched/median(known_mz[sel_known])
       time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
@@ -97,6 +97,7 @@ augment_with_known_features <- function(aligned, known_table, match_tol_ppm) {
   if (nrow(pairing) > 0) {
     sel <- sel[-(pairing[, 2])]
   }
+
 
   to_add_ftrs[, 1] <- to_add_times[, 1] <- known_table[sel, 6]
   to_add_ftrs[, 2] <- to_add_times[, 2] <- known_table[sel, 11]
@@ -257,7 +258,7 @@ hybrid <- function(
 
   message("**** time correction ****")
   corrected <- adjust.time(
-    features = extracted,
+    extracted_features = extracted,
     mz_tol_relative = align_mz_tol,
     rt_tol_relative = align_chr_tol,
     mz_max_diff = 10 * mz_tol,
@@ -284,6 +285,7 @@ hybrid <- function(
     match_tol_ppm = match_tol_ppm
   )
 
+
   message("**** weaker signal recovery ****")
   recovered <- recover_weaker_signals(
     cluster = cluster,
@@ -305,7 +307,7 @@ hybrid <- function(
 
   message("**** second round time correction ****")
   recovered_corrected <- adjust.time(
-    features = recovered$extracted_features,
+    extracted_features = recovered$extracted_features,
     mz_tol_relative = align_mz_tol,
     rt_tol_relative = align_chr_tol,
     mz_max_diff = 10 * mz_tol,
@@ -347,7 +349,7 @@ hybrid <- function(
     corrected_features = recovered_corrected,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
-    aligned_mz_toletance = as.numeric(recovered_aligned$mz_tolerance),
+    aligned_mz_tolerance = as.numeric(recovered_aligned$mz_tolerance),
     aligned_rt_tolerance = as.numeric(recovered_aligned$rt_tolerance),
     updated_known_table = as.data.frame(augmented$known_table),
     features_known_table_pairing = as.data.frame(augmented$pairing)

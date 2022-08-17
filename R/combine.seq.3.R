@@ -1,8 +1,8 @@
 #' An internal function.
-#' 
+#'
 #' This is a internal function.
-#' 
-#' @param table dataframe of retention time, m/z ratio, signal strength.
+#'
+#' @param features dataframe of retention time, m/z ratio, signal strength.
 #' @return returns
 #' \itemize{
 #'   \item masses - m/z ratio
@@ -15,11 +15,16 @@
 combine.seq.3 <- function(features) {
     l <- nrow(features)
     breaks <- c(0, which(features$labels[1:(l - 1)] != features$labels[2:l]), l)
-    new_table <- data.frame(mz = rep(0, length(breaks) - 1), labels = unique(features$labels), intensities = rep(0, length(breaks) - 1))
-    
+    new_table <- tibble::tibble(
+        mz = rep(0, length(breaks) - 1),
+        labels = unique(features$labels),
+        intensities = rep(0, length(breaks) - 1)
+    )
+
     for (i in 1:(length(breaks) - 1)) {
         start <- breaks[i] + 1
         end <- breaks[i + 1]
+
         mz <- features$mz[start:end]
         ints <- features$intensities[start:end]
 
@@ -29,20 +34,3 @@ combine.seq.3 <- function(features) {
 
     return(new_table)
 }
-
-combine.seq.3_old <-
-    function(a, mz, inte) ### the input need to be pre-ordered by a
-    {
-        l <- length(a)
-        breaks <- c(0, which(a[1:(l - 1)] != a[2:l]), l)
-        new.int <- new.mz <- rep(0, length(breaks) - 1)
-
-        for (i in 1:(length(breaks) - 1)) {
-            this.int <- inte[(breaks[i] + 1):breaks[i + 1]]
-            this.mz <- mz[(breaks[i] + 1):breaks[i + 1]]
-            new.int[i] <- sum(this.int)
-            new.mz[i] <- median(this.mz[which(this.int == max(this.int))])
-        }
-        new.a <- unique(a)
-        return(cbind(new.mz, new.a, new.int))
-    }

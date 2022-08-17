@@ -32,13 +32,6 @@ compute_breaks <- function(tol, masses, intensi, weighted) {
   return(breaks)
 }
 
-#' @export
-compute_boundaries <- function(mass.vlys, mass.pks, j){
-  mass.lower <- max(mass.vlys[mass.vlys < mass.pks[j]])
-  mass.upper <- min(mass.vlys[mass.vlys > mass.pks[j]])
-
-  return(list(lower = mass.lower, upper = mass.upper))
-}
 
 #' @export
 increment_counter <- function(pointers, that.n){
@@ -134,7 +127,7 @@ adaptive.bin <- function(x,
       for (j in 1:length(mass.pks))
       {
         # compute boundaries
-        boundaries <- compute_boundaries(mass.vlys, mass.pks, j)
+        boundaries <- compute_boundaries(mass.vlys, mass.pks[j])
 
         if (length(mass.pks) == 1){
           boundaries$lower <- boundaries$lower - 1
@@ -144,12 +137,7 @@ adaptive.bin <- function(x,
         that <- this_table |> dplyr::filter(mz > boundaries$lower & mz <= boundaries$upper)
 
         if (nrow(that) > 0) {
-          that <- combine.seq.3(that)
-
-          if (nrow(that) != 1) {
-            that <- that[order(that[, 1]), ]
-          }
-
+          that <- combine.seq.3(that) |> dplyr::arrange_at("mz")
           that.range <- diff(range(that$labels))
 
           if (that.range > 0.5 * time_range & length(that$labels) > that.range * min.pres & length(that$labels) / (that.range / aver.time.range) > min.pres) {

@@ -57,7 +57,7 @@ requirements:
     - r-rocr
     - r-rocs
     - r-rcpp
-    - r-arrow
+    - r-arrow <= 8.0.0
     - r-dplyr
     - r-tidyr
     - r-stringr

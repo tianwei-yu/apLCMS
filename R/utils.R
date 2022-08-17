@@ -2,17 +2,19 @@
 NULL
 #> NULL
 
-get_feature_values <- function(features, rt_colname) {
-    mz <- c()
-    rt <- c()
-    sample_id <- c()
-    for (i in 1:length(features)) {
-        sample_features <- dplyr::as_tibble(features[[i]])
-        mz <- c(mz, sample_features$mz)
-        rt <- c(rt, sample_features[[rt_colname]])
-        sample_id <- c(sample_id, rep(i, nrow(sample_features)))
-    }
-    return(list(mz = mz, rt = rt, sample_id = sample_id))
+#' Concatenate multiple feature lists and add the sample id (origin of feature) as additional column.
+#' 
+#' @param features list List of tibbles containing extracted feature tables.
+#' @param rt_colname string Name of retention time information column, usually "pos".
+concatenate_feature_tables <- function(features, rt_colname) {
+  for (i in seq_along(features)) {
+      if(!("sample_id" %in% colnames(features[[i]]))) {
+        features[[i]] <- tibble::add_column(features[[i]], sample_id = i)
+      }
+  }
+
+  merged <- dplyr::bind_rows(features)
+  return(merged)
 }
 
 #' @export
@@ -88,4 +90,8 @@ create_feature_sample_table <- function(features) {
     int_crosstab = features$int_crosstab
   )
   return(table)
+}
+
+span <- function(x) {
+  diff(range(x, na.rm = TRUE))
 }

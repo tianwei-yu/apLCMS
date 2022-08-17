@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - refactored `feature.align.R` [#63](https://github.com/RECETOX/recetox-aplcms/pull/63)[#88](https://github.com/RECETOX/recetox-aplcms/pull/88)
 - refactored `adjust.time.R` [#64](https://github.com/RECETOX/recetox-aplcms/pull/64)
+- refactored `find.tol.time.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
+- refactored `find.turn.point.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
 ### Removed
 
 ## [0.9.4] - 2022-05-10
