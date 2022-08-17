@@ -19,16 +19,9 @@ patrick::with_parameters_test_that(
     expect_equal(actual, expected)
   },
   patrick::cases(
-    # mbr_test0 = list(
-    #   filename = c("mbr_test0_cdf.Rds"),
-    #   expected_filename = "mbr_test0_features.Rds",
-    #   sd_cut = c(0.1, 100),
-    #   sigma_ratio_lim = c(0.1, 10),
-    #   shape_model = "bi-Gaussian"
-    # ),
-    mbr_test0_gaussian = list(
+    mbr_test0 = list(
       filename = c("mbr_test0_cdf.Rds"),
-      expected_filename = "mbr_test0_gaussian_features.Rds",
+      expected_filename = "mbr_test0_features.Rds",
       sd_cut = c(0.1, 100),
       sigma_ratio_lim = c(0.1, 10),
       shape_model = "bi-Gaussian"

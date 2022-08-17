@@ -51,7 +51,7 @@ compute_corrected_features <- function(this.feature, this.diff, avg_time) {
     x.points = to.correct
   )
 
-  this.corrected[this.old >= min(this.diff) & this.old <= max(this.diff)] <-
+  this.corrected[between(this.old, min(this.diff), max(this.diff))] <-
     this.smooth$y + to.correct
   this.corrected[this.old < min(this.diff)] <- this.corrected[this.old < min(this.diff)] +
     mean(this.smooth$y[this.smooth$x == min(this.smooth$x)])
