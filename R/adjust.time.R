@@ -78,7 +78,7 @@ add_sample_id_and_rt_cluster <- function(sample, all.ft, current_sample_id) {
     sample <- sample[order(sample[, 1], sample[, 2]), ]
     group_ids <- which(all.ft$sample_id == current_sample_id)
 
-    sample_grouped <- cbind(all.ft$mz[group_ids], all.ft$rt[group_ids], all.ft$grps[group_ids])
+    sample_grouped <- cbind(all.ft$mz[group_ids], all.ft$rt[group_ids], all.ft$clusters[group_ids])
     sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]), ]
     
     features <- cbind(sample, sample_id = rep(current_sample_id, nrow(sample)), cluster = sample_grouped[, 3])
