@@ -6,7 +6,7 @@ NULL
 #' 
 #' The function finds the tolerance level in m/z from a given vector of observed m/z values.
 #' 
-#' @param mz_values The vector of observed m/z values.
+#' @param mz The vector of observed m/z values.
 #' @param mz_max_diff Consider only m/z diffs smaller than this value.
 #' @param aver.bin.size The average bin size to determine the number of equally spaced points in the kernel density estimation.
 #' @param min.bins the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.
@@ -15,18 +15,18 @@ NULL
 #' @return The tolerance level is returned.
 #' @export
 #' @examples
-#' find.tol(mz_values, mz_max_diff = mz_max_diff, do.plot = FALSE)
-find.tol <- function(mz_values,
+#' find.tol(mz, mz_max_diff = mz_max_diff, do.plot = FALSE)
+find.tol <- function(mz,
                      mz_max_diff = 1e-4,
                      aver.bin.size = 4000,
                      min.bins = 50,
                      max.bins = 200,
                      do.plot = TRUE) {
-    mz_values <- mz_values[order(mz_values)]
-    l <- length(mz_values)
+    mz <- mz[order(mz)]
+    l <- length(mz)
     # pairwise m/z difference divided by their average, filtered outside of tolerance limit
-    distances <- (mz_values[2:l] - mz_values[1:(l - 1)]) / 
-                 ((mz_values[2:l] + mz_values[1:(l - 1)]) / 2)
+    distances <- (mz[2:l] - mz[1:(l - 1)]) / 
+                 ((mz[2:l] + mz[1:(l - 1)]) / 2)
     distances <- distances[distances < mz_max_diff]
     
     # number of equally spaced points at which the density is to be estimated

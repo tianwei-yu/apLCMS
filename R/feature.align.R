@@ -150,7 +150,7 @@ create_rows <- function(i,
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
 #'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
 #'   \item mz.tol - The m/z tolerance used in the alignment.
-#'   \item chr.tol - The elution time tolerance in the alignment.
+#'   \item rt.tol - The elution time tolerance in the alignment.
 #' }
 #' @export
 #' @examples
@@ -181,14 +181,14 @@ feature.align <- function(features,
     if (number_of_samples > 1) {
         values <- concatenate_feature_tables(features, rt_colname) |> dplyr::arrange_at(c("mz", "rt"))
 
-        mz_values <- values$mz
+        mz <- values$mz
         rt <- values$rt
         sample_id <- values$sample_id
 
         # find relative m/z tolerance level
         if (is.na(mz_tol_relative)) {
             mz_tol_relative <- find.tol(
-                mz_values,
+                mz,
                 mz_max_diff = mz_max_diff,
                 do.plot = do.plot
             )
@@ -214,7 +214,7 @@ feature.align <- function(features,
         # find relative retention time tolerance level
         # also does some preprocessing grouping steps
         all_features <- find.tol.time(
-            mz_values,
+            mz,
             rt,
             sample_id,
             number_of_samples = number_of_samples,
@@ -232,9 +232,7 @@ feature.align <- function(features,
         # create zero vectors of length number_of_samples + 4 ?
         aligned_features <- pk.times <- NULL
         mz_sd <- 0
-
-        labels <- unique(all_features$grps)
-        area <- grps <- mz_values <- NULL
+        area <- grps <- mz <- NULL
 
         # grouping the features based on their m/z values (assuming the tolerance level)
         sizes <- c(0, cumsum(sapply(features, nrow)))
@@ -248,13 +246,11 @@ feature.align <- function(features,
             all_table <- rbind(all_table, sample)
         }
 
-        mz_values <- all_table$mz
+        mz <- all_table$mz
         rt <- all_table$rt
         area <- all_table$area
         grps <- all_table$cluster
         sample_id <- all_table$sample_id
-
-        browser()
 
         # table with number of values per group
         groups_cardinality <- table(grps)
@@ -271,7 +267,7 @@ feature.align <- function(features,
                 i,
                 grps,
                 sel.labels,
-                mz_values,
+                mz,
                 rt,
                 area,
                 sample_id,
@@ -283,7 +279,6 @@ feature.align <- function(features,
 
             aligned_features <- rbind(aligned_features, rows)
         }
-        #aligned_features <- aligned_features[-1, ]
 
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
         pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
@@ -297,10 +292,10 @@ feature.align <- function(features,
 
         # return both tables and both computed tolerances
         rec <- new("list")
-        rec$aligned.ftrs <- aligned_features
-        rec$pk.times <- pk.times
-        rec$mz.tol <- mz_tol_relative
-        rec$chr.tol <- rt_tol_relative
+        rec$aligned_features <- aligned_features
+        rec$peak_times <- pk.times
+        rec$mz_tol_relative <- mz_tol_relative
+        rec$rt_tol_relative <- rt_tol_relative
 
         if (do.plot) {
             hist(mz_sd,

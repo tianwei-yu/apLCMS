@@ -103,9 +103,9 @@ feature_recovery <- function(cluster,
                              batches_idx,
                              mz.tol,
                              batch.align.mz.tol,
-                             batch.align.chr.tol,
+                             batch.align.rt.tol,
                              recover.mz.range,
-                             recover.chr.range,
+                             recover.rt.range,
                              use.observed.range,
                              min.bw,
                              max.bw,
@@ -151,7 +151,7 @@ feature_recovery <- function(cluster,
         for (j in 1:length(this.features)) {
           diff.mz <- abs(this.features[[j]][, "mz"] - aligned[sample, "mz"])
           diff.time <- abs(this.features[[j]][, "pos"] - aligned[sample, "rt"])
-          idx <- which(diff.mz < aligned[sample, "mz"] * batch.align.mz.tol & diff.time <= batch.align.chr.tol)
+          idx <- which(diff.mz < aligned[sample, "mz"] * batch.align.mz.tol & diff.time <= batch.align.rt.tol)
 
           if (length(idx) > 0) {
             idx <- idx[which(diff.time[idx] == min(diff.time[idx]))[1]]
@@ -182,9 +182,9 @@ feature_recovery <- function(cluster,
       aligned_int_crosstab = aligned_int_crosstab,
       original_mz_tolerance = mz.tol,
       aligned_mz_tolerance = batch.align.mz.tol,
-      aligned_rt_tolerance = batch.align.chr.tol,
+      aligned_rt_tolerance = batch.align.rt.tol,
       mz_range = recover.mz.range,
-      rt_range = recover.chr.range,
+      rt_range = recover.rt.range,
       use_observed_range = use.observed.range,
       min_bandwidth = min.bw,
       max_bandwidth = max.bw,
@@ -268,7 +268,7 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #' @param min.batch.prop A feature needs to be present in at least this proportion of the batches, for it to be 
 #'  considered in the entire data.
 #' @param batch.align.mz.tol The m/z tolerance in ppm for between-batch alignment.
-#' @param batch.align.chr.tol The RT tolerance for between-batch alignment.
+#' @param batch.align.rt.tol The RT tolerance for between-batch alignment.
 #' @param known.table A data frame containing the known metabolite ions and previously found features.
 #' @param cluster The number of CPU cores to be used
 #' @param min.pres This is a parameter of the run filter, to be passed to the function proc.cdf().
@@ -296,7 +296,7 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #' @param moment.power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param align.mz.tol The user can provide the m/z tolerance level for peak alignment to override the program's selection. 
 #'  This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
-#' @param align.chr.tol The user can provide the elution time tolerance level to override the program's selection. This value 
+#' @param align.rt.tol The user can provide the elution time tolerance level to override the program's selection. This value 
 #'  is in the same unit as the elution time, normaly seconds.
 #' @param max.align.mz.diff As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable 
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
@@ -305,7 +305,7 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #'  for each spectra and save the files. It allows manually dividing the task to multiple machines.
 #' @param recover.mz.range A parameter of the recover.weaker() function. The m/z around the feature m/z to search for observations. 
 #'  The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param recover.chr.range A parameter of the recover.weaker() function. The retention time around the feature retention time to 
+#' @param recover.rt.range A parameter of the recover.weaker() function. The retention time around the feature retention time to 
 #'  search for observations. The default value is NA, in which case 0.5 times the retention time tolerance in the aligned 
 #'  object will be used.
 #' @param use.observed.range A parameter of the recover.weaker() function. If the value is TRUE, the actual range of the observed 
@@ -331,7 +331,7 @@ two.step.hybrid <- function(filenames,
                             min.within.batch.prop.report = 0.5,
                             min.batch.prop = 0.5,
                             batch.align.mz.tol = 1e-5,
-                            batch.align.chr.tol = 50,
+                            batch.align.rt.tol = 50,
                             known.table = NA,
                             cluster = 4,
                             min.pres = 0.5,
@@ -348,11 +348,11 @@ two.step.hybrid <- function(filenames,
                             component.eliminate = 0.01,
                             moment.power = 2,
                             align.mz.tol = NA,
-                            align.chr.tol = NA,
+                            align.rt.tol = NA,
                             max.align.mz.diff = 0.01,
                             pre.process = FALSE,
                             recover.mz.range = NA,
-                            recover.chr.range = NA,
+                            recover.rt.range = NA,
                             use.observed.range = TRUE,
                             match.tol.ppm = NA,
                             new.feature.min.count = 2,
@@ -384,10 +384,10 @@ two.step.hybrid <- function(filenames,
       baseline.correct.noise.percentile = baseline.correct.noise.percentile,
       baseline.correct = baseline.correct,
       align.mz.tol = align.mz.tol,
-      align.chr.tol = align.chr.tol,
+      align.rt.tol = align.rt.tol,
       max.align.mz.diff = max.align.mz.diff,
       recover.mz.range = recover.mz.range,
-      recover.chr.range = recover.chr.range,
+      recover.rt.range = recover.rt.range,
       use.observed.range = use.observed.range,
       shape.model = shape.model,
       new.feature.min.count = new.feature.min.count,
@@ -431,7 +431,7 @@ two.step.hybrid <- function(filenames,
   message("* aligning time")
   corrected <- adjust.time(extracted_features,
     mz_tol_relative = batch.align.mz.tol,
-    rt_tol_relative = batch.align.chr.tol,
+    rt_tol_relative = batch.align.rt.tol,
     mz_max_diff = 10 * mz.tol,
     mz_tol_absolute = max.align.mz.diff,
     rt_colname = "rt"
@@ -443,7 +443,7 @@ two.step.hybrid <- function(filenames,
     features = corrected,
     min_occurrence = ceiling(min.batch.prop * length(batches_idx)),
     mz_tol_relative = batch.align.mz.tol,
-    rt_tol_relative = batch.align.chr.tol,
+    rt_tol_relative = batch.align.rt.tol,
     mz_max_diff = 10 * mz_tol,
     mz_tol_absolute = max.align.mz.diff,
     rt_colname = "rt"
@@ -462,9 +462,9 @@ two.step.hybrid <- function(filenames,
     batches_idx = batches_idx,
     mz.tol = mz.tol,
     batch.align.mz.tol = batch.align.mz.tol,
-    batch.align.chr.tol = batch.align.chr.tol,
+    batch.align.rt.tol = batch.align.rt.tol,
     recover.mz.range = recover.mz.range,
-    recover.chr.range = recover.chr.range,
+    recover.rt.range = recover.rt.range,
     use.observed.range = use.observed.range,
     min.bw = min.bw,
     max.bw = max.bw,
