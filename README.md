@@ -59,7 +59,7 @@ To use a docker development environment you need **Docker** installed on your ma
     --entrypoint '/bin/bash' \
     recetox-aplcms
     ```
-- Once in container, finish setting up the environment:
+- Once in container, finish setting up the environment by running:
     ```bash
     $ apt update && apt upgrade
     ```
