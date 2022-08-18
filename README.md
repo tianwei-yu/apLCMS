@@ -44,7 +44,7 @@ The development environment can be set up in two ways, either via **VSCode's dev
 To use a devcontainer you need VSCode with [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension and docker installed on your machine:
 - Clone your fork of the repository and open the folder in VSCode;
 - From VSCode's command pallete run `Remote-Containers: Open Folder in Container`. VSCode may take a few minutes building a container;
-- After container is ready, open a new terminal and type `conda activate recetox-aplcms` to activate Conda environment;
+- After container is ready, open a **new** terminal and type `conda activate recetox-aplcms` to activate Conda environment;
 - Run `R` or `radian` to enter R terminal (we recommend `radian` due to its ease of use);
 - A good starting point would be fetching the test data as described above, running `devtools::test()` and waiting until all tests pass to ensure the environment is set correctly.
 
