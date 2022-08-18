@@ -131,7 +131,7 @@ draw_rt_correction_plot <- function(colors,
   }
 
   draw_plot(
-    x = range(extracted_features[[1]][, 2]),
+    x = range(extracted_features[[1]]$rt),
     y = c(-rt_tol_relative, rt_tol_relative),
     xlab = "Original Retention time",
     ylab = "Retention time deviation",
@@ -139,8 +139,8 @@ draw_rt_correction_plot <- function(colors,
   )
 
   for (i in 1:number_of_samples) {
-    extracted_features[[i]] <- extracted_features[[i]][order(extracted_features[[i]][, 1], extracted_features[[i]][, 2]), ]
-    points(extracted_features[[i]][, 2], corrected_features[[i]][, 2] - extracted_features[[i]][, 2],
+    extracted_features[[i]] <- extracted_features[[i]] |> dplyr::arrange_at(c("mz", "rt"))
+    points(extracted_features[[i]]$rt, corrected_features[[i]]$rt - extracted_features[[i]]$rt,
       col = colors[i], cex = .2
     )
   }
