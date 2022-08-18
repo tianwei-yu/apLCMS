@@ -8,7 +8,9 @@
 #' This forms a sort of weighted tolerance.
 #' @param mz_tol_absolute float Absolute tolerance to use independent from the mz values.
 #' @return float Minimum tolerance values to use.
-compute_min_mz_tolerance <- function(mz, mz_tol_relative, mz_tol_absolute) {
+compute_min_mz_tolerance <- function(mz,
+                                     mz_tol_relative = 2e-5,
+                                     mz_tol_absolute = 0.01) {
     l <- length(mz)
     mz_midpoints <- ((mz[2:l] + mz[1:(l - 1)]) / 2)
     mz_ftr_relative_tolerances <- mz_tol_relative * mz_midpoints
@@ -138,15 +140,13 @@ compute_rt_tol_relative <- function(breaks,
 #' @param rt retention time of all peaks in all profiles in the study.
 #' @param sample_id label of all peaks in all profiles in the study.
 #' @param number_of_samples The number of spectra in this analysis.
-#' @param mz_tol_relative m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value.
 #'  This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param min_mz_tolerance float Minimum mz tolerance which will be used.
 #' @param rt_tol_relative the elution time tolerance. If NA, the function finds the tolerance level first. If a numerical value is given,
 #'  the function directly goes to the second step - grouping peaks based on the tolerance.
 #' @param aver.bin.size The average bin size to determine the number of equally spaced points in the kernel density estimation.
 #' @param min.bins the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.
 #' @param max.bins the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.
-#' @param mz_tol_absolute As the m/z tolerance in alignment is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide.
-#'  This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.
 #' @param max.num.segments the maximum number of segments.
 #' @param do.plot Indicates whether plot should be drawn.
 #' @return A matrix with six columns. Every row corresponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength,
@@ -156,23 +156,16 @@ compute_rt_tol_relative <- function(breaks,
 #' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
 find.tol.time <- function(features,
                           number_of_samples,
-                          mz_tol_relative = 2e-5,
+                          min_mz_tolerance,
                           rt_tol_relative = NA,
                           aver.bin.size = 200,
                           min.bins = 50,
                           max.bins = 100,
-                          mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
     features <- dplyr::arrange_at(features, "mz")
 
-    min_mz_tol <- compute_min_mz_tolerance(
-        features$mz,
-        mz_tol_relative,
-        mz_tol_absolute
-    )
-
-    mz_breaks <- compute_breaks_3(features$mz, min_mz_tol)
+    mz_breaks <- compute_breaks_3(features$mz, min_mz_tolerance)
     features$mz_group <- 0
 
     for (i in 2:length(mz_breaks)) {
@@ -207,7 +200,7 @@ find.tol.time <- function(features,
     }
 
     list(
-        features = features,
+        features = features |> dplyr::select(-mz_group),
         rt.tol = rt_tol_relative
     )
 }
