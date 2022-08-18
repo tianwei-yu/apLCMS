@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added tests for `feature.align.R` ([#40](https://github.com/RECETOX/recetox-aplcms/pull/40)), and `adjust.time.R` ([#39](https://github.com/RECETOX/recetox-aplcms/pull/40))
 - added CI to repository's GitHub Actions [#45](https://github.com/RECETOX/recetox-aplcms/pull/45),[#49](https://github.com/RECETOX/recetox-aplcms/pull/49)
 ### Changed
-- refactored `feature.align.R` [#63](https://github.com/RECETOX/recetox-aplcms/pull/63)[#88](https://github.com/RECETOX/recetox-aplcms/pull/88)
-- refactored `adjust.time.R` [#64](https://github.com/RECETOX/recetox-aplcms/pull/64)
+- refactored `feature.align.R` [#63](https://github.com/RECETOX/recetox-aplcms/pull/63)[#88](https://github.com/RECETOX/recetox-aplcms/pull/88)[#102](https://github.com/RECETOX/recetox-aplcms/pull/102)
+- refactored `adjust.time.R` [#64](https://github.com/RECETOX/recetox-aplcms/pull/64)[#102](https://github.com/RECETOX/recetox-aplcms/pull/102)
 - refactored `find.tol.time.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
 - refactored `find.turn.point.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
 ### Removed

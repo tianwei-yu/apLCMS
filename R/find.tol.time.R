@@ -153,10 +153,8 @@ compute_rt_tol_relative <- function(breaks,
 #'  spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered
 #'  by the elution time.
 #' @examples
-#' find.tol.time(mz, rt, sample_id, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
-find.tol.time <- function(mz,
-                          rt,
-                          sample_id,
+#' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
+find.tol.time <- function(features,
                           number_of_samples,
                           mz_tol_relative = 2e-5,
                           rt_tol_relative = NA,
@@ -166,7 +164,6 @@ find.tol.time <- function(mz,
                           mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
-    features <- tibble::tibble(mz = mz, rt = rt, sample_id = sample_id)
     features <- dplyr::arrange_at(features, "mz")
 
     min_mz_tol <- compute_min_mz_tolerance(
@@ -204,16 +201,13 @@ find.tol.time <- function(mz,
     all.breaks <- c(0, unique(c(mz_breaks, rt_breaks)), nrow(features))
     all.breaks <- all.breaks[order(all.breaks)]
 
-    features$clusters <- 0
+    features$cluster <- 0
     for (i in 2:length(all.breaks)) {
-        features$clusters[(all.breaks[i - 1] + 1):all.breaks[i]] <- i
+        features$cluster[(all.breaks[i - 1] + 1):all.breaks[i]] <- i
     }
 
     list(
-        mz = features$mz,
-        rt = features$rt,
-        sample_id = features$sample_id,
-        clusters = features$clusters,
+        features = features,
         rt.tol = rt_tol_relative
     )
 }

@@ -515,8 +515,7 @@ compute_rectangle <- function(data_table,
     # get mass values of valleys the closest to the peak
     mass <- compute_boundaries(mass_range$vlys, peak)
 
-    that <- features |>
-      dplyr::filter(mz > mass$lower & mz <= mass$upper)
+    that <- features |> dplyr::filter(mz > mass$lower & mz <= mass$upper)
 
     # get values in RT region of interest?
     if (nrow(that) > recover_min_count) {
