@@ -201,16 +201,13 @@ find.tol.time <- function(features,
     all.breaks <- c(0, unique(c(mz_breaks, rt_breaks)), nrow(features))
     all.breaks <- all.breaks[order(all.breaks)]
 
-    features$clusters <- 0
+    features$cluster <- 0
     for (i in 2:length(all.breaks)) {
-        features$clusters[(all.breaks[i - 1] + 1):all.breaks[i]] <- i
+        features$cluster[(all.breaks[i - 1] + 1):all.breaks[i]] <- i
     }
 
     list(
-        mz = features$mz,
-        rt = features$rt,
-        sample_id = features$sample_id,
-        clusters = features$clusters,
+        features = features,
         rt.tol = rt_tol_relative
     )
 }

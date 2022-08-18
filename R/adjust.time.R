@@ -5,9 +5,9 @@ NULL
 compute_comb <- function(candi, template, this.feature, j) {
   this.comb <- dplyr::bind_rows(
     dplyr::bind_cols(candi, label = rep(template, nrow(candi))),
-    dplyr::bind_cols(this.feature[, 1:2], label = rep(j, nrow(this.feature)))
+    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), label = rep(j, nrow(this.feature)))
   )
-  this.comb <- dplyr::arrange(this.comb, this.comb[, 1])
+  this.comb <- this.comb |> dplyr::arrange_at("mz")
   return(this.comb)
 }
 
@@ -40,8 +40,8 @@ compute_template_adjusted_rt <- function(this.comb, sel, j) {
 }
 
 compute_corrected_features <- function(this.feature, this.diff, avg_time) {
-  this.feature <- this.feature[order(this.feature[, 2], this.feature[, 1]), ]
-  this.corrected <- this.old <- this.feature[, 2]
+  this.feature <- this.feature[order(this.feature$rt, this.feature$mz), ]
+  this.corrected <- this.old <- this.feature$rt
   to.correct <- this.old[this.old >= min(this.diff) &
     this.old <= max(this.diff)]
 
@@ -57,32 +57,37 @@ compute_corrected_features <- function(this.feature, this.diff, avg_time) {
     mean(this.smooth$y[this.smooth$x == min(this.smooth$x)])
   this.corrected[this.old > max(this.diff)] <- this.corrected[this.old > max(this.diff)] +
     mean(this.smooth$y[this.smooth$x == max(this.smooth$x)])
-  this.feature[, 2] <- this.corrected
-  this.feature <- this.feature[order(this.feature[, 1], this.feature[, 2]), ]
+  this.feature$rt <- this.corrected
+  this.feature <- this.feature[order(this.feature$mz, this.feature$rt), ]
   return(this.feature)
 }
 
 fill_missing_values <- function(orig.feature, this.feature) {
-  missing_values <- which(is.na(this.feature[, 2]))
+  missing_values <- which(is.na(this.feature$rt))
   for (i in missing_values) {
-    this.d <- abs(orig.feature[i, 2] - orig.feature[, 2])
+    this.d <- abs(orig.feature$rt[i] - orig.feature$rt)
     this.d[missing_values] <- Inf
-    this.s <- which(this.d == min(this.d))[1]
-    this.feature[i, 2] <- orig.feature[i, 2] + this.feature[this.s, 2] -
-      orig.feature[this.s, 2]
+    this.s <- which.min(this.d)
+    this.feature$rt[i] <- orig.feature$rt[i] + this.feature$rt[this.s] -
+      orig.feature$rt[this.s]
   }
   return(this.feature)
 }
 
 add_sample_id_and_rt_cluster <- function(sample, all.ft, current_sample_id) {
-  sample <- sample[order(sample[, 1], sample[, 2]), ]
-  group_ids <- which(all.ft$sample_id == current_sample_id)
+  sample <- sample |> dplyr::arrange_at(c("mz", "rt"))
+  sample_grouped <- all.ft |> dplyr::filter(sample_id == current_sample_id) |> dplyr::arrange_at(c("mz", "rt"))
+  
+  if(!tibble::has_name(sample, "sample_id")) {
+    sample <- tibble::add_column(sample, sample_id = current_sample_id)
+  }
 
-    sample_grouped <- cbind(all.ft$mz[group_ids], all.ft$rt[group_ids], all.ft$clusters[group_ids])
-    sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]), ]
-    
-    features <- cbind(sample, sample_id = rep(current_sample_id, nrow(sample)), cluster = sample_grouped[, 3])
-    return(features)
+  if(tibble::has_name(sample, "cluster")) {
+    sample <- sample |> dplyr::select(-cluster)
+  }
+
+  features <- dplyr::bind_cols(sample, dplyr::select(sample_grouped, cluster))
+  return(features)
 }
 
 compute_clusters <- function(feature_tables,
@@ -119,7 +124,7 @@ compute_clusters <- function(feature_tables,
     )
   }
 
-  all.ft <- find.tol.time(
+  res <- find.tol.time(
     all,
     number_of_samples = number_of_samples,
     mz_tol_relative = mz_tol_relative,
@@ -127,7 +132,8 @@ compute_clusters <- function(feature_tables,
     mz_tol_absolute = mz_tol_absolute,
     do.plot = do.plot
   )
-  rt_tol_relative <- all.ft$rt.tol
+  all.ft <- res$features
+  rt_tol_relative <- res$rt.tol
 
   message("**** performing time correction ****")
   message(paste("m/z tolerance level: ", mz_tol_relative))
@@ -177,7 +183,7 @@ adjust.time <- function(extracted_features,
                         mz_tol_absolute = 0.01,
                         do.plot = TRUE,
                         rt_colname = "pos") {
-  number_of_samples <- nrow(summary(extracted_features))
+  number_of_samples <- length(extracted_features)
 
   if (number_of_samples <= 1) {
     message("Only one sample. No need to correct for time.")
@@ -203,10 +209,10 @@ adjust.time <- function(extracted_features,
   mz_tol_relative <- res$mz_tol_relative
 
   num.ftrs <- sapply(extracted_features, nrow)
-  template <- which(num.ftrs == max(num.ftrs))[1]
+  template <- which.max(num.ftrs)
   message(paste("the template is sample", template))
 
-  candi <- extracted_features[[template]][, 1:2]
+  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
 
   corrected_features <- foreach::foreach(j = 1:number_of_samples, .export = c(
     "compute_corrected_features",
@@ -232,7 +238,7 @@ adjust.time <- function(extracted_features,
       }
     }
 
-    if (sum(is.na(this.feature[, 2])) > 0) {
+    if (sum(is.na(this.feature$rt)) > 0) {
       this.feature <- fill_missing_values(
         extracted_features[[j]],
         this.feature

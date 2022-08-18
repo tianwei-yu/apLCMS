@@ -239,9 +239,12 @@ feature.align <- function(features,
         )
 
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
-        pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
+        times_start_idx <- 5 + number_of_samples
+        times_end_idx <- 2 * (4 + number_of_samples)
+        pk.times <- aligned_features[, times_start_idx:times_end_idx]
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, sum of areas per sample (the first to_attach call)
-        aligned_features <- aligned_features[, 1:(4 + number_of_samples)]
+        areas_end_idx <- 4 + number_of_samples
+        aligned_features <- aligned_features[, 1:areas_end_idx]
 
         # rename columns on both tables, samples are called "exp_i"
         colnames(aligned_features) <-
