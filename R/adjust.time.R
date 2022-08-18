@@ -5,9 +5,9 @@ NULL
 compute_comb <- function(candi, template, this.feature, j) {
   this.comb <- dplyr::bind_rows(
     dplyr::bind_cols(candi, label = rep(template, nrow(candi))),
-    dplyr::bind_cols(this.feature[, 1:2], label = rep(j, nrow(this.feature)))
+    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), label = rep(j, nrow(this.feature)))
   )
-  this.comb <- dplyr::arrange(this.comb, this.comb[, 1])
+  this.comb <- this.comb |> dplyr::arrange_at("mz")
   return(this.comb)
 }
 
@@ -40,8 +40,8 @@ compute_template_adjusted_rt <- function(this.comb, sel, j) {
 }
 
 compute_corrected_features <- function(this.feature, this.diff, avg_time) {
-  this.feature <- this.feature[order(this.feature[, 2], this.feature[, 1]), ]
-  this.corrected <- this.old <- this.feature[, 2]
+  this.feature <- this.feature[order(this.feature$rt, this.feature$mz), ]
+  this.corrected <- this.old <- this.feature$rt
   to.correct <- this.old[this.old >= min(this.diff) &
     this.old <= max(this.diff)]
 
@@ -51,38 +51,103 @@ compute_corrected_features <- function(this.feature, this.diff, avg_time) {
     x.points = to.correct
   )
 
-  this.corrected[this.old >= min(this.diff) & this.old <= max(this.diff)] <-
+  this.corrected[dplyr::between(this.old, min(this.diff), max(this.diff))] <-
     this.smooth$y + to.correct
   this.corrected[this.old < min(this.diff)] <- this.corrected[this.old < min(this.diff)] +
     mean(this.smooth$y[this.smooth$x == min(this.smooth$x)])
   this.corrected[this.old > max(this.diff)] <- this.corrected[this.old > max(this.diff)] +
     mean(this.smooth$y[this.smooth$x == max(this.smooth$x)])
-  this.feature[, 2] <- this.corrected
-  this.feature <- this.feature[order(this.feature[, 1], this.feature[, 2]), ]
+  this.feature$rt <- this.corrected
+  this.feature <- this.feature[order(this.feature$mz, this.feature$rt), ]
   return(this.feature)
 }
 
 fill_missing_values <- function(orig.feature, this.feature) {
-  missing_values <- which(is.na(this.feature[, 2]))
+  missing_values <- which(is.na(this.feature$rt))
   for (i in missing_values) {
-    this.d <- abs(orig.feature[i, 2] - orig.feature[, 2])
+    this.d <- abs(orig.feature$rt[i] - orig.feature$rt)
     this.d[missing_values] <- Inf
-    this.s <- which(this.d == min(this.d))[1]
-    this.feature[i, 2] <- orig.feature[i, 2] + this.feature[this.s, 2] -
-      orig.feature[this.s, 2]
+    this.s <- which.min(this.d)
+    this.feature$rt[i] <- orig.feature$rt[i] + this.feature$rt[this.s] -
+      orig.feature$rt[this.s]
   }
   return(this.feature)
 }
 
 add_sample_id_and_rt_cluster <- function(sample, all.ft, current_sample_id) {
-    sample <- sample[order(sample[, 1], sample[, 2]), ]
-    group_ids <- which(all.ft$sample_id == current_sample_id)
+  sample <- sample |> dplyr::arrange_at(c("mz", "rt"))
+  sample_grouped <- all.ft |> dplyr::filter(sample_id == current_sample_id) |> dplyr::arrange_at(c("mz", "rt"))
+  
+  if(!tibble::has_name(sample, "sample_id")) {
+    sample <- tibble::add_column(sample, sample_id = current_sample_id)
+  }
 
-    sample_grouped <- cbind(all.ft$mz[group_ids], all.ft$rt[group_ids], all.ft$grps[group_ids])
-    sample_grouped <- sample_grouped[order(sample_grouped[, 1], sample_grouped[, 2]), ]
-    
-    features <- cbind(sample, sample_id = rep(current_sample_id, nrow(sample)), cluster = sample_grouped[, 3])
-    return(features)
+  if(tibble::has_name(sample, "cluster")) {
+    sample <- sample |> dplyr::select(-cluster)
+  }
+
+  features <- dplyr::bind_cols(sample, dplyr::select(sample_grouped, cluster))
+  return(features)
+}
+
+compute_clusters <- function(feature_tables,
+                             mz_tol_relative,
+                             mz_tol_absolute,
+                             mz_max_diff,
+                             rt_tol_relative,
+                             do.plot = FALSE) {
+  number_of_samples <- length(feature_tables)
+  all <- concatenate_feature_tables(feature_tables, "rt")
+
+  if (is.na(mz_tol_relative)) {
+    mz_tol_relative <- find.tol(
+      all$mz,
+      mz_max_diff = mz_max_diff,
+      do.plot = do.plot
+    )
+    if (length(mz_tol_relative) == 0) {
+      mz_tol_relative <- 1e-5
+      warning("Automatic tolerance finding failed, 10 ppm was assigned.
+                        May need to manually assign alignment mz tolerance level.")
+    }
+  } else if (do.plot) {
+    draw_plot(
+      main = "m/z tolerance level given",
+      label = mz_tol_relative
+    )
+  }
+
+  if (!is.na(rt_tol_relative) && do.plot) {
+    draw_plot(
+      main = "retention time \n tolerance level given",
+      label = rt_tol_relative
+    )
+  }
+
+  res <- find.tol.time(
+    all,
+    number_of_samples = number_of_samples,
+    mz_tol_relative = mz_tol_relative,
+    rt_tol_relative = rt_tol_relative,
+    mz_tol_absolute = mz_tol_absolute,
+    do.plot = do.plot
+  )
+  all.ft <- res$features
+  rt_tol_relative <- res$rt.tol
+
+  message("**** performing time correction ****")
+  message(paste("m/z tolerance level: ", mz_tol_relative))
+  message(paste("time tolerance level:", rt_tol_relative))
+
+  for (i in 1:number_of_samples) {
+    features <- add_sample_id_and_rt_cluster(
+      feature_tables[[i]],
+      all.ft,
+      i
+    )
+    feature_tables[[i]] <- features
+  }
+  return(list(feature_tables = feature_tables, rt_tol_relative = rt_tol_relative, mz_tol_relative = mz_tol_relative))
 }
 
 #' Adjust retention time across spectra.
@@ -118,7 +183,7 @@ adjust.time <- function(extracted_features,
                         mz_tol_absolute = 0.01,
                         do.plot = TRUE,
                         rt_colname = "pos") {
-  number_of_samples <- nrow(summary(extracted_features))
+  number_of_samples <- length(extracted_features)
 
   if (number_of_samples <= 1) {
     message("Only one sample. No need to correct for time.")
@@ -131,62 +196,23 @@ adjust.time <- function(extracted_features,
 
   extracted_features <- lapply(extracted_features, function(x) tibble::as_tibble(x) |> dplyr::rename(rt = pos))
 
-  values <- concatenate_feature_tables(extracted_features, rt_colname)
-  all_mz <- values$mz
-  all_rt <- values$rt
-  all_sample_ids <- values$sample_id
-
-  if (is.na(mz_tol_relative)) {
-    mz_tol_relative <- find.tol(
-      all_mz,
-      mz_max_diff = mz_max_diff,
-      do.plot = do.plot
-    )
-  } else if (do.plot) {
-    draw_plot(
-      main = "m/z tolerance level given",
-      label = mz_tol_relative
-    )
-  }
-
-  if (!is.na(rt_tol_relative) && do.plot) {
-    draw_plot(
-      main = "retention time \n tolerance level given",
-      label = rt_tol_relative
-    )
-  }
-
-  all.ft <- find.tol.time(
-    all_mz,
-    all_rt,
-    all_sample_ids,
-    number_of_samples = number_of_samples,
-    mz_tol_relative = mz_tol_relative,
-    rt_tol_relative = rt_tol_relative,
-    mz_tol_absolute = mz_tol_absolute,
-    do.plot = do.plot
+  res <- compute_clusters(
+    extracted_features,
+    mz_tol_relative,
+    mz_tol_absolute,
+    mz_max_diff,
+    rt_tol_relative
   )
-  rt_tol_relative <- all.ft$rt.tol
 
-  message("**** performing time correction ****")
-  message(paste("m/z tolerance level: ", mz_tol_relative))
-  message(paste("time tolerance level:", rt_tol_relative))
+  extracted_features <- res$feature_tables
+  rt_tol_relative <- res$rt_tol_relative
+  mz_tol_relative <- res$mz_tol_relative
 
-  for (i in 1:number_of_samples) {
-    sample <- extracted_features[[i]]
-    features <- add_sample_id_and_rt_cluster(
-      sample,
-      all.ft,
-      i
-    )
-    extracted_features[[i]] <- features
-  }
-
-  num.ftrs <- sapply(extracted_features, nrow)#as.vector(table(all.ft$sample_id))
-  template <- which(num.ftrs == max(num.ftrs))[1]
+  num.ftrs <- sapply(extracted_features, nrow)
+  template <- which.max(num.ftrs)
   message(paste("the template is sample", template))
 
-  candi <- extracted_features[[template]][, 1:2]
+  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
 
   corrected_features <- foreach::foreach(j = 1:number_of_samples, .export = c(
     "compute_corrected_features",
@@ -212,7 +238,7 @@ adjust.time <- function(extracted_features,
       }
     }
 
-    if (sum(is.na(this.feature[, 2])) > 0) {
+    if (sum(is.na(this.feature$rt)) > 0) {
       this.feature <- fill_missing_values(
         extracted_features[[j]],
         this.feature
@@ -223,28 +249,12 @@ adjust.time <- function(extracted_features,
 
 
   if (do.plot) {
-    if (is.na(colors[1])) {
-      colors <- c(
-        "red", "blue", "dark blue", "orange", "green", "yellow",
-        "cyan", "pink", "violet", "bisque", "azure", "brown",
-        "chocolate", rep("grey", number_of_samples)
-      )
-    }
-
-    draw_plot(
-      x = range(extracted_features[[1]][, 2]),
-      y = c(-rt_tol_relative, rt_tol_relative),
-      xlab = "Original Retention time",
-      ylab = "Retention time deviation",
-      axes = TRUE
+    draw_rt_correction_plot(
+      colors,
+      extracted_features,
+      corrected_features,
+      rt_tol_relative
     )
-
-    for (i in 1:number_of_samples) {
-      extracted_features[[i]] <- extracted_features[[i]][order(extracted_features[[i]][, 1], extracted_features[[i]][, 2]), ]
-      points(extracted_features[[i]][, 2], corrected_features[[i]][, 2] - extracted_features[[i]][, 2],
-        col = colors[i], cex = .2
-      )
-    }
   }
 
   if (exists("corrected_features")) {

@@ -19,12 +19,19 @@ compute_min_mz_tolerance <- function(mz, mz_tol_relative, mz_tol_absolute) {
 #' @description
 #' Compute indices of mass differences greater than min_mz_tol.
 #' @param mz mz values of all peaks in all profiles in the study.
-#' @param min_mz_tol float Minimum tolerance value.
+#' @param tolerance tolerance value.
 #' @return breaks Integer indices of mass differences to use.
-compute_breaks_3 <- function(mz, min_mz_tol) {
-    l <- length(mz)
-    mass_differences <- diff(mz)
-    indices <- which(mass_differences > min_mz_tol)
+#' @export
+compute_breaks_3 <- function(values, tolerance = NA) {
+    l <- length(values)
+
+    if(!is.na(tolerance)) {
+        differences <- diff(values)
+        indices <- which(differences > tolerance)
+    } else {
+        indices <- which(values[2:l] != values[1:(l-1)])
+    }
+
     breaks <- c(0, indices, l)
     return(breaks)
 }
@@ -36,7 +43,7 @@ compute_breaks_3 <- function(mz, min_mz_tol) {
 #' @param max.num.segments the maximum number of segments.
 #' @param aver.bin.size The average bin size to determine the number of equally spaced points in the kernel density estimation.
 #' @param number_of_samples The number of spectra in this analysis.
-#' @param chr retention time of all peaks in all profiles in the study.
+#' @param rt retention time of all peaks in all profiles in the study.
 #' @param min.bins the minimum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too few observations are present.
 #' @param max.bins the maximum number of bins to use in the kernel density estimation. It overrides aver.bin.size when too many observations are present.
 #' @param do.plot Indicates whether plot should be drawn.
@@ -45,7 +52,7 @@ compute_rt_tol_relative <- function(breaks,
                                     max.num.segments,
                                     aver.bin.size,
                                     number_of_samples,
-                                    chr,
+                                    rt,
                                     min.bins,
                                     max.bins,
                                     do.plot = FALSE) {
@@ -67,7 +74,7 @@ compute_rt_tol_relative <- function(breaks,
     for (i in s) {
         subset_idx <- (breaks[i - 1] + 1):breaks[i] # create subset of indices
         if (length(subset_idx) <= 3 * number_of_samples) {
-            rt_distances <- as.vector(dist(chr[subset_idx]))
+            rt_distances <- as.vector(dist(rt[subset_idx]))
             if (length(rt_distances) > 100) {
                 rt_distances <- sample(rt_distances, 100)
             }
@@ -128,8 +135,8 @@ compute_rt_tol_relative <- function(breaks,
 #' This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
 #'
 #' @param mz mz values of all peaks in all profiles in the study.
-#' @param chr retention time of all peaks in all profiles in the study.
-#' @param lab label of all peaks in all profiles in the study.
+#' @param rt retention time of all peaks in all profiles in the study.
+#' @param sample_id label of all peaks in all profiles in the study.
 #' @param number_of_samples The number of spectra in this analysis.
 #' @param mz_tol_relative m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value.
 #'  This value, multiplied by the m/z value, becomes the cutoff level.
@@ -147,9 +154,7 @@ compute_rt_tol_relative <- function(breaks,
 #'  by the elution time.
 #' @examples
 #' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
-find.tol.time <- function(mz,
-                          rt,
-                          sample_id,
+find.tol.time <- function(features,
                           number_of_samples,
                           mz_tol_relative = 2e-5,
                           rt_tol_relative = NA,
@@ -159,7 +164,6 @@ find.tol.time <- function(mz,
                           mz_tol_absolute = 0.01,
                           max.num.segments = 10000,
                           do.plot = TRUE) {
-    features <- tibble::tibble(mz = mz, rt = rt, sample_id = sample_id)
     features <- dplyr::arrange_at(features, "mz")
 
     min_mz_tol <- compute_min_mz_tolerance(
@@ -197,16 +201,13 @@ find.tol.time <- function(mz,
     all.breaks <- c(0, unique(c(mz_breaks, rt_breaks)), nrow(features))
     all.breaks <- all.breaks[order(all.breaks)]
 
-    features$grps <- 0
+    features$cluster <- 0
     for (i in 2:length(all.breaks)) {
-        features$grps[(all.breaks[i - 1] + 1):all.breaks[i]] <- i
+        features$cluster[(all.breaks[i - 1] + 1):all.breaks[i]] <- i
     }
 
     list(
-        mz = features$mz,
-        rt = features$rt,
-        sample_id = features$sample_id,
-        grps = features$grps,
+        features = features,
         rt.tol = rt_tol_relative
     )
 }

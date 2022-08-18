@@ -2,15 +2,15 @@
 NULL
 #> NULL
 
-to_attach <- function(pick, number_of_samples, use = "sum") {
+to_attach <- function(peak, number_of_samples, use = "sum") {
     strengths <- rep(0, number_of_samples)
-    if (is.null(nrow(pick))) {
-        strengths[pick[6]] <- pick[5]
-        return(c(pick[1], pick[2], pick[1], pick[1], strengths))
+    if (is.null(nrow(peak))) {
+        strengths[peak[6]] <- peak[5]
+        return(c(peak[1], peak[2], peak[1], peak[1], strengths))
     } else {
         for (i in seq_along(strengths)) {
             # select all areas/RTs from the same sample
-            values <- pick[pick[, 6] == i, 5]
+            values <- peak[peak[, 6] == i, 5]
             if (use == "sum") {
                 strengths[i] <- sum(values)
             }
@@ -21,8 +21,8 @@ to_attach <- function(pick, number_of_samples, use = "sum") {
         }
         # average of m/z, average of rt, min of m/z, max of m/z, sum/median of areas/RTs
         return(c(
-            mean(pick[, 1]), mean(pick[, 2]), min(pick[, 1]),
-            max(pick[, 1]), strengths
+            mean(peak[, 1]), mean(peak[, 2]), min(peak[, 1]),
+            max(peak[, 1]), strengths
         ))
     }
 }
@@ -32,8 +32,12 @@ create_output <- function(sample_grouped, number_of_samples, deviation) {
     return(c(
         to_attach(sample_grouped, number_of_samples, use = "sum"),
         to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
-        deviation
+        deviation #mz standard deviation
     ))
+
+    # variable_metadata_row <- (feature_id, mean_mz, min_mz, max_mz, mean_rt, min_rt, max_rt, num_peaks, sample_presence)
+    # intensity_row <- (feature_id, sample_0_intensity, sample_1_intensity, ...)
+    # rt_row <- (feature_id, sample_0_rt, sample_1_rt, ...)
 }
 
 
@@ -81,7 +85,8 @@ select_rt <- function(sample, rt_tol_relative, min_occurrence, number_of_samples
 
 select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples) {
     # turns for m/z
-    turns <- find_optima(sample[, 1], bandwidth = mz_tol_relative * median(sample[, 1]))
+    mz <- sample[, 1]
+    turns <- find_optima(mz, bandwidth = mz_tol_relative * median(mz))
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 1, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
@@ -91,13 +96,9 @@ select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, 
 }
 
 
-create_rows <- function(i,
-                        grps,
+create_rows <- function(features,
+                        i,
                         sel.labels,
-                        mz_values,
-                        rt,
-                        area,
-                        sample_id,
                         mz_tol_relative,
                         rt_tol_relative,
                         min_occurrence,
@@ -105,13 +106,20 @@ create_rows <- function(i,
     if (i %% 100 == 0) {
         gc()
     } # call Garbage Collection for performance improvement?
+
     # select a group
-    group_ids <- which(grps == sel.labels[i])
+    group_ids <- which(features$cluster == sel.labels[i])
     if (length(group_ids) > 1) {
         # select data from the group
+        # dplyr::slice(group_ids)
+        
         sample <- cbind(
-            mz_values[group_ids], rt[group_ids], rt[group_ids],
-            rt[group_ids], area[group_ids], sample_id[group_ids]
+            features$mz[group_ids],
+            features$rt[group_ids],
+            features$rt[group_ids], # pseudo mz.min
+            features$rt[group_ids], # pseudo mz.max
+            features$area[group_ids],
+            features$sample_id[group_ids]
         )
         # continue if data is from at least 'min_occurrence' samples
         if (validate_contents(sample, min_occurrence)) {
@@ -119,12 +127,42 @@ create_rows <- function(i,
         }
     } else if (min_occurrence == 1) {
         sample_grouped <- c(
-            mz_values[group_ids], rt[group_ids], rt[group_ids],
-            rt[group_ids], area[group_ids], sample_id[group_ids]
+            features$mz[group_ids], features$rt[group_ids], features$rt[group_ids],
+            features$rt[group_ids], features$area[group_ids], features$sample_id[group_ids]
         )
         return(create_output(sample_grouped, number_of_samples, NA))
     }
     return(NULL)
+}
+
+create_aligned_feature_table <- function(all_table,
+                                         min_occurrence,
+                                         number_of_samples,
+                                         rt_tol_relative,
+                                         mz_tol_relative) {
+    aligned_features <- NULL
+
+    # table with number of values per group
+    groups_cardinality <- table(all_table$cluster)
+    # count those with minimal occurrence
+    # (times 3 ? shouldn't be number of samples) !!!
+    sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
+
+    # retention time alignment
+    for (i in seq_along(sel.labels)) {
+        rows <- create_rows(
+            all_table,
+            i,
+            sel.labels,
+            mz_tol_relative,
+            rt_tol_relative,
+            min_occurrence,
+            number_of_samples
+        )
+
+        aligned_features <- rbind(aligned_features, rows)
+    }
+    return(aligned_features)
 }
 
 #' Align peaks from spectra into a feature table.
@@ -150,7 +188,7 @@ create_rows <- function(i,
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
 #'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
 #'   \item mz.tol - The m/z tolerance used in the alignment.
-#'   \item chr.tol - The elution time tolerance in the alignment.
+#'   \item rt.tol - The elution time tolerance in the alignment.
 #' }
 #' @export
 #' @examples
@@ -170,8 +208,8 @@ feature.align <- function(features,
     }
 
     features <- lapply(features, function(x) {
-        x <- tibble::as_tibble(x) 
-        if("pos" %in% colnames(x)) {
+        x <- tibble::as_tibble(x)
+        if ("pos" %in% colnames(x)) {
             x <- x |> dplyr::rename(rt = pos)
         }
         return(x)
@@ -179,117 +217,34 @@ feature.align <- function(features,
 
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
-        values <- concatenate_feature_tables(features, rt_colname) |> dplyr::arrange_at(c("mz", "rt"))
-
-        mz_values <- values$mz
-        rt <- values$rt
-        sample_id <- values$sample_id
-
-        # find relative m/z tolerance level
-        if (is.na(mz_tol_relative)) {
-            mz_tol_relative <- find.tol(
-                mz_values,
-                mz_max_diff = mz_max_diff,
-                do.plot = do.plot
-            )
-            if (length(mz_tol_relative) == 0) {
-                mz_tol_relative <- 1e-5
-                warning("Automatic tolerance finding failed, 10 ppm was assigned.
-                        May need to manually assign alignment mz tolerance level.")
-            }
-        } else if (do.plot) {
-            draw_plot(
-                main = "alignment m/z tolerance level given",
-                label = mz_tol_relative, cex = 1.2
-            )
-        }
-
-        if (!is.na(rt_tol_relative) && do.plot) {
-            draw_plot(
-                main = "retention time \n tolerance level given",
-                label = rt_tol_relative, cex = 1.2
-            )
-        }
-
-        # find relative retention time tolerance level
-        # also does some preprocessing grouping steps
-        all_features <- find.tol.time(
-            mz_values,
-            rt,
-            sample_id,
-            number_of_samples = number_of_samples,
-            mz_tol_relative = mz_tol_relative,
-            rt_tol_relative = rt_tol_relative,
-            mz_tol_absolute = mz_tol_absolute,
-            do.plot = do.plot
+        res <- compute_clusters(
+            features,
+            mz_tol_relative,
+            mz_tol_absolute,
+            mz_max_diff,
+            rt_tol_relative
         )
-        rt_tol_relative <- all_features$rt.tol
 
-        message("**** performing feature alignment ****")
-        message(paste("m/z tolerance level: ", mz_tol_relative))
-        message(paste("time tolerance level:", rt_tol_relative))
+        all_table <- dplyr::bind_rows(res$feature_tables)
+        rt_tol_relative <- res$rt_tol_relative
+        mz_tol_relative <- res$mz_tol_relative
 
         # create zero vectors of length number_of_samples + 4 ?
-        aligned_features <- pk.times <- NULL
-        mz_sd <- 0
-
-        labels <- unique(all_features$grps)
-        area <- grps <- mz_values <- NULL
-
-        # grouping the features based on their m/z values (assuming the tolerance level)
-        sizes <- c(0, cumsum(sapply(features, nrow)))
-        all_table <- NULL
-        for (i in 1:number_of_samples) {
-            sample <- add_sample_id_and_rt_cluster(
-              features[[i]],
-              all_features,
-              i
-            )
-            all_table <- rbind(all_table, sample)
-        }
-
-        mz_values <- all_table$mz
-        rt <- all_table$rt
-        area <- all_table$area
-        grps <- all_table$cluster
-        sample_id <- all_table$sample_id
-
-        browser()
-
-        # table with number of values per group
-        groups_cardinality <- table(grps)
-        # count those with minimal occurrence
-        # (times 3 ? shouldn't be number of samples) !!!
-        curr.row <- sum(groups_cardinality >= min_occurrence) * 3
-        mz_sd <- rep(0, curr.row)
-
-        sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
-
-        # retention time alignment
-        for(i in seq_along(sel.labels)) {
-            rows <- create_rows(
-                i,
-                grps,
-                sel.labels,
-                mz_values,
-                rt,
-                area,
-                sample_id,
-                mz_tol_relative,
-                rt_tol_relative,
-                min_occurrence,
-                number_of_samples
-            )
-
-            aligned_features <- rbind(aligned_features, rows)
-        }
-        #aligned_features <- aligned_features[-1, ]
+        aligned_features <- create_aligned_feature_table(
+            all_table,
+            min_occurrence,
+            number_of_samples,
+            rt_tol_relative,
+            mz_tol_relative
+        )
 
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
-        pk.times <- aligned_features[, (5 + number_of_samples):(2 * (4 + number_of_samples))]
-        mz_sd <- aligned_features[, ncol(aligned_features)]
+        times_start_idx <- 5 + number_of_samples
+        times_end_idx <- 2 * (4 + number_of_samples)
+        pk.times <- aligned_features[, times_start_idx:times_end_idx]
         # select columns: average of m/z, average of rt, min of m/z, max of m/z, sum of areas per sample (the first to_attach call)
-        aligned_features <- aligned_features[, 1:(4 + number_of_samples)]
+        areas_end_idx <- 4 + number_of_samples
+        aligned_features <- aligned_features[, 1:areas_end_idx]
 
         # rename columns on both tables, samples are called "exp_i"
         colnames(aligned_features) <-
@@ -297,19 +252,15 @@ feature.align <- function(features,
 
         # return both tables and both computed tolerances
         rec <- new("list")
-        rec$aligned.ftrs <- aligned_features
-        rec$pk.times <- pk.times
-        rec$mz.tol <- mz_tol_relative
-        rec$chr.tol <- rt_tol_relative
+        rec$aligned_features <- aligned_features
+        rec$peak_times <- pk.times
+        rec$mz_tol_relative <- mz_tol_relative
+        rec$rt_tol_relative <- rt_tol_relative
 
         if (do.plot) {
-            hist(mz_sd,
-                xlab = "m/z SD", ylab = "Frequency",
-                main = "m/z SD distribution"
-            )
-            hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE),
-                xlab = "Retention time SD", ylab = "Frequency",
-                main = "Retention time SD distribution"
+            plot_rt_histograms(
+                pk.times,
+                aligned_features[, ncol(aligned_features)]
             )
         }
 

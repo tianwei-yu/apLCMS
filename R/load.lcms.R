@@ -60,7 +60,5 @@ load.lcms <- function(filename) {
   times <- b[!is.na(b)]
   mzR::close(mz_conn)
 
-  #browser()
-
   return(list(masses = masses, labels = labels, intensi = intensi, times = times))
 }

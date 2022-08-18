@@ -15,7 +15,7 @@ tolerance_plot <- function(x, y, exp_y, selected, main) {
 }
 
 #' @export
-draw_chr_normal_peaks <- function(x, truth) {
+draw_rt_normal_peaks <- function(x, truth) {
   true.y1 <- dnorm(x[x < truth[1]], mean = truth[1], sd = truth[2]) * truth[2] * truth[4]
   true.y2 <- dnorm(x[x >= truth[1]], mean = truth[1], sd = truth[3]) * truth[3] * truth[4]
   lines(x, c(true.y1, true.y2), col = "green")
@@ -93,15 +93,15 @@ plot_peak_summary <- function(feature_groups, processed_features) {
 }
 
 #' @export
-plot_chr_profile <- function(chr_profile, bw, fit, m) {
-  plot(chr_profile[, "base_curve"], chr_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
+plot_rt_profile <- function(rt_profile, bw, fit, m) {
+  plot(rt_profile[, "base_curve"], rt_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
   sum.fit <- apply(fit, 1, sum)
-  lines(chr_profile[, "base_curve"], sum.fit)
+  lines(rt_profile[, "base_curve"], sum.fit)
   abline(v = m)
   cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
   for (i in 1:length(m))
   {
-    lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
+    lines(rt_profile[, "base_curve"], fit[, i], col = cols[i])
   }
 }
 
@@ -114,4 +114,47 @@ plot_normix_bic <- function(x, y, bw, aaa) {
   {
     lines(x, dnorm(x, mean = aaa[i, 1], sd = aaa[i, 2]) * aaa[i, 3], col = cols[i])
   }
+}
+
+#' @export
+draw_rt_correction_plot <- function(colors,
+                                    extracted_features,
+                                    corrected_features,
+                                    rt_tol_relative) {
+  number_of_samples <- length(extracted_features)
+  if (is.na(colors[1])) {
+    colors <- c(
+      "red", "blue", "dark blue", "orange", "green", "yellow",
+      "cyan", "pink", "violet", "bisque", "azure", "brown",
+      "chocolate", rep("grey", number_of_samples)
+    )
+  }
+
+  draw_plot(
+    x = range(extracted_features[[1]]$rt),
+    y = c(-rt_tol_relative, rt_tol_relative),
+    xlab = "Original Retention time",
+    ylab = "Retention time deviation",
+    axes = TRUE
+  )
+
+  for (i in 1:number_of_samples) {
+    extracted_features[[i]] <- extracted_features[[i]] |> dplyr::arrange_at(c("mz", "rt"))
+    points(extracted_features[[i]]$rt, corrected_features[[i]]$rt - extracted_features[[i]]$rt,
+      col = colors[i], cex = .2
+    )
+  }
+}
+
+#' @export
+plot_rt_histograms <- function(pk.times,
+                               mz_sd) {
+    hist(mz_sd,
+        xlab = "m/z SD", ylab = "Frequency",
+        main = "m/z SD distribution"
+    )
+    hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE),
+        xlab = "Retention time SD", ylab = "Frequency",
+        main = "Retention time SD distribution"
+    )
 }

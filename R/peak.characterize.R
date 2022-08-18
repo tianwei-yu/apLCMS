@@ -5,12 +5,12 @@
 #' information found in the current dataset.
 #' @param existing.row The existing row in the known feature table.
 #' @param ftrs.row The row of the matched feature in the new aligned feature table.
-#' @param chr.row The row of the matched feature in the new retention time table of aligned features.
+#' @param rt.row The row of the matched feature in the new retention time table of aligned features.
 #' @return A vector, the updated row for the known feature table.
 #' @examples
-#' peak.characterize(existing.row = NA, ftrs.row, chr.row)
+#' peak.characterize(existing.row = NA, ftrs.row, rt.row)
 peak.characterize <-
-function(existing.row=NA, ftrs.row, chr.row)
+function(existing.row=NA, ftrs.row, rt.row)
 {
     merge.new<-function(mean0, sd0, min0, max0, n, x)
     {
@@ -43,14 +43,14 @@ function(existing.row=NA, ftrs.row, chr.row)
     
     n<-round(as.numeric(existing.row[7])*as.numeric(existing.row[8])) #times found in previous experiments
     if(is.na(n)) n<-0
-    m<-sum(!is.na(chr.row[5:length(chr.row)])) #times found in current experiment
+    m<-sum(!is.na(rt.row[5:length(rt.row)])) #times found in current experiment
     
     existing.row[7]<-sum(as.numeric(existing.row[7]), length(ftrs.row)-4, na.rm=T)
     existing.row[8]<-(n+m)/as.numeric(existing.row[7])
     existing.row[9]<-min(as.numeric(existing.row[6]), as.numeric(existing.row[9]), ftrs.row[3],na.rm=T)
     existing.row[10]<-max(as.numeric(existing.row[6]), as.numeric(existing.row[10]), ftrs.row[4],na.rm=T)
     
-    this<-merge.new(as.numeric(existing.row[11]),as.numeric(existing.row[12]),as.numeric(existing.row[13]),as.numeric(existing.row[14]), n, chr.row[5:length(chr.row)])
+    this<-merge.new(as.numeric(existing.row[11]),as.numeric(existing.row[12]),as.numeric(existing.row[13]),as.numeric(existing.row[14]), n, rt.row[5:length(rt.row)])
     existing.row[11:14]<-this
     
     this<-merge.new(as.numeric(existing.row[15]),as.numeric(existing.row[16]),as.numeric(existing.row[17]),as.numeric(existing.row[18]), n, ftrs.row[5:length(ftrs.row)])
