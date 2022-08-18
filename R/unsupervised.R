@@ -55,13 +55,13 @@ sort_samples_by_acquisition_number <- function (filenames) {
 
 align_features <- function(sample_names, ...) {
   aligned <- feature.align(...)
-  feature_names <- seq_len(nrow(aligned$pk.times))
+  feature_names <- seq_len(nrow(aligned$peak_times))
 
   list(
-    mz_tolerance = as.numeric(aligned$mz.tol),
-    rt_tolerance = as.numeric(aligned$chr.tol),
-    rt_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$pk.times),
-    int_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$aligned.ftrs)
+    mz_tolerance = as.numeric(aligned$mz_tol_relative),
+    rt_tolerance = as.numeric(aligned$rt_tol_relative),
+    rt_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$peak_times),
+    int_crosstab = as_feature_crosstab(feature_names, sample_names, aligned$aligned_features)
   )
 }
 
@@ -95,9 +95,9 @@ recover_weaker_signals <- function(
       aligned.ftrs = aligned_int_crosstab,
       orig.tol = original_mz_tolerance,
       align.mz.tol = aligned_mz_tolerance,
-      align.chr.tol = aligned_rt_tolerance,
+      align.rt.tol = aligned_rt_tolerance,
       mz.range = mz_range,
-      chr.range = rt_range,
+      rt.range = rt_range,
       use.observed.range = use_observed_range,
       bandwidth = 0.5,
       min.bw = min_bandwidth,
@@ -156,14 +156,14 @@ recover_weaker_signals <- function(
 #' @param align_mz_tol The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
 #'  for the tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, 
 #'  multiplied by the m/z value, becomes the cutoff level.
-#' @param align_chr_tol The retention time tolerance level for peak alignment. The default is NA, which allows the program 
+#' @param align_rt_tol The retention time tolerance level for peak alignment. The default is NA, which allows the program 
 #'  to search for the tolerance level based on the data.
 #' @param max_align_mz_diff As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
 #'  m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
 #'  in higher m/z range.
 #' @param recover_mz_range The m/z around the feature m/z to search for observations. The default value is NA, in which 
 #'  case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param recover_chr_range The retention time around the feature retention time to search for observations. The default 
+#' @param recover_rt_range The retention time around the feature retention time to search for observations. The default 
 #'  value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
 #' @param use_observed_range If the value is TRUE, the actual range of the observed locations of the feature in all 
 #'  the spectra will be used.
@@ -191,10 +191,10 @@ unsupervised <- function(
   component_eliminate = 0.01,
   moment_power = 1,
   align_mz_tol = NA,
-  align_chr_tol = NA,
+  align_rt_tol = NA,
   max_align_mz_diff = 0.01,
   recover_mz_range = NA,
-  recover_chr_range = NA,
+  recover_rt_range = NA,
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
@@ -236,7 +236,7 @@ unsupervised <- function(
   corrected <- adjust.time(
     extracted_features = extracted,
     mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_chr_tol,
+    rt_tol_relative = align_rt_tol,
     mz_max_diff = 10 * mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     do.plot = FALSE
@@ -248,7 +248,7 @@ unsupervised <- function(
     features = corrected,
     min_occurrence = min_exp,
     mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_chr_tol,
+    rt_tol_relative = align_rt_tol,
     mz_max_diff = 10 * mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     do.plot = FALSE
@@ -266,7 +266,7 @@ unsupervised <- function(
     aligned_mz_tolerance = aligned$mz_tolerance,
     aligned_rt_tolerance = aligned$rt_tolerance,
     mz_range = recover_mz_range,
-    rt_range = recover_chr_range,
+    rt_range = recover_rt_range,
     use_observed_range = use_observed_range,
     min_bandwidth = min_bandwidth,
     max_bandwidth = max_bandwidth,

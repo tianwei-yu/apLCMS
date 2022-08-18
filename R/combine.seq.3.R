@@ -14,7 +14,7 @@
 #' combine.seq.3(table)
 combine.seq.3 <- function(features) {
     l <- nrow(features)
-    breaks <- c(0, which(features$labels[1:(l - 1)] != features$labels[2:l]), l)
+    breaks <- compute_breaks_3(features$labels)
     new_table <- tibble::tibble(
         mz = rep(0, length(breaks) - 1),
         labels = unique(features$labels),

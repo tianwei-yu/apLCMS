@@ -188,7 +188,7 @@ create_aligned_feature_table <- function(all_table,
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
 #'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
 #'   \item mz.tol - The m/z tolerance used in the alignment.
-#'   \item chr.tol - The elution time tolerance in the alignment.
+#'   \item rt.tol - The elution time tolerance in the alignment.
 #' }
 #' @export
 #' @examples
@@ -249,10 +249,10 @@ feature.align <- function(features,
 
         # return both tables and both computed tolerances
         rec <- new("list")
-        rec$aligned.ftrs <- aligned_features
-        rec$pk.times <- pk.times
-        rec$mz.tol <- mz_tol_relative
-        rec$chr.tol <- rt_tol_relative
+        rec$aligned_features <- aligned_features
+        rec$peak_times <- pk.times
+        rec$mz_tol_relative <- mz_tol_relative
+        rec$rt_tol_relative <- rt_tol_relative
 
         if (do.plot) {
             plot_rt_histograms(

@@ -15,7 +15,7 @@ tolerance_plot <- function(x, y, exp_y, selected, main) {
 }
 
 #' @export
-draw_chr_normal_peaks <- function(x, truth) {
+draw_rt_normal_peaks <- function(x, truth) {
   true.y1 <- dnorm(x[x < truth[1]], mean = truth[1], sd = truth[2]) * truth[2] * truth[4]
   true.y2 <- dnorm(x[x >= truth[1]], mean = truth[1], sd = truth[3]) * truth[3] * truth[4]
   lines(x, c(true.y1, true.y2), col = "green")
@@ -93,15 +93,15 @@ plot_peak_summary <- function(feature_groups, processed_features) {
 }
 
 #' @export
-plot_chr_profile <- function(chr_profile, bw, fit, m) {
-  plot(chr_profile[, "base_curve"], chr_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
+plot_rt_profile <- function(rt_profile, bw, fit, m) {
+  plot(rt_profile[, "base_curve"], rt_profile[, "intensity"], cex = .1, main = paste("bw=", bw))
   sum.fit <- apply(fit, 1, sum)
-  lines(chr_profile[, "base_curve"], sum.fit)
+  lines(rt_profile[, "base_curve"], sum.fit)
   abline(v = m)
   cols <- c("red", "green", "blue", "cyan", "brown", "black", rep("grey", 100))
   for (i in 1:length(m))
   {
-    lines(chr_profile[, "base_curve"], fit[, i], col = cols[i])
+    lines(rt_profile[, "base_curve"], fit[, i], col = cols[i])
   }
 }
 

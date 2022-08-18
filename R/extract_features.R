@@ -72,6 +72,7 @@ extract_features <- function(
     'compute_mass_values',
     'compute_densities',
     'compute_breaks',
+    'compute_breaks_3',
     'compute_boundaries',
     'increment_counter',
     'rm.ridge',

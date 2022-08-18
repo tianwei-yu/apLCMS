@@ -6,7 +6,7 @@
 #' @param unacceptable A distance larger than which cannot be accepted as pairs.
 #' @return A matrix the same dimension as the input matrix, with matched position taking value 1, and all other positions taking value 0.
 #' @examples
-#' find.match(time.matched, unacceptable=aligned$chr.tol/2)
+#' find.match(time.matched, unacceptable=aligned$rt.tol/2)
 find.match <-
 function(a, unacceptable=4)
 {
