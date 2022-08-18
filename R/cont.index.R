@@ -21,11 +21,9 @@ function(newprof, min.pres=0.6, min.run=5)
 {
     collapse<-function(a)
     {
-        a<-a[order(a[,2]),]
-        l<-nrow(a)
-        a.breaks<-which(a[2:l,2] != a[1:(l-1),2])
-        a.breaks<-c(0,a.breaks,l)
-        
+        a <- a[order(a[, 2]), ]
+        a.breaks <- compute_breaks_3(a[, 2])
+          
         newa<-c(0,0,0,0)
         for(i in 2:length(a.breaks))
         {
@@ -63,7 +61,7 @@ function(newprof, min.pres=0.6, min.run=5)
     newprof<-newprof[newprof[,4] %in% uniq.grp,]
     newprof<-newprof[order(newprof[,4], newprof[,1]),]
     r.newprof<-nrow(newprof)
-    breaks<-c(0, which(newprof[1:(r.newprof-1),4] != newprof[2:r.newprof,4]), r.newprof)
+    breaks <- compute_breaks_3(newprof[, 4])
     
     new.rec<-newprof*0
     rec.pointer<-1
