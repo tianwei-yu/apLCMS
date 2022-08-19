@@ -9,12 +9,8 @@ patrick::with_parameters_test_that(
 
     testdata <- file.path("..", "testdata")
 
-    filenames_extract <- lapply(files_extract, function(x) {
+    filenames <- lapply(filename, function(x) {
       file.path(testdata, "input", paste0(x, ".mzML"))
-    })
-
-    filenames_unsupervised <- lapply(files_unsupervised, function(x) {
-      file.path(testdata, paste0(x, ".mzml"))
     })
 
     # CRAN limits the number of cores available to packages to 2
@@ -35,12 +31,9 @@ patrick::with_parameters_test_that(
     }
 
     res <- microbenchmark::microbenchmark(
-      unsupervised = {
-          result <- unsupervised(unlist(filenames_unsupervised), cluster = cluster)
-      },
       extract_feature = {
           actual <- extract_features(
-            filenames_extract,
+            filenames,
             cluster = cluster,
             min_pres = min_pres,
             min_run = min_run,
@@ -62,13 +55,10 @@ patrick::with_parameters_test_that(
       times = 10L
     )
 
-    expected <- arrow::read_parquet('../testdata/unsupervised_recovered_feature_sample_table.parquet')
-    expect_equal(result$recovered_feature_sample_table, expected)
-
-    expected_extract_filenames <- lapply(files_extract, function(x) {
+    expected_filenames <- lapply(filename, function(x) {
       file.path(testdata, "extracted", paste0(x, ".parquet"))
     })
-    expected <- lapply(expected_extract_filenames, arrow::read_parquet)
+    expected <- lapply(expected_filenames, arrow::read_parquet)
     expected <- lapply(expected, as.data.frame)
     actual <- unique(actual)
     expected <- unique(expected)
@@ -79,11 +69,11 @@ patrick::with_parameters_test_that(
     expected <- lapply(expected, function(x) {
       as.data.frame(x) |> dplyr::arrange_at(keys)
     })
-    for (i in seq_along(files_extract)) {
+    for (i in seq_along(filename)) {
       actual_i <- actual[[i]]
       expected_i <- expected[[i]]
       report <- dataCompareR::rCompare(actual_i, expected_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = files_extract[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      dataCompareR::saveReport(report, reportName = filename[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
       expect_true(nrow(report$rowMatching$inboth) >= 0.9 * nrow(expected_i))
       incommon <- as.numeric(rownames(report$rowMatching$inboth))
       subset_actual <- actual_i %>% dplyr::slice(incommon)
@@ -97,8 +87,7 @@ patrick::with_parameters_test_that(
   },
   patrick::cases(
     RCX_shortened = list(
-      files_extract = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
-      files_unsupervised = c("mbr_test0", "mbr_test1", "mbr_test2"),
+      filename = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
       tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
