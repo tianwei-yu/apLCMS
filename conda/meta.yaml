@@ -38,6 +38,7 @@ requirements:
     - r-dplyr
     - r-tidyr
     - r-stringr
+    - r-microbenchmark
 
   run:
     - r-base >=3.5
@@ -62,6 +63,7 @@ requirements:
     - r-tidyr
     - r-stringr
     - r-tibble
+    - r-microbenchmark
 
 test:
   commands:
