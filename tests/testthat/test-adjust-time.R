@@ -34,7 +34,7 @@ patrick::with_parameters_test_that(
       rt_tol_relative = rt_tol_relative,
       mz_max_diff = 10 * mz_tol,
       mz_tol_absolute = mz_tol_absolute,
-      do.plot = FALSE
+      do.plot = do.plot 
     )
     
     expected_filenames <- lapply(files, function(x) {
@@ -55,7 +55,8 @@ patrick::with_parameters_test_that(
       mz_tol_relative = NA,
       rt_tol_relative = NA,
       mz_tol = 1e-05,
-      mz_tol_absolute = 0.01
+      mz_tol_absolute = 0.01,
+      do.plot = FALSE
     )
   )
 )

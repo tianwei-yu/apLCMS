@@ -12,7 +12,7 @@ patrick::with_parameters_test_that(
       min.run = min_run,
       tol = mz_tol,
       intensity.weighted = intensity_weighted,
-      cache = FALSE
+      cache = cache
     )
 
     expected_path <- file.path(testdata, "filtered", expected_filename)
@@ -29,6 +29,7 @@ patrick::with_parameters_test_that(
       min_pres = 0.5,
       min_run = 12,
       intensity_weighted = FALSE,
+      cache = FALSE,
       ci_skip = FALSE
     ),
     RCX_06_shortened_v2 = list(
@@ -38,6 +39,7 @@ patrick::with_parameters_test_that(
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE,
+      cache = FALSE,
       ci_skip = FALSE
     ),
     RCX_07_shortened_v2 = list(
@@ -47,6 +49,7 @@ patrick::with_parameters_test_that(
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE,
+      cache = FALSE,
       ci_skip = TRUE
     ),
     RCX_08_shortened_v2 = list(
@@ -56,6 +59,7 @@ patrick::with_parameters_test_that(
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE,
+      cache = FALSE,
       ci_skip = TRUE
     )
   )

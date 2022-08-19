@@ -6,11 +6,11 @@ patrick::with_parameters_test_that(
     extracted_features <- readRDS(input_path)
 
     actual <- prof.to.features(
-      extracted_features,
+      profile = extracted_features,
       sd.cut = sd_cut,
       sigma.ratio.lim = sigma_ratio_lim,
       shape.model = shape_model,
-      do.plot = FALSE
+      do.plot = do.plot
     )
 
     expected_path <- file.path(testdata, "features", expected_filename)
@@ -24,35 +24,40 @@ patrick::with_parameters_test_that(
       expected_filename = "mbr_test0_features.Rds",
       sd_cut = c(0.1, 100),
       sigma_ratio_lim = c(0.1, 10),
-      shape_model = "bi-Gaussian"
+      shape_model = "bi-Gaussian",
+      do.plot = FALSE
     ),
-    RCX_01_shortened_gaussian = list(
+    RCX_06_shortened_gaussian = list(
       filename = c("RCX_06_shortened_cdf.Rds"),
       expected_filename = "RCX_06_shortened_gaussian_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      shape_model = "Gaussian"
+      shape_model = "Gaussian",
+      do.plot = FALSE
     ),
-    RCX_01_shortened_v2 = list(
+    RCX_06_shortened_v2 = list(
       filename = c("RCX_06_shortened_cdf.Rds"),
       expected_filename = "RCX_06_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      shape_model = "bi-Gaussian"
+      shape_model = "bi-Gaussian",
+      do.plot = FALSE
     ),
-    RCX_09_shortened_v2 = list(
+    RCX_07_shortened_v2 = list(
       filename = c("RCX_07_shortened_cdf.Rds"),
       expected_filename = "RCX_07_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      shape_model = "bi-Gaussian"
+      shape_model = "bi-Gaussian",
+      do.plot = FALSE
     ),
-    RCX_16_shortened_v2 = list(
+    RCX_8_shortened_v2 = list(
       filename = c("RCX_08_shortened_cdf.Rds"),
       expected_filename = "RCX_08_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      shape_model = "bi-Gaussian"
+      shape_model = "bi-Gaussian",
+      do.plot = FALSE
     )
   )
 )
