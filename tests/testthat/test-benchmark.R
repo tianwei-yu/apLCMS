@@ -1,6 +1,10 @@
 patrick::with_parameters_test_that(
   "test benchmark",
   {
+    if(skip){
+      skip("Disabled")
+    }
+
     skip_on_ci()
 
     testdata <- file.path("..", "testdata")
@@ -28,10 +32,6 @@ patrick::with_parameters_test_that(
     if (!is(cluster, "cluster")) {
       cluster <- parallel::makeCluster(cluster)
       on.exit(parallel::stopCluster(cluster))
-    }
-
-    if(skip){
-      skip("Disabled")
     }
 
     res <- microbenchmark::microbenchmark(
