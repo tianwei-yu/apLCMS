@@ -669,14 +669,8 @@ recover.weaker <- function(filename,
                            intensity.weighted = FALSE) {
 
   # load raw data
-  this.raw <- load_file(filename)
-  times <- this.raw$times
-  data_table <- tibble::tibble(
-    mz = this.raw$masses,
-    labels = this.raw$labels,
-    intensities = this.raw$intensi
-  ) |> dplyr::arrange_at("mz")
-  rm(this.raw)
+  data_table <- load_file(filename) |> dplyr::rename(labels = rt) |> dplyr::arrange_at("mz")
+  times <- sort(unique(data_table$labels))
 
   # Initialize parameters with default values
   if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
@@ -685,8 +679,6 @@ recover.weaker <- function(filename,
   if (is.na(max.bw)) max.bw <- span(times) / 15
   if (min.bw >= max.bw) min.bw <- max.bw / 4
 
-
-  times <- sort(unique(times))
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
 
