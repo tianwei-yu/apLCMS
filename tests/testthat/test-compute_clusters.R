@@ -34,6 +34,12 @@ patrick::with_parameters_test_that(
       input = "extracted",
       mz_max_diff = 10 * 1e-05,
       mz_tol_absolute = 0.01
+    ),
+    RCX_shortened_adjusted = list(
+      files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
+      input = "adjusted",
+      mz_max_diff = 10 * 1e-05,
+      mz_tol_absolute = 0.01
     )
   )
 )
