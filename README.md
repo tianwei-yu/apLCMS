@@ -22,7 +22,7 @@ wget -P tests/testdata/recovered/recovered-extracted -i tests/remote-files/recov
 wget -P tests/testdata/recovered/recovered-corrected -i tests/remote-files/recovered-corrected.txt
 wget -P tests/testdata/filtered -i tests/remote-files/filtered.txt
 wget -P tests/testdata/features -i tests/remote-files/features.txt
-wget -P tests/testdata/features -i tests/remote-files/clusters.txt
+wget -P tests/testdata/clusters -i tests/remote-files/clusters.txt
 
 ```
 
