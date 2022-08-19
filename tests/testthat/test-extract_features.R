@@ -27,23 +27,41 @@ patrick::with_parameters_test_that(
     }
 
     actual <- extract_features(
-      filenames,
-      cluster = cluster,
-      min_pres = min_pres,
-      min_run = min_run,
-      mz_tol = tol,
-      intensity_weighted = intensity_weighted,
-      sd_cut = sd_cut,
-      sigma_ratio_lim = sigma_ratio_lim,
-      baseline_correct = 0,
-      baseline_correct_noise_percentile = 0.05,
-      min_bandwidth = NA,
-      max_bandwidth = NA,
-      moment_power = 1,
-      BIC_factor = 2.0,
-      component_eliminate = 0.01,
-      peak_estim_method = "moment",
-      shape_model = "bi-Gaussian"
+        cluster = cluster,
+        filenames,
+        min_pres = min_pres,
+        min_run = min_run,
+        mz_tol = mz_tol,
+        baseline_correct = 0,
+        baseline_correct_noise_percentile = 0.05,
+        intensity_weighted = intensity_weighted,
+        min_bandwidth = NA,
+        max_bandwidth = NA,
+        sd_cut = sd_cut,
+        sigma_ratio_lim = sigma_ratio_lim,
+        shape_model = "bi-Gaussian",
+        peak_estim_method = "moment",
+        component_eliminate = 0.01,
+        moment_power = 1,
+        BIC_factor = 2.0
+      # # original parameters requested
+      # filenames,
+      # cluster = cluster,
+      # min_pres = min_pres,
+      # min_run = min_run,
+      # mz_tol = tol,
+      # intensity_weighted = intensity_weighted,
+      # sd_cut = sd_cut,
+      # sigma_ratio_lim = sigma_ratio_lim,
+      # baseline_correct = 0,
+      # baseline_correct_noise_percentile = 0.05,
+      # min_bandwidth = NA,
+      # max_bandwidth = NA,
+      # moment_power = 1,
+      # BIC_factor = 2.0,
+      # component_eliminate = 0.01,
+      # peak_estim_method = "moment",
+      # shape_model = "bi-Gaussian"
     )
 
     expected_filenames <- lapply(files, function(x) {
@@ -86,7 +104,7 @@ patrick::with_parameters_test_that(
   patrick::cases(
     RCX_shortened = list(
       files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
-      tol = 1e-05,
+      mz_tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
       intensity_weighted = FALSE,

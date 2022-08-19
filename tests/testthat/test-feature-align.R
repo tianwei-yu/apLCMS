@@ -18,12 +18,12 @@ patrick::with_parameters_test_that(
     aligned_actual <- align_features(
         sample_names = sample_names,
         features = corrected_features,
-        min_occurrence = 2,
-        mz_tol_relative = NA,
-        rt_tol_relative = NA,
-        mz_max_diff = 10 * 1e-05,
-        mz_tol_absolute = 0.01,
-        do.plot = FALSE
+        min_occurrence = min_occurrence,
+        mz_tol_relative = mz_tol_relative,
+        rt_tol_relative = rt_tol_relative,
+        mz_max_diff = 10 * mz_tol,
+        mz_tol_absolute = mz_tol_absolute,
+        do.plot = do.plot
     )
     
     aligned_expected <- load_aligned_features(file.path(testdata, "aligned", 'rt_cross_table.parquet'),
@@ -38,7 +38,7 @@ patrick::with_parameters_test_that(
       min_occurrence = 2,
       mz_tol_relative = NA,
       rt_tol_relative = NA,
-      mz_max_diff = 10 * 1e-05,
+      mz_tol = 1e-05,
       mz_tol_absolute = 0.01,
       do.plot = FALSE
     )
