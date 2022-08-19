@@ -13,6 +13,8 @@ patrick::with_parameters_test_that(
 
     actual <- compute_clusters(
       feature_tables = extracted,
+      mz_tol_relative = NA,
+      rt_tol_relative = NA,
       mz_max_diff = mz_max_diff,
       mz_tol_absolute = mz_tol_absolute
     )
