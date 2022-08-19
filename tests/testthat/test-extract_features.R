@@ -6,7 +6,7 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
 
     filenames <- lapply(files, function(x) {
-      file.path(testdata, "input", paste0(x, ".mzML"))
+      file.path(testdata, "input", x)
     })
 
     # CRAN limits the number of cores available to packages to 2
@@ -49,8 +49,8 @@ patrick::with_parameters_test_that(
       peak_estim_method = "moment",
       shape_model = "bi-Gaussian"
     )
-    expected_filenames <- lapply(files, function(x) {
-      file.path(testdata, "extracted", paste0(x, ".parquet"))
+    expected_filenames <- lapply(expected_files, function(x) {
+      file.path(testdata, "extracted", x)
     })
     expected <- lapply(expected_filenames, arrow::read_parquet)
     expected <- lapply(expected, as.data.frame)
@@ -77,7 +77,8 @@ patrick::with_parameters_test_that(
   },
   patrick::cases(
     RCX_shortened = list(
-      files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
+      files = c("RCX_06_shortened.mzML", "RCX_07_shortened.mzML", "RCX_08_shortened.mzML"),
+      expected_files = c("RCX_06_shortened.parquet", "RCX_07_shortened.parquet", "RCX_08_shortened.parquet"),
       tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
@@ -87,7 +88,8 @@ patrick::with_parameters_test_that(
       skip = FALSE
     ),
     qc_no_dil_milliq = list(
-      files = c("8_qc_no_dil_milliq", "21_qc_no_dil_milliq", "29_qc_no_dil_milliq"),
+      files = c("8_qc_no_dil_milliq.mzml", "21_qc_no_dil_milliq.mzml", "29_qc_no_dil_milliq.mzml"),
+      expected_files = c("8_qc_no_dil_milliq.parquet", "21_qc_no_dil_milliq.parquet", "29_qc_no_dil_milliq.parquet"),
       tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
