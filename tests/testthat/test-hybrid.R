@@ -21,7 +21,12 @@ test_that("basic hybrid test", {
   expected <- arrow::read_parquet('../testdata/hybrid_recovered_feature_sample_table.parquet')
   known_table <- arrow::read_parquet('../testdata/known_table.parquet')
 
-  actual <- hybrid(test_files, known_table, cluster = get_num_workers())
+  actual <- hybrid(
+    test_files,
+    known_table,
+    align_mz_tol = NA,
+    align_rt_tol = NA,
+    cluster = get_num_workers())
 
   actual$recovered_feature_sample_table <- actual$recovered_feature_sample_table |> dplyr::arrange_all()
   expected <- expected |> dplyr::arrange_all()
