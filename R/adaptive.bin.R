@@ -175,7 +175,7 @@ adaptive.bin <- function(features,
 
   newprof <- newprof[order(newprof[, 1], newprof[, 2]), ]
 
-  newprof_tibble <- tibble::tibble(masses = newprof[, 1], labels = newprof[, 2], intensi = newprof[, 3], grps = newprof[, 4])
+  newprof_tibble <- tibble::tibble(mz = newprof[, 1], rt = newprof[, 2], intensities = newprof[, 3], grps = newprof[, 4])
 
   raw.prof <- new("list")
   raw.prof$height.rec <- height.rec
