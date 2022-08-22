@@ -27,7 +27,10 @@
 		"eamodio.gitlens",
 		"mutantdino.resourcemonitor",
 		"meakbiyik.vscode-r-test-adapter",
-		"dvirtz.parquet-viewer"
+		"dvirtz.parquet-viewer",
+		"github.vscode-pull-request-github",
+		"ms-vsliveshare.vsliveshare",
+		"tianyishi.rmarkdown"
 	],
 	"settings": {
 		"r.rterm.linux": "/bin/local/miniconda/envs/recetox-aplcms/bin/radian",

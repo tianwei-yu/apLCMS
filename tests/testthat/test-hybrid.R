@@ -11,7 +11,12 @@ patrick::with_parameters_test_that("basic hybrid test", {
     file.path(testdata, "hybrid", "known_table.parquet")
   )
 
-  actual <- hybrid(test_files, known_table, cluster = get_num_workers())
+  actual <- hybrid(
+    test_files,
+    known_table,
+    align_mz_tol = NA,
+    align_rt_tol = NA,
+    cluster = get_num_workers())
 
   expected <- arrow::read_parquet(
     file.path(testdata, "hybrid", paste0(.test_name, "_recovered_feature_sample_table.parquet"))

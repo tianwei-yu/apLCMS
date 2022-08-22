@@ -1,0 +1,6 @@
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/clusters/RCX_06_shortened_extracted_clusters.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/clusters/RCX_07_shortened_extracted_clusters.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/clusters/RCX_08_shortened_extracted_clusters.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/clusters/RCX_06_shortened_adjusted_clusters.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/clusters/RCX_07_shortened_adjusted_clusters.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/clusters/RCX_08_shortened_adjusted_clusters.parquet
