@@ -627,9 +627,9 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' @param extracted_features The matrix which is the output from proc.to.feature().
 #' @param adjusted_features The matrix which is the output from proc.to.feature().
 #' The retention time in this object have been adjusted by the function adjust.time().
-#' @param mz.range The m/z around the feature m/z to search for observations.
+#' @param recover_mz_range The m/z around the feature m/z to search for observations.
 #' The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param rt.range The retention time around the feature retention time to search for observations.
+#' @param recover_rt_range The retention time around the feature retention time to search for observations.
 #' The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
 #' @param use.observed.range If the value is TRUE, the actual range of the observed locations
 #' of the feature in all the spectra will be used.
@@ -658,8 +658,8 @@ recover.weaker <- function(filename,
                            align.rt.tol,
                            extracted_features,
                            adjusted_features,
-                           mz.range = NA,
-                           rt.range = NA,
+                           recover_mz_range = NA,
+                           recover_rt_range = NA,
                            use.observed.range = TRUE,
                            orig.tol = 1e-5,
                            min.bw = NA,
@@ -679,8 +679,8 @@ recover.weaker <- function(filename,
   rm(this.raw)
 
   # Initialize parameters with default values
-  if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
-  if (is.na(rt.range)) rt.range <- align.rt.tol / 2
+  if (is.na(recover_mz_range)) recover_mz_range <- 1.5 * align.mz.tol
+  if (is.na(recover_rt_range)) recover_rt_range <- align.rt.tol / 2
   if (is.na(min.bw)) min.bw <- span(times) / 60
   if (is.na(max.bw)) max.bw <- span(times) / 15
   if (min.bw >= max.bw) min.bw <- max.bw / 4
@@ -693,11 +693,11 @@ recover.weaker <- function(filename,
   sample_intensities <- aligned.ftrs[, sample_name]
   sample_times <- pk.times[, sample_name]
 
-  custom.mz.tol <- mz.range * aligned.ftrs$mz
+  custom.mz.tol <- recover_mz_range * aligned.ftrs$mz
   custom.rt.tol <- get_custom_rt_tol(
     use.observed.range,
     pk.times,
-    rt.range,
+    recover_rt_range,
     aligned.ftrs
   )
 

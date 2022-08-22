@@ -10,9 +10,9 @@ patrick::with_parameters_test_that(
       input_path,
       min.pres = min_pres,
       min.run = min_run,
-      tol = tol,
+      tol = mz_tol,
       intensity.weighted = intensity_weighted,
-      cache = FALSE
+      cache = cache
     )
 
     expected_path <- file.path(testdata, "filtered", expected_filename)
@@ -25,37 +25,41 @@ patrick::with_parameters_test_that(
     mbr_test0 = list(
       filename = c("mbr_test0.mzml"),
       expected_filename = "mbr_test0_cdf.Rds",
-      tol = 1e-05,
+      mz_tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
       intensity_weighted = FALSE,
+      cache = FALSE,
       ci_skip = FALSE
     ),
-    RCX_01_shortened_v2 = list(
+    RCX_06_shortened_v2 = list(
       filename = c("RCX_06_shortened.mzML"),
       expected_filename = "RCX_06_shortened_cdf.Rds",
-      tol = 1e-06,
+      mz_tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE,
+      cache = FALSE,
       ci_skip = FALSE
     ),
-    RCX_09_shortened_v2 = list(
+    RCX_07_shortened_v2 = list(
       filename = c("RCX_07_shortened.mzML"),
       expected_filename = "RCX_07_shortened_cdf.Rds",
-      tol = 1e-06,
+      mz_tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE,
+      cache = FALSE,
       ci_skip = TRUE
     ),
-    RCX_16_shortened_v2 = list(
+    RCX_08_shortened_v2 = list(
       filename = c("RCX_08_shortened.mzML"),
       expected_filename = "RCX_08_shortened_cdf.Rds",
-      tol = 1e-06,
+      mz_tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
       intensity_weighted = TRUE,
+      cache = FALSE,
       ci_skip = TRUE
     )
   )
