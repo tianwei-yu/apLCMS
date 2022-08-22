@@ -16,16 +16,23 @@ load_data <- function(filename,
                       cache,
                       min.run,
                       min.pres,
-                      tol,
+                      mz_tol,
                       baseline.correct,
                       intensity.weighted) {
-  rawprof_filename <- paste(strsplit(tolower(filename), "\\.")[[1]][1], "_", min.run, "_", min.pres, "_", tol, ".rawprof", sep = "")
+  rawprof_filename <- paste(strsplit(tolower(filename), "\\.")[[1]][1], "_", min.run, "_", min.pres, "_", mz_tol, ".rawprof", sep = "")
 
   if (cache && file.exists(rawprof_filename)) {
     load(rawprof_filename)
   } else {
     raw.data <- load_file(filename)
-    raw.prof <- adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
+    raw.prof <- adaptive.bin(
+      raw.data,
+      min.run = min.run,
+      min.pres = min.pres,
+      tol = mz_tol,
+      baseline.correct = baseline.correct,
+      weighted = intensity.weighted
+    )
   }
 
   if (cache && !file.exists(rawprof_filename)) {
@@ -44,7 +51,7 @@ load_data <- function(filename,
 #'  signals grouped by m/z to be considered a peak.
 #' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by 
 #'  m/z to be considered a peak.
-#' @param tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of 
+#' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of 
 #'  the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is 
 #'  the machine's nominal accuracy level. Divide the ppm value by 1e6. For FTMS, 1e-5 is recommended.
 #' @param baseline.correct After grouping the observations, the highest intensity in each group is found. If 
@@ -62,18 +69,18 @@ load_data <- function(filename,
 proc.cdf <- function(filename,
                      min.pres = 0.5,
                      min.run = 12,
-                     tol = 1e-05,
+                     mz_tol = 1e-05,
                      baseline.correct = 0.0,
                      baseline.correct.noise.percentile = 0.05,
                      do.plot = FALSE,
                      intensity.weighted = FALSE,
                      cache = FALSE) {
-  raw.prof <- load_data(filename, cache, min.run, min.pres, tol, baseline.correct, intensity.weighted)
+  raw.prof <- load_data(filename, cache, min.run, min.pres, mz_tol, baseline.correct, intensity.weighted)
 
   newprof <- cbind(
-    raw.prof$features$masses,
-    raw.prof$features$labels,
-    raw.prof$features$intensi,
+    raw.prof$features$mz,
+    raw.prof$features$rt,
+    raw.prof$features$intensities,
     raw.prof$features$grps
   )
   run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres & raw.prof$height.rec[, 3] > baseline.correct), 1]
@@ -87,10 +94,17 @@ proc.cdf <- function(filename,
       min.pres,
       baseline.correct,
       baseline.correct.noise.percentile,
-      tol,
+      mz_tol,
       new.prof
     )
   }
 
-  return(new.prof$new.rec)
+  new_rec_tibble <- tibble::tibble(
+    mz = new.prof$new.rec[, 1],
+    rt = new.prof$new.rec[, 2],
+    intensity = new.prof$new.rec[, 3],
+    group_number = new.prof$new.rec[, 4]
+  )
+
+  return(new_rec_tibble)
 }
