@@ -70,7 +70,12 @@ proc.cdf <- function(filename,
                      cache = FALSE) {
   raw.prof <- load_data(filename, cache, min.run, min.pres, tol, baseline.correct, intensity.weighted)
 
-  newprof <- cbind(raw.prof$masses, raw.prof$labels, raw.prof$intensi, raw.prof$grps)
+  newprof <- cbind(
+    raw.prof$features$masses,
+    raw.prof$features$labels,
+    raw.prof$features$intensi,
+    raw.prof$features$grps
+  )
   run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres & raw.prof$height.rec[, 3] > baseline.correct), 1]
 
   newprof <- newprof[newprof[, 4] %in% run.sel, ]

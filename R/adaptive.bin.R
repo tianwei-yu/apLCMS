@@ -175,14 +175,11 @@ adaptive.bin <- function(features,
 
   newprof <- newprof[order(newprof[, 1], newprof[, 2]), ]
 
+  newprof_tibble <- tibble::tibble(masses = newprof[, 1], labels = newprof[, 2], intensi = newprof[, 3], grps = newprof[, 4])
+
   raw.prof <- new("list")
   raw.prof$height.rec <- height.rec
-  raw.prof$masses <- newprof[, 1]
-  raw.prof$labels <- newprof[, 2]
-  raw.prof$intensi <- newprof[, 3]
-  raw.prof$grps <- newprof[, 4]
-  raw.prof$times <- times
-  raw.prof$tol <- tol
+  raw.prof$features <- newprof_tibble
   raw.prof$min.count.run <- min.count.run
 
   return(raw.prof)
