@@ -36,8 +36,8 @@ patrick::with_parameters_test_that(
     RCX_06_shortened = list(
       filename = c("RCX_06_shortened.mzML"),
       mz_tol = 1e-06,
-      min_pres = 0.7,
-      min_run = 4,
+      min_presence = 0.7,
+      min_elution_length = 4,
       intensity_weighted = TRUE,
       cache = FALSE,
       ci_skip = FALSE
@@ -45,8 +45,8 @@ patrick::with_parameters_test_that(
     RCX_07_shortened = list(
       filename = c("RCX_07_shortened.mzML"),
       mz_tol = 1e-06,
-      min_pres = 0.7,
-      min_run = 4,
+      min_presence = 0.7,
+      min_elution_length = 4,
       intensity_weighted = TRUE,
       cache = FALSE,
       ci_skip = TRUE
@@ -54,8 +54,8 @@ patrick::with_parameters_test_that(
     RCX_08_shortened = list(
       filename = c("RCX_08_shortened.mzML"),
       mz_tol = 1e-06,
-      min_pres = 0.7,
-      min_run = 4,
+      min_presence = 0.7,
+      min_elution_length = 4,
       intensity_weighted = TRUE,
       cache = FALSE,
       ci_skip = TRUE
