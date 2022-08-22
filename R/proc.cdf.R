@@ -1,20 +1,12 @@
+#' @import tidyr
+NULL
+#> NULL
+
 #' Load raw data from file
 #' @export
 load_file <- function(filename) {
   this <- load.lcms(filename)
-
-  # this could eventually be replaced using drop_na
-  na.sel <- c(which(is.na(this$masses)), which(is.na(this$labels)), which(is.na(this$intensi)))
-  if (length(na.sel) > 0) {
-    na.sel <- unique(na.sel)
-    this$masses <- this$masses[-na.sel]
-    this$labels <- this$labels[-na.sel]
-    this$intensi <- this$intensi[-na.sel]
-
-    warning("there are NA values in the m/z or intensity. Check the file:", filename)
-  }
-  # TODO
-  # this <- tidyr::drop_na(as.data.frame(this))
+  this <- tidyr::drop_na(this)
   return(this)
 }
 

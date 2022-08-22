@@ -46,7 +46,7 @@ increment_counter <- function(pointers, that.n){
 #' 
 #' This is an internal function. It creates EICs using adaptive binning procedure
 #' 
-#' @param x A matrix with columns of m/z, retention time, intensity.
+#' @param features A tibble with columns of m/z, retention time, intensity.
 #' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
 #'  considered a peak.
 #' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
@@ -72,21 +72,20 @@ increment_counter <- function(pointers, that.n){
 #' @export
 #' @examples
 #' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
-adaptive.bin <- function(x,
+adaptive.bin <- function(features,
                          min.run,
                          min.pres,
                          tol,
                          baseline.correct,
                          weighted = FALSE) {
   # order inputs after mz values
-  data_table <- tibble::tibble(mz = x$masses, labels = x$labels, intensities = x$intensi) |> dplyr::arrange_at("mz")
+  features <- features |> dplyr::arrange_at("mz")
 
 
   cat(c("m/z tolerance is: ", tol, "\n"))
 
-  times <- x$times #sort(unique(data_table$labels))
+  times <- sort(unique(features$rt))
 
-  rm(x)
   min_time <- min(times)
   max_time <- max(times)
   time_range <- (max_time - min_time)
@@ -96,13 +95,13 @@ adaptive.bin <- function(x,
   aver.time.range <- (time_range) / length(times)
 
   # init data
-  newprof <- matrix(0, nrow = length(data_table$mz), ncol = 4)
-  height.rec <- matrix(0, nrow = length(data_table$mz), ncol = 3)
+  newprof <- matrix(0, nrow = length(features$mz), ncol = 4)
+  height.rec <- matrix(0, nrow = length(features$mz), ncol = 3)
 
   # init counters
   pointers <- list(curr.label = 1, prof.pointer = 1, height.pointer = 1)
 
-  breaks <- compute_breaks(tol, data_table$mz, data_table$intensities, weighted)
+  breaks <- compute_breaks(tol, features$mz, features$intensities, weighted)
 
   for (i in 1:(length(breaks) - 1))
   {
@@ -111,7 +110,7 @@ adaptive.bin <- function(x,
     start <- breaks[i] + 1
     end <- breaks[i + 1]
 
-    this_table <- data.frame(labels = data_table$labels[start:end], mz = data_table$mz[start:end], intensities = data_table$intensities[start:end])
+    this_table <- data.frame(labels = features$rt[start:end], mz = features$mz[start:end], intensities = features$intensities[start:end])
 
     if (length(unique(this_table$labels)) >= min.count.run * min.pres) {
       # reorder in order of labels (scan number)
