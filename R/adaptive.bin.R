@@ -73,16 +73,16 @@ increment_counter <- function(pointers, that.n){
 #' @examples
 #' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
 adaptive.bin <- function(features,
-                         min.run,
-                         min.pres,
-                         tol,
-                         baseline.correct,
-                         weighted = FALSE) {
+                         min_elution_length,
+                         min_presence,
+                         mz_tol,
+                         baseline_correct,
+                         intensity_weighted = FALSE) {
   # order inputs after mz values
   features <- features |> dplyr::arrange_at("mz")
 
 
-  cat(c("m/z tolerance is: ", tol, "\n"))
+  cat(c("m/z tolerance is: ", mz_tol, "\n"))
 
   times <- sort(unique(features$rt))
 
@@ -91,7 +91,7 @@ adaptive.bin <- function(features,
   time_range <- (max_time - min_time)
 
   # calculate function parameters
-  min.count.run <- min.run * length(times) / time_range
+  min.count.run <- min_elution_length * length(times) / time_range
   aver.time.range <- (time_range) / length(times)
 
   # init data
@@ -101,7 +101,7 @@ adaptive.bin <- function(features,
   # init counters
   pointers <- list(curr.label = 1, prof.pointer = 1, height.pointer = 1)
 
-  breaks <- compute_breaks(tol, features$mz, features$intensities, weighted)
+  breaks <- compute_breaks(mz_tol, features$mz, features$intensities, intensity_weighted)
 
   for (i in 1:(length(breaks) - 1))
   {
@@ -112,10 +112,10 @@ adaptive.bin <- function(features,
 
     this_table <- data.frame(labels = features$rt[start:end], mz = features$mz[start:end], intensities = features$intensities[start:end])
 
-    if (length(unique(this_table$labels)) >= min.count.run * min.pres) {
+    if (length(unique(this_table$labels)) >= min.count.run * min_presence) {
       # reorder in order of labels (scan number)
       this_table <- this_table |> dplyr::arrange_at("labels")
-      mass.den <- compute_densities(this_table$mz, tol, weighted, this_table$intensities, median)
+      mass.den <- compute_densities(this_table$mz, mz_tol, intensity_weighted, this_table$intensities, median)
 
       mass.den$y[mass.den$y < min(this_table$intensities) / 10] <- 0
       mass.turns <- find.turn.point(mass.den$y)
@@ -139,8 +139,8 @@ adaptive.bin <- function(features,
           that <- combine.seq.3(that) |> dplyr::arrange_at("mz")
           that.range <- diff(range(that$labels))
 
-          if (that.range > 0.5 * time_range & length(that$labels) > that.range * min.pres & length(that$labels) / (that.range / aver.time.range) > min.pres) {
-            that$intensities <- rm.ridge(that$labels, that$intensities, bw = max(10 * min.run, that.range / 2))
+          if (that.range > 0.5 * time_range & length(that$labels) > that.range * min_presence & length(that$labels) / (that.range / aver.time.range) > min_presence) {
+            that$intensities <- rm.ridge(that$labels, that$intensities, bw = max(10 * min_elution_length, that.range / 2))
 
             that <- that |> dplyr::filter(intensities != 0)
           }

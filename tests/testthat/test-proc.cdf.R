@@ -8,10 +8,10 @@ patrick::with_parameters_test_that(
     
     sut <- proc.cdf(
       input_path,
-      min.pres = min_pres,
-      min.run = min_run,
+      min_presence = min_presence,
+      min_elution_length = min_elution_length,
       mz_tol = mz_tol,
-      intensity.weighted = intensity_weighted,
+      intensity_weighted = intensity_weighted,
       cache = cache
     )
 
@@ -27,8 +27,8 @@ patrick::with_parameters_test_that(
     mbr_test0 = list(
       filename = c("mbr_test0.mzml"),
       mz_tol = 1e-05,
-      min_pres = 0.5,
-      min_run = 12,
+      min_presence = 0.5,
+      min_elution_length = 12,
       intensity_weighted = FALSE,
       cache = FALSE,
       ci_skip = FALSE

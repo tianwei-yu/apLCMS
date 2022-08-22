@@ -14,12 +14,12 @@ load_file <- function(filename) {
 #' @export
 load_data <- function(filename,
                       cache,
-                      min.run,
-                      min.pres,
+                      min_elution_length,
+                      min_presence,
                       mz_tol,
-                      baseline.correct,
-                      intensity.weighted) {
-  rawprof_filename <- paste(strsplit(tolower(filename), "\\.")[[1]][1], "_", min.run, "_", min.pres, "_", mz_tol, ".rawprof", sep = "")
+                      baseline_correct,
+                      intensity_weighted) {
+  rawprof_filename <- paste(strsplit(tolower(filename), "\\.")[[1]][1], "_", min_elution_length, "_", min_presence, "_", mz_tol, ".rawprof", sep = "")
 
   if (cache && file.exists(rawprof_filename)) {
     load(rawprof_filename)
@@ -27,11 +27,11 @@ load_data <- function(filename,
     raw.data <- load_file(filename)
     raw.prof <- adaptive.bin(
       raw.data,
-      min.run = min.run,
-      min.pres = min.pres,
-      tol = mz_tol,
-      baseline.correct = baseline.correct,
-      weighted = intensity.weighted
+      min_elution_length = min_elution_length,
+      min_presence = min_presence,
+      mz_tol = mz_tol,
+      baseline_correct = baseline_correct,
+      intensity_weighted = intensity_weighted
     )
   }
 
@@ -47,9 +47,9 @@ load_data <- function(filename,
 #' This function applies the run filter to remove noise. Data points are grouped into EICs in this step.
 #' 
 #' @param filename The CDF file name. If the file is not in the working directory, the path needs to be given.
-#' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of 
+#' @param min_presence Run filter parameter. The minimum proportion of presence in the time period for a series of 
 #'  signals grouped by m/z to be considered a peak.
-#' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by 
+#' @param min_elution_length Run filter parameter. The minimum length of elution time for a series of signals grouped by 
 #'  m/z to be considered a peak.
 #' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of 
 #'  the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is 
@@ -67,15 +67,23 @@ load_data <- function(filename,
 #' @examples
 #' proc.cdf(input_path, min_pres, min_run, tol, intensity.weighted = intensity_weighted)
 proc.cdf <- function(filename,
-                     min.pres = 0.5,
-                     min.run = 12,
+                     min_presence = 0.5,
+                     min_elution_length = 12,
                      mz_tol = 1e-05,
-                     baseline.correct = 0.0,
-                     baseline.correct.noise.percentile = 0.05,
+                     baseline_correct = 0.0,
+                     baseline_correct_noise_percentile = 0.05,
                      do.plot = FALSE,
-                     intensity.weighted = FALSE,
+                     intensity_weighted = FALSE,
                      cache = FALSE) {
-  raw.prof <- load_data(filename, cache, min.run, min.pres, mz_tol, baseline.correct, intensity.weighted)
+  raw.prof <- load_data(
+    filename,
+    cache,
+    min_elution_length,
+    min_presence,
+    mz_tol,
+    baseline_correct,
+    intensity_weighted
+  )
 
   newprof <- cbind(
     raw.prof$features$mz,
@@ -83,17 +91,21 @@ proc.cdf <- function(filename,
     raw.prof$features$intensities,
     raw.prof$features$grps
   )
-  run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres & raw.prof$height.rec[, 3] > baseline.correct), 1]
+  run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min_presence & raw.prof$height.rec[, 3] > baseline_correct), 1]
 
   newprof <- newprof[newprof[, 4] %in% run.sel, ]
-  new.prof <- cont.index(newprof, min.pres = min.pres, min.run = min.run)
+  new.prof <- cont.index(
+    newprof,
+    min.pres = min_presence,
+    min.run = min_elution_length
+  )
 
   if (do.plot) {
     plot_raw_profile_histogram(
       raw.prof,
-      min.pres,
-      baseline.correct,
-      baseline.correct.noise.percentile,
+      min_presence,
+      baseline_correct,
+      baseline_correct_noise_percentile,
       mz_tol,
       new.prof
     )
