@@ -6,19 +6,6 @@ NULL
 #' @export
 load_file <- function(filename) {
   this <- load.lcms(filename)
-
-  # # this could eventually be replaced using drop_na
-  # na.sel <- c(which(is.na(this$mz)), which(is.na(this$rt)), which(is.na(this$intensities)))
-  # if (length(na.sel) > 0) {
-  #   na.sel <- unique(na.sel)
-  #   this$mz <- this$mz[-na.sel]
-  #   this$rt <- this$rt[-na.sel]
-  #   this$intensities <- this$intensities[-na.sel]
-
-  #   warning("there are NA values in the m/z or intensity. Check the file:", filename)
-  # }
-
-  # TODO
   this <- tidyr::drop_na(this)
   return(this)
 }
