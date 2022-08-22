@@ -58,7 +58,6 @@ load.lcms <- function(filename) {
     labels <- c(labels, this_labels)
   }
 
-  times <- b[!is.na(b)]
   mzR::close(mz_conn)
 
   features <- tibble::tibble(mz = masses, rt = labels, intensities = intensi)

@@ -62,9 +62,9 @@ increment_counter <- function(pointers, that.n){
 #' \itemize{
 #'   \item height.rec - The records of the height of each EIC.
 #'   \item masses - The vector of m/z values after binning.
-#'   \item labels - The vector of retention time after binning.
+#'   \item rt - The vector of retention time after binning.
 #'   \item intensi - The vector of intensity values after binning.
-#'   \item grps - The EIC labels, i.e. which EIC each observed data point belongs to.
+#'   \item grps - The EIC rt, i.e. which EIC each observed data point belongs to.
 #'   \item times - All the unique retention time values, ordered.
 #'   \item tol - The m/z tolerance level.
 #'   \item min.count.run - The minimum number of elution time points for a series of signals grouped by m/z to be considered a peak.
@@ -110,11 +110,11 @@ adaptive.bin <- function(features,
     start <- breaks[i] + 1
     end <- breaks[i + 1]
 
-    this_table <- data.frame(labels = features$rt[start:end], mz = features$mz[start:end], intensities = features$intensities[start:end])
+    this_table <- dplyr::slice(features, (start:end))
 
-    if (length(unique(this_table$labels)) >= min.count.run * min_presence) {
-      # reorder in order of labels (scan number)
-      this_table <- this_table |> dplyr::arrange_at("labels")
+    if (length(unique(this_table$rt)) >= min.count.run * min_presence) {
+      # reorder in order of rt (scan number)
+      this_table <- this_table |> dplyr::arrange_at("rt")
       mass.den <- compute_densities(this_table$mz, mz_tol, intensity_weighted, this_table$intensities, median)
 
       mass.den$y[mass.den$y < min(this_table$intensities) / 10] <- 0
@@ -137,17 +137,17 @@ adaptive.bin <- function(features,
 
         if (nrow(that) > 0) {
           that <- combine.seq.3(that) |> dplyr::arrange_at("mz")
-          that.range <- diff(range(that$labels))
+          that.range <- span(that$rt)
 
-          if (that.range > 0.5 * time_range & length(that$labels) > that.range * min_presence & length(that$labels) / (that.range / aver.time.range) > min_presence) {
-            that$intensities <- rm.ridge(that$labels, that$intensities, bw = max(10 * min_elution_length, that.range / 2))
+          if (that.range > 0.5 * time_range & length(that$rt) > that.range * min_presence & length(that$rt) / (that.range / aver.time.range) > min_presence) {
+            that$intensities <- rm.ridge(that$rt, that$intensities, bw = max(10 *min_elution_length, that.range / 2))
 
             that <- that |> dplyr::filter(intensities != 0)
           }
 
           that.n <- length(that$mz)
 
-          newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that$mz, that$labels, that$intensities, rep(pointers$curr.label, that.n))
+          newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that$mz, that$rt, that$intensities, rep(pointers$curr.label, that.n))
           height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that$intensities))
 
           # increment counters
@@ -156,12 +156,12 @@ adaptive.bin <- function(features,
       }
     } else {
       if (runif(1) < 0.05) {
-        this_table <- this_table |> dplyr::arrange_at("labels")
+        this_table <- this_table |> dplyr::arrange_at("rt")
 
         that.merged <- combine.seq.3(this_table)
         that.n <- nrow(that.merged)
 
-        newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that.merged$mz, that.merged$labels, that.merged$intensities, rep(pointers$curr.label, that.n))
+        newprof[pointers$prof.pointer:(pointers$prof.pointer + that.n - 1), ] <- cbind(that.merged$mz, that.merged$rt, that.merged$intensities, rep(pointers$curr.label, that.n))
         height.rec[pointers$height.pointer, ] <- c(pointers$curr.label, that.n, max(that.merged$intensities))
 
         # increment counters
