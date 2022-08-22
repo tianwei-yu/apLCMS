@@ -2,7 +2,10 @@ patrick::with_parameters_test_that(
   "extract single feature works",
   {
     skip_on_ci()
-
+    if(skip){
+      skip("skipping whole data test case")
+    }
+    
     testdata <- file.path("..", "testdata")
 
     filenames <- lapply(files, function(x) {
@@ -24,10 +27,6 @@ patrick::with_parameters_test_that(
     if (!is(cluster, "cluster")) {
       cluster <- parallel::makeCluster(cluster)
       on.exit(parallel::stopCluster(cluster))
-    }
-
-    if(skip){
-      skip("skipping whole data test case")
     }
 
     actual <- extract_features(
