@@ -30,11 +30,11 @@ patrick::with_parameters_test_that(
     
     corrected <- adjust.time(
       extracted_features = extracted,
-      mz_tol_relative = mz_tol,
-      rt_tol_relative = chr_tol,
-      mz_max_diff = find_tol_max_d,
-      mz_tol_absolute = max_align_mz_diff,
-      do.plot = FALSE
+      mz_tol_relative = mz_tol_relative,
+      rt_tol_relative = rt_tol_relative,
+      mz_max_diff = 10 * mz_tol,
+      mz_tol_absolute = mz_tol_absolute,
+      do.plot = do.plot 
     )
     
     expected_filenames <- lapply(files, function(x) {
@@ -52,10 +52,11 @@ patrick::with_parameters_test_that(
   patrick::cases(
     RCX_shortened = list(
       files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
-      mz_tol = NA,
-      chr_tol = NA,
-      find_tol_max_d = 10 * 1e-05,
-      max_align_mz_diff = 0.01
+      mz_tol_relative = NA,
+      rt_tol_relative = NA,
+      mz_tol = 1e-05,
+      mz_tol_absolute = 0.01,
+      do.plot = FALSE
     )
   )
 )
