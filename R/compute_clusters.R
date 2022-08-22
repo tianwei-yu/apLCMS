@@ -67,10 +67,12 @@ compute_clusters <- function(feature_tables,
   message(paste("m/z tolerance level: ", mz_tol_relative))
   message(paste("time tolerance level:", rt_tol_relative))
 
+  # Select features from individual samples, sort by mz and rt and 
+  # return the sorted tables as individual tibbles.
   feature_tables <- res$features |>
     dplyr::group_by(sample_id) |>
     dplyr::arrange_at(c("mz", "rt")) |>
     dplyr::group_split()
-  
+
   return(list(feature_tables = feature_tables, rt_tol_relative = rt_tol_relative, mz_tol_relative = mz_tol_relative))
 }
