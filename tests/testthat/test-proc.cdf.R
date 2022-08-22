@@ -6,7 +6,7 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
     input_path <- file.path(testdata, "input", filename)
     
-    actual <- proc.cdf(
+    sut <- proc.cdf(
       input_path,
       min.pres = min_pres,
       min.run = min_run,
@@ -15,16 +15,17 @@ patrick::with_parameters_test_that(
       cache = cache
     )
 
-    expected_path <- file.path(testdata, "filtered", expected_filename)
-    expected <- readRDS(expected_path)
+    expected_path <- file.path(testdata, "filtered", paste0(.test_name, ".parquet"))
 
     # exclude last column from comparison as there lies the stochastic nature
-    expect_equal(actual[, 1:3], expected[, 1:3])
+    expected <- arrow::read_parquet(expected_path) |> dplyr::select(-group_number)
+    actual <- sut |> dplyr::select(-group_number)
+
+    expect_equal(actual, expected)
   },
   patrick::cases(
     mbr_test0 = list(
       filename = c("mbr_test0.mzml"),
-      expected_filename = "mbr_test0_cdf.Rds",
       mz_tol = 1e-05,
       min_pres = 0.5,
       min_run = 12,
@@ -32,9 +33,8 @@ patrick::with_parameters_test_that(
       cache = FALSE,
       ci_skip = FALSE
     ),
-    RCX_06_shortened_v2 = list(
+    RCX_06_shortened = list(
       filename = c("RCX_06_shortened.mzML"),
-      expected_filename = "RCX_06_shortened_cdf.Rds",
       mz_tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
@@ -42,9 +42,8 @@ patrick::with_parameters_test_that(
       cache = FALSE,
       ci_skip = FALSE
     ),
-    RCX_07_shortened_v2 = list(
+    RCX_07_shortened = list(
       filename = c("RCX_07_shortened.mzML"),
-      expected_filename = "RCX_07_shortened_cdf.Rds",
       mz_tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
@@ -52,9 +51,8 @@ patrick::with_parameters_test_that(
       cache = FALSE,
       ci_skip = TRUE
     ),
-    RCX_08_shortened_v2 = list(
+    RCX_08_shortened = list(
       filename = c("RCX_08_shortened.mzML"),
-      expected_filename = "RCX_08_shortened_cdf.Rds",
       mz_tol = 1e-06,
       min_pres = 0.7,
       min_run = 4,
