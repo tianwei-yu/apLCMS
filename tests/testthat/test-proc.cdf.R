@@ -10,7 +10,7 @@ patrick::with_parameters_test_that(
       input_path,
       min.pres = min_pres,
       min.run = min_run,
-      tol = mz_tol,
+      mz_tol = mz_tol,
       intensity.weighted = intensity_weighted,
       cache = cache
     )
