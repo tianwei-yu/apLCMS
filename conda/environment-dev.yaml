@@ -35,3 +35,5 @@ dependencies:
   - r-patrick
   - radian
   - r-httpgd
+  - r-microbenchmark
+
