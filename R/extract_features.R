@@ -92,7 +92,8 @@ extract_features <- function(
     'compute_start_bound',
     'compute_end_bound',
     'compute_bounds',
-    'compute_scale'
+    'compute_scale',
+    'span'
   ))
   snow::clusterEvalQ(cluster, library("dplyr"))
 

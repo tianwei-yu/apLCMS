@@ -92,6 +92,7 @@ create_feature_sample_table <- function(features) {
   return(table)
 }
 
+#' @export
 span <- function(x) {
   diff(range(x, na.rm = TRUE))
 }
