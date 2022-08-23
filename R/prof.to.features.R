@@ -853,7 +853,7 @@ prof.to.features <- function(profile,
   all_rts <- compute_delta_rt(base.curve[, 1])
   aver_diff <- mean(diff(base.curve))
 
-  keys <- c("mz", "pos", "sd1", "sd2", "area")
+  keys <- c("mz", "rt", "sd1", "sd2", "area")
   peak_parameters <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
 
   feature_groups <- split(profile, profile$group_number)
@@ -899,7 +899,7 @@ prof.to.features <- function(profile,
       }
     }
   }
-  peak_parameters <- peak_parameters[order(peak_parameters[, "mz"], peak_parameters[, "pos"]), ]
+  peak_parameters <- peak_parameters[order(peak_parameters[, "mz"], peak_parameters[, "rt"]), ]
   peak_parameters <- peak_parameters[which(apply(peak_parameters[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(peak_parameters[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
   rownames(peak_parameters) <- NULL
 
