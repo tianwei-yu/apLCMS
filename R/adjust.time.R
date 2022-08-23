@@ -79,7 +79,7 @@ fill_missing_values <- function(orig.feature, this.feature) {
 #'
 #' This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
 #'
-#' @param extracted_features A list object. Each component is a matrix which is the output from proc.to.feature()
+#' @param extracted_features A list object. Each component is a matrix which is the output from compute_clusters
 #' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
 #'  program to search for the tolerance level based on the data. This value is expressed as the
 #'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
@@ -104,10 +104,7 @@ adjust.time <- function(extracted_features,
                         mz_tol_relative = NA,
                         rt_tol_relative = NA,
                         colors = NA,
-                        mz_max_diff = 1e-4,
-                        mz_tol_absolute = 0.01,
-                        do.plot = TRUE,
-                        rt_colname = "pos") {
+                        do.plot = TRUE) {
   number_of_samples <- length(extracted_features)
 
   if (number_of_samples <= 1) {
@@ -119,20 +116,6 @@ adjust.time <- function(extracted_features,
     draw_plot(label = "Retention time \n adjustment", cex = 2)
   }
 
-  extracted_features <- lapply(extracted_features, function(x) tibble::as_tibble(x) |> dplyr::rename(rt = pos))
-
-  res <- compute_clusters(
-    extracted_features,
-    mz_tol_relative,
-    mz_tol_absolute,
-    mz_max_diff,
-    rt_tol_relative
-  )
-
-  extracted_features <- res$feature_tables
-  rt_tol_relative <- res$rt_tol_relative
-  mz_tol_relative <- res$mz_tol_relative
-
   num.ftrs <- sapply(extracted_features, nrow)
   template <- which.max(num.ftrs)
   message(paste("the template is sample", template))
@@ -142,7 +125,7 @@ adjust.time <- function(extracted_features,
   corrected_features <- foreach::foreach(j = 1:number_of_samples, .export = c(
     "compute_corrected_features",
     "compute_template_adjusted_rt", "compute_comb", "compute_sel"
-  )) %dopar% {
+  )) %do% {
     this.feature <- extracted_features[[j]]
     if (j != template) {
       this.comb <- compute_comb(candi, template, this.feature, j)
