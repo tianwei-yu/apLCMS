@@ -907,5 +907,5 @@ prof.to.features <- function(profile,
     plot_peak_summary(feature_groups, peak_parameters)
   }
 
-  return(peak_parameters)
+  return(tibble::as_tibble(peak_parameters))
 }
