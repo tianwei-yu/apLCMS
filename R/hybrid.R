@@ -239,8 +239,8 @@ hybrid <- function(
   extracted <- extract_features(
     cluster = cluster,
     filenames = filenames,
-    min_pres = min_pres,
-    min_run = min_run,
+    min_presence = min_pres,
+    min_elution_length = min_run,
     mz_tol = mz_tol,
     baseline_correct = baseline_correct,
     baseline_correct_noise_percentile = baseline_correct_noise_percentile,
