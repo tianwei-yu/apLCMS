@@ -125,7 +125,7 @@ adjust.time <- function(extracted_features,
   corrected_features <- foreach::foreach(j = 1:number_of_samples, .export = c(
     "compute_corrected_features",
     "compute_template_adjusted_rt", "compute_comb", "compute_sel"
-  )) %do% {
+  )) %dopar% {
     this.feature <- extracted_features[[j]]
     if (j != template) {
       this.comb <- compute_comb(candi, template, this.feature, j)
