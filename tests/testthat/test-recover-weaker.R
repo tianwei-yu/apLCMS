@@ -22,7 +22,6 @@ patrick::with_parameters_test_that(
     adjusted <- lapply(filenames, function(x) {
        arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
     })
-    #adjusted <- lapply(adjusted, as.data.frame)
 
     aligned <- load_aligned_features(
       file.path(testdata, "aligned", "rt_cross_table.parquet"),
@@ -51,9 +50,7 @@ patrick::with_parameters_test_that(
         intensity.weighted = intensity.weighted
       )
     })
-                           
-                        
-                           intensity.weighted = FALSE
+
     feature_table <- aligned$rt_crosstab[, 1:4]
     rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
     int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
