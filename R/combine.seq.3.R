@@ -6,7 +6,7 @@
 #' @return returns
 #' \itemize{
 #'   \item masses - m/z ratio
-#'   \item labels - retention time
+#'   \item rt - retention time
 #'   \item intensi - signal strength
 #' }
 #' @export
@@ -14,10 +14,10 @@
 #' combine.seq.3(table)
 combine.seq.3 <- function(features) {
     l <- nrow(features)
-    breaks <- compute_breaks_3(features$labels)
+    breaks <- compute_breaks_3(features$rt)
     new_table <- tibble::tibble(
         mz = rep(0, length(breaks) - 1),
-        labels = unique(features$labels),
+        rt = unique(features$rt),
         intensities = rep(0, length(breaks) - 1)
     )
 

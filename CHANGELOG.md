@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - refactored `adjust.time.R` [#64](https://github.com/RECETOX/recetox-aplcms/pull/64)[#102](https://github.com/RECETOX/recetox-aplcms/pull/102)
 - refactored `find.tol.time.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
 - refactored `find.turn.point.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
+- refactored `proc.cdf.R` and `adaptive.bin.R` [#137](https://github.com/RECETOX/recetox-aplcms/pull/137)
 ### Removed
 
 ## [0.9.4] - 2022-05-10

@@ -3,7 +3,7 @@ patrick::with_parameters_test_that(
   {
     testdata <- file.path("..", "testdata")
     input_path <- file.path(testdata, "filtered", filename)
-    extracted_features <- readRDS(input_path)
+    extracted_features <- arrow::read_parquet(input_path)
 
     actual <- prof.to.features(
       profile = extracted_features,
@@ -20,7 +20,7 @@ patrick::with_parameters_test_that(
   },
   patrick::cases(
     mbr_test0 = list(
-      filename = c("mbr_test0_cdf.Rds"),
+      filename = c("mbr_test0.parquet"),
       expected_filename = "mbr_test0_features.Rds",
       sd_cut = c(0.1, 100),
       sigma_ratio_lim = c(0.1, 10),
@@ -28,7 +28,7 @@ patrick::with_parameters_test_that(
       do.plot = FALSE
     ),
     RCX_06_shortened_gaussian = list(
-      filename = c("RCX_06_shortened_cdf.Rds"),
+      filename = c("RCX_06_shortened.parquet"),
       expected_filename = "RCX_06_shortened_gaussian_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
@@ -36,7 +36,7 @@ patrick::with_parameters_test_that(
       do.plot = FALSE
     ),
     RCX_06_shortened_v2 = list(
-      filename = c("RCX_06_shortened_cdf.Rds"),
+      filename = c("RCX_06_shortened.parquet"),
       expected_filename = "RCX_06_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
@@ -44,7 +44,7 @@ patrick::with_parameters_test_that(
       do.plot = FALSE
     ),
     RCX_07_shortened_v2 = list(
-      filename = c("RCX_07_shortened_cdf.Rds"),
+      filename = c("RCX_07_shortened.parquet"),
       expected_filename = "RCX_07_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
@@ -52,7 +52,7 @@ patrick::with_parameters_test_that(
       do.plot = FALSE
     ),
     RCX_8_shortened_v2 = list(
-      filename = c("RCX_08_shortened_cdf.Rds"),
+      filename = c("RCX_08_shortened.parquet"),
       expected_filename = "RCX_08_shortened_features.Rds",
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
