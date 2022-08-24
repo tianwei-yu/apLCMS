@@ -13,6 +13,9 @@ create_output <- function(sample_grouped, number_of_samples) {
             rt_row[i] <- median(filtered$rt)
         }
     }
+    
+    # TODO create tibble already here
+    # + new function which creates list of tibbles (with or without data)
     mz <- sample_grouped$mz
     rt <- sample_grouped$rt
     metadata_row <- c(mean(mz), min(mz), max(mz), mean(rt), min(rt), max(rt), nrow(sample_grouped), sample_presence)
@@ -127,10 +130,19 @@ create_aligned_feature_table <- function(all_table,
             number_of_samples
         )
         
-        browser()
-        aligned_features$medatada <- bind_rows(aligned_features$medatada, as_tibble(c(i, rows$metadata_row), .name_repair = ~ medatada_colnames))
-        aligned_features$intensities <- bind_rows(aligned_features$intensities, as_tibble(c(i, rows$intensity_row), .name_repair = ~ medatada_colnames))
-        aligned_features$rt <- bind_rows(aligned_features$rt, as_tibble(c(i, rows$rt_row), .name_repair = ~ medatada_colnames))
+        if (!is.null(rows)) {
+            metadata_row <- matrix(c(i, rows$metadata_row), nrow=1)
+            colnames(metadata_row) <- medatada_colnames
+            aligned_features$medatada <- bind_rows(aligned_features$medatada, as_tibble(metadata_row))
+            
+            intensity_row <- matrix(c(i, rows$intensity_row), nrow=1)
+            colnames(intensity_row) <- intensities_colnames
+            aligned_features$intensities <- bind_rows(aligned_features$intensities, as_tibble(intensity_row))
+            
+            rt_row <- matrix(c(i, rows$rt_row), nrow=1)
+            colnames(rt_row) <- rt_colnames
+            aligned_features$rt <- bind_rows(aligned_features$rt, as_tibble(rt_row))
+        }
     }
     return(aligned_features)
 }
@@ -199,7 +211,6 @@ feature.align <- function(features,
         rt_tol_relative <- res$rt_tol_relative
         mz_tol_relative <- res$mz_tol_relative
 
-        # create zero vectors of length number_of_samples + 4 ?
         aligned_features <- create_aligned_feature_table(
             all_table,
             min_occurrence,
@@ -207,12 +218,6 @@ feature.align <- function(features,
             rt_tol_relative,
             mz_tol_relative
         )
-        
-        # REMOVE
-        browser()
-        arrow::write_parquet(aligned_features$medatada, "tests/metadata_table.parquet")
-        arrow::write_parquet(aligned_features$intensities, "tests/intensities_table.parquet")
-        arrow::write_parquet(aligned_features$rt, "tests/rt_table.parquet")
         
         aligned_features$mz_tol_relative <- mz_tol_relative
         aligned_features$rt_tol_relative <- rt_tol_relative
