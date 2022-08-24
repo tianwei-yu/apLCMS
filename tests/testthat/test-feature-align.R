@@ -15,8 +15,7 @@ patrick::with_parameters_test_that(
     corrected_features <- lapply(corrected_files, arrow::read_parquet)
     corrected_features <- lapply(corrected_features, as.matrix)
     
-    aligned_actual <- align_features(
-        sample_names = sample_names,
+    aligned_actual <- feature.align(
         features = corrected_features,
         min_occurrence = min_occurrence,
         mz_tol_relative = mz_tol_relative,
@@ -26,8 +25,9 @@ patrick::with_parameters_test_that(
         do.plot = do.plot
     )
     
-    aligned_expected <- load_aligned_features(file.path(testdata, "aligned", 'rt_cross_table.parquet'),
-                                              file.path(testdata, "aligned", 'int_cross_table.parquet'),
+    aligned_expected <- load_aligned_features(file.path(testdata, "aligned", 'metadata_table.parquet'),
+                                              file.path(testdata, "aligned", 'intensities_table.parquet'),
+                                              file.path(testdata, "aligned", 'rt_table.parquet'),
                                               file.path(testdata, "aligned", 'tolerances.parquet'))
   
     expect_equal(aligned_actual, aligned_expected)
