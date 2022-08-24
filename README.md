@@ -24,6 +24,7 @@ wget -P tests/testdata/filtered -i tests/remote-files/filtered.txt
 wget -P tests/testdata/features -i tests/remote-files/features.txt
 wget -P tests/testdata/clusters -i tests/remote-files/clusters.txt
 wget -P tests/testdata/hybrid -i tests/remote-files/hybrid.txt
+wget -P tests/testdata/template -i tests/remote-files/template.txt
 ```
 
 The `hybrid` and `unsupervised` tests of recetox-aplcms are [reported](https://github.com/RECETOX/recetox-aplcms/issues/24) to be OS specific and may fail depending on the platrform they are run on. To ensure reproducibility during development process you can run the tests in a designated Docker container as follows:
