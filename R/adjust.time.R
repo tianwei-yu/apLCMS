@@ -74,6 +74,15 @@ fill_missing_values <- function(orig.feature, this.feature) {
   return(this.feature)
 }
 
+compute_template <- function(extracted_features) {
+  num.ftrs <- sapply(extracted_features, nrow)
+  template <- which.max(num.ftrs)
+  message(paste("the template is sample", template))
+
+  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
+  template_features <- dplyr::bind_cols(candi, label = rep(template, nrow(candi)))
+  return(tibble::as_tibble(template_features))
+}
 
 correct_time <- function(this.feature, template_features, mz_tol_relative, rt_tol_relative) {
     orig.features <- this.feature
@@ -105,17 +114,6 @@ correct_time <- function(this.feature, template_features, mz_tol_relative, rt_to
 
   return(tibble::as_tibble(this.feature, column_name = c("mz", "rt", "sd1", "sd2", "area", "sample_id", "cluster")))
 }
-
-compute_template <- function(extracted_features) {
-  num.ftrs <- sapply(extracted_features, nrow)
-  template <- which.max(num.ftrs)
-  message(paste("the template is sample", template))
-
-  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
-  template_features <- dplyr::bind_cols(candi, label = rep(template, nrow(candi)))
-  return(tibble::as_tibble(template_features))
-}
-
 
 #' Adjust retention time across spectra.
 #'
