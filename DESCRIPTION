@@ -15,6 +15,6 @@ License: GPL-2
 LazyLoad: yes
 NeedsCompilation: no
 Suggests: 
-    dataCompareR, testthat (>= 3.0.0)
+    dataCompareR, testthat (>= 3.0.0), microbenchmark
 Config/testthat/edition: 3
 RoxygenNote: 7.2.1

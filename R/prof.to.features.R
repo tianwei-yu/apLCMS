@@ -596,7 +596,7 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff) {
   x <- that.curve[, 1]
   y <- that.curve[, 2]
-  rt_int_list <- list(labels = x, intensities = y)
+  rt_int_list <- list(rt = x, intensities = y)
 
   if (length(pks) == 1) {
     mu_sc_std <- compute_mu_sc_std(rt_int_list, aver_diff)
@@ -610,13 +610,14 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
     miu <- sigma <- sc <- pks
     w <- matrix(0, nrow = l, ncol = length(x))
 
+
     for (m in 1:l)
     {
       # this pattern occurs multiple times in other scripts
       this.low <- max(vlys[vlys <= pks[m]])
       this.high <- min(vlys[vlys >= pks[m]])
 
-      indices <- between(x, this.low, this.high)
+      indices <- dplyr::between(x, this.low, this.high)
       this.x <- x[indices]
       this.y <- y[indices]
 
@@ -625,7 +626,7 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
         sigma[m] <- NaN
         sc[m] <- 1
       } else {
-        rt_int_list_this <- list(labels = this.x, intensities = this.y)
+        rt_int_list_this <- list(rt = this.x, intensities = this.y)
         mu_sc_std <- compute_mu_sc_std(rt_int_list_this, aver_diff)
         miu[m] <- mu_sc_std$label
         sc[m] <- mu_sc_std$intensity
@@ -678,7 +679,7 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
       for (m in 1:l)
       {
         this.y <- y * w[m, ]
-        rt_int_list_this <- list(labels = x, intensities = this.y)
+        rt_int_list_this <- list(rt = x, intensities = this.y)
         mu_sc_std <- compute_mu_sc_std(rt_int_list_this, aver_diff)
         miu[m] <- mu_sc_std$label
         sc[m] <- mu_sc_std$intensity
@@ -906,5 +907,5 @@ prof.to.features <- function(profile,
     plot_peak_summary(feature_groups, peak_parameters)
   }
 
-  return(peak_parameters)
+  return(tibble::as_tibble(peak_parameters))
 }

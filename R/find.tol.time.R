@@ -207,7 +207,7 @@ find.tol.time <- function(features,
     }
 
     list(
-        features = features,
+        features = features |> dplyr::select(-mz_group),
         rt.tol = rt_tol_relative
     )
 }

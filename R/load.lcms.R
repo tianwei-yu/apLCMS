@@ -1,4 +1,5 @@
 #' @import mzR
+#' @import tibble
 NULL
 #> NULL
 
@@ -57,8 +58,9 @@ load.lcms <- function(filename) {
     labels <- c(labels, this_labels)
   }
 
-  times <- b[!is.na(b)]
   mzR::close(mz_conn)
 
-  return(list(masses = masses, labels = labels, intensi = intensi, times = times))
+  features <- tibble::tibble(mz = masses, rt = labels, intensities = intensi)
+
+  return(features)
 }

@@ -22,7 +22,6 @@ patrick::with_parameters_test_that(
     adjusted <- lapply(filenames, function(x) {
        arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
     })
-    #adjusted <- lapply(adjusted, as.data.frame)
 
     aligned <- load_aligned_features(
       file.path(testdata, "aligned", "rt_cross_table.parquet"),
@@ -41,13 +40,14 @@ patrick::with_parameters_test_that(
         orig.tol = mz_tol,
         align.mz.tol = aligned$mz_tolerance,
         align.rt.tol = aligned$rt_tolerance,
-        mz.range = recover_mz_range,
-        rt.range = recover_chr_range,
+        recover_mz_range = recover_mz_range,
+        recover_rt_range = recover_rt_range,
         use.observed.range = use_observed_range,
-        bandwidth = 0.5,
+        bandwidth = bandwidth,
         min.bw = min_bandwidth,
         max.bw = max_bandwidth,
-        recover.min.count = recover_min_count
+        recover.min.count = recover_min_count,
+        intensity.weighted = intensity.weighted
       )
     })
 
@@ -135,11 +135,13 @@ patrick::with_parameters_test_that(
       files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
       mz_tol = 1e-05,
       recover_mz_range = NA,
-      recover_chr_range = NA,
+      recover_rt_range = NA,
       use_observed_range = TRUE,
       min_bandwidth = NA,
       max_bandwidth = NA,
-      recover_min_count = 3
+      recover_min_count = 3,
+      bandwidth = 0.5,
+      intensity.weighted = FALSE
     )
   )
 )

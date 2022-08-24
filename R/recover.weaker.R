@@ -249,14 +249,14 @@ get_mzrange_bound_indices <- function(aligned_feature_mass,
 
 #' Get indices where rt in `features` is within `rt_tol` of `target_time`.
 #' @param target_time float Target retention time region.
-#' @param features tibble Feature table including `labels` column.
+#' @param features tibble Feature table including `rt` column.
 #' @param rt_tol float Retention time tolerance.
 #' @return vector Indices which are within `rt_tol` from `target_time` or
 #' 1 if `target_time` is NA.
 #' @export
 get_rt_region_indices <- function(target_time, features, rt_tol) {
   if (!is.null(target_time) && !is.na(target_time)) {
-    selection <- which(abs(features$labels - target_time) < rt_tol)
+    selection <- which(abs(features$rt - target_time) < rt_tol)
   } else {
     selection <- 1:nrow(features)
   }
@@ -265,7 +265,7 @@ get_rt_region_indices <- function(target_time, features, rt_tol) {
 
 #' Get peaks and valleys of smoothed rt values in range.
 #'
-#' @param features tibble Data table with `labels` and `intensities` columns.
+#' @param features tibble Data table with `rt` and `intensities` columns.
 #' @param times vector Raw retention time data from raw data file.
 #' @param bw float Bandwidth to use for kernel smoothing.
 #' @return Returns a list object with the following objects in it:
@@ -274,10 +274,10 @@ get_rt_region_indices <- function(target_time, features, rt_tol) {
 #'   \item vlys - vector - The points in the data where the density is low
 #'                         (forming a valley in the function).
 get_features_in_rt_range <- function(features, times, bw) {
-  time_curve <- times[between(times, min(features$labels), max(features$labels))]
+  time_curve <- times[between(times, min(features$rt), max(features$rt))]
 
   this.curve <- cbind(time_curve, time_curve * 0)
-  this.curve[this.curve[, 1] %in% features$labels, 2] <- features$intensities
+  this.curve[this.curve[, 1] %in% features$rt, 2] <- features$intensities
 
   this.smooth <- ksmooth(
     this.curve[, 1],
@@ -307,7 +307,7 @@ count_peaks <- function(roi, times) {
 
 #' Compute peaks and valleys which have at least `recover_min_count` peaks.
 #'
-#' @param features tibble Features with `mz`, `labels` and `intensities`.
+#' @param features tibble Features with `mz`, `rt` and `intensities`.
 #' @param times vector Retention time values from the raw data file.
 #' @param bandwidth float Bandwidth to use in smoothing.
 #' @param target_rt float Retention time at which to recover the intensity.
@@ -327,7 +327,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
   pks <- roi$pks
   vlys <- roi$vlys
 
-  num_peaks <- count_peaks(roi, features$labels)
+  num_peaks <- count_peaks(roi, features$rt)
 
   if (!is.null (target_rt) && !is.na(target_rt)) {
     pks.d <- abs(pks - target_rt) # distance from the target peak location
@@ -342,7 +342,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
 
 #' Compute interpolated retention time, its standard deviation, and intensity values,.
 #'
-#' @param features tibble Features with `labels` and `intensities` columns.
+#' @param features tibble Features with `rt` and `intensities` columns.
 #' @param aver_diff float Average retention time difference.
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
@@ -351,7 +351,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
 #'   \item sigma - float - Standard deviation of retention times
 #' @export
 compute_mu_sc_std <- function(features, aver_diff) {
-  x <- features$labels
+  x <- features$rt
   y <- features$intensities
 
   sum_y <- sum(y)
@@ -375,7 +375,7 @@ compute_mu_sc_std <- function(features, aver_diff) {
 #' @param mz Mz value of the feature.
 #' @param peak Peak around which to detect the new feature.
 #' @param valleys Valley points to compute the boundary region.
-#' @param features tibble Tibble with `labels` and `intensities` column.
+#' @param features tibble Tibble with `rt` and `intensities` column.
 #' @param aver_diff float Average retention time difference.
 #' @param times vector Raw retention time values from raw data file.
 #' @param delta_rt vector Differences between consecutive retention time values (diff(times)).
@@ -392,23 +392,23 @@ compute_curr_rec_with_enough_peaks <- function(mz,
   boundaries <- compute_boundaries(valleys, peak)
 
   subset <- features |>
-    dplyr::filter(between(labels, boundaries$lower, boundaries$upper))
+    dplyr::filter(between(rt, boundaries$lower, boundaries$upper))
 
   if (nrow(subset) == 1) {
     intensity <- subset$intensities * aver_diff
-    label <- subset$labels
+    label <- subset$rt
   } else if (nrow(subset) >= 10) {
     res <- compute_mu_sc_std(subset, aver_diff)
     intensity <- res$intensity
     label <- res$label
   } else {
     intensity <- interpol.area(
-      subset$labels,
+      subset$rt,
       subset$intensities,
       times,
       delta_rt
     )
-    label <- median(subset$labels)
+    label <- median(subset$rt)
   }
 
   return(c(mz, label, intensity))
@@ -456,7 +456,7 @@ compute_peaks_and_valleys <- function(dens) {
 
 #' Compute rectangle around feature with `aligned_feature_mz` and `target_rt` for recovery.
 #'
-#' @param data_table tibble Feature table with `mz`, `labels` and `intensities` column.
+#' @param data_table tibble Feature table with `mz`, `rt` and `intensities` column.
 #' @param aligned_feature_mz float Mz value of feature in aligned feature table.
 #' @param breaks vector Integer boundaries of clusters in mz values.
 #' @param custom_mz_tol float Custom mz tolerance for the feature.
@@ -471,7 +471,7 @@ compute_peaks_and_valleys <- function(dens) {
 #' @param bandwidth float Bandwidth to use in smoothing.
 #' @param min.bw float Minimum bandwidth to use.
 #' @param max.bw float Maximum bandwidth to use.
-#' @return tibble Tibble with `mz`, `labels` and `intensities` columns.
+#' @return tibble Tibble with `mz`, `rt` and `intensities` columns.
 compute_rectangle <- function(data_table,
                               aligned_feature_mz,
                               breaks,
@@ -497,7 +497,7 @@ compute_rectangle <- function(data_table,
   features <- dplyr::slice(
     data_table,
     (breaks[bounds$start] + 1):breaks[bounds$end]
-  ) |> dplyr::arrange_at("labels")
+  ) |> dplyr::arrange_at("rt")
 
   mass.den <- compute_mass_density(
     features,
@@ -510,7 +510,7 @@ compute_rectangle <- function(data_table,
   pks_in_tol <- abs(mass_range$pks - aligned_feature_mz) < custom_mz_tol / 1.5
   mass_range$pks <- mass_range$pks[pks_in_tol]
 
-  this.rec <- tibble::tibble(mz = Inf, labels = Inf, intensities = Inf)
+  this.rec <- tibble::tibble(mz = Inf, rt = Inf, intensities = Inf)
   for (peak in mass_range$pks) {
     # get mass values of valleys the closest to the peak
     mass <- compute_boundaries(mass_range$vlys, peak)
@@ -533,7 +533,7 @@ compute_rectangle <- function(data_table,
         if (length(thee.sel) > recover_min_count) {
           if (length(thee.sel) > 1) {
             curr.rec[3] <- interpol.area(
-              that.prof$labels[thee.sel],
+              that.prof$rt[thee.sel],
               that.prof$intensities[thee.sel],
               times,
               delta_rt
@@ -541,25 +541,25 @@ compute_rectangle <- function(data_table,
           } else {
             curr.rec[3] <- that.prof$intensities[thee.sel] * aver_diff
           }
-          curr.rec[2] <- median(that.prof$labels[thee.sel])
+          curr.rec[2] <- median(that.prof$rt[thee.sel])
           this.rec <- tibble::add_row(
             this.rec,
             tibble::tibble_row(
               mz = curr.rec[1],
-              labels = curr.rec[2],
+              rt = curr.rec[2],
               intensities = curr.rec[3]
             )
           )
         }
       } else {
-        labels_intensities <- dplyr::select(
+        rt_intensities <- dplyr::select(
           that.prof,
-          c("labels", "intensities")
-        ) |> dplyr::arrange_at("labels")
-        bw <- min(max(bandwidth * (span(labels_intensities$labels)), min.bw), max.bw)
+          c("rt", "intensities")
+        ) |> dplyr::arrange_at("rt")
+        bw <- min(max(bandwidth * (span(rt_intensities$rt)), min.bw), max.bw)
 
         all <- compute_pks_vlys_rt(
-          labels_intensities,
+          rt_intensities,
           times,
           bw,
           target_rt,
@@ -571,7 +571,7 @@ compute_rectangle <- function(data_table,
             that.mass,
             peak,
             all$vlys,
-            labels_intensities,
+            rt_intensities,
             aver_diff,
             times,
             delta_rt
@@ -581,7 +581,7 @@ compute_rectangle <- function(data_table,
             this.rec,
             tibble::tibble_row(
               mz = curr.rec[1],
-              labels = curr.rec[2],
+              rt = curr.rec[2],
               intensities = curr.rec[3]
             )
           )
@@ -594,7 +594,7 @@ compute_rectangle <- function(data_table,
 
 #' Refine the selection based on mz and rt differences.
 #' @param target_rt float Target retention time value.
-#' @param rectangle tibble Features with columns `labels` and `mz`.
+#' @param rectangle tibble Features with columns `rt` and `mz`.
 #' @param aligned_mz float Mz value in the aligned feature table of the
 #' feature to be recovered.
 #' @param rt_tol float Retention time tolerance.
@@ -602,7 +602,7 @@ compute_rectangle <- function(data_table,
 #' @return int Index of value in rectable closest to `target_rt` and `aligned_mz`.
 refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
   if (!is.na(target_rt)) {
-    rt_term <- (rectangle$labels - target_rt)^2 / rt_tol^2
+    rt_term <- (rectangle$rt - target_rt)^2 / rt_tol^2
     mz_term <- (rectangle$mz - aligned_mz)^2 / mz_tol^2
     this.d <- rt_term + mz_term
   } else {
@@ -627,9 +627,9 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' @param extracted_features The matrix which is the output from proc.to.feature().
 #' @param adjusted_features The matrix which is the output from proc.to.feature().
 #' The retention time in this object have been adjusted by the function adjust.time().
-#' @param mz.range The m/z around the feature m/z to search for observations.
+#' @param recover_mz_range The m/z around the feature m/z to search for observations.
 #' The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
-#' @param rt.range The retention time around the feature retention time to search for observations.
+#' @param recover_rt_range The retention time around the feature retention time to search for observations.
 #' The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
 #' @param use.observed.range If the value is TRUE, the actual range of the observed locations
 #' of the feature in all the spectra will be used.
@@ -658,8 +658,8 @@ recover.weaker <- function(filename,
                            align.rt.tol,
                            extracted_features,
                            adjusted_features,
-                           mz.range = NA,
-                           rt.range = NA,
+                           recover_mz_range = NA,
+                           recover_rt_range = NA,
                            use.observed.range = TRUE,
                            orig.tol = 1e-5,
                            min.bw = NA,
@@ -669,35 +669,27 @@ recover.weaker <- function(filename,
                            intensity.weighted = FALSE) {
 
   # load raw data
-  this.raw <- load_file(filename)
-  times <- this.raw$times
-  data_table <- tibble::tibble(
-    mz = this.raw$masses,
-    labels = this.raw$labels,
-    intensities = this.raw$intensi
-  ) |> dplyr::arrange_at("mz")
-  rm(this.raw)
+  data_table <- load_file(filename) |> dplyr::arrange_at("mz")
+  times <- sort(unique(data_table$rt))
 
   # Initialize parameters with default values
-  if (is.na(mz.range)) mz.range <- 1.5 * align.mz.tol
-  if (is.na(rt.range)) rt.range <- align.rt.tol / 2
+  if (is.na(recover_mz_range)) recover_mz_range <- 1.5 * align.mz.tol
+  if (is.na(recover_rt_range)) recover_rt_range <- align.rt.tol / 2
   if (is.na(min.bw)) min.bw <- span(times) / 60
   if (is.na(max.bw)) max.bw <- span(times) / 15
   if (min.bw >= max.bw) min.bw <- max.bw / 4
 
-
-  times <- sort(unique(times))
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
 
   sample_intensities <- aligned.ftrs[, sample_name]
   sample_times <- pk.times[, sample_name]
 
-  custom.mz.tol <- mz.range * aligned.ftrs$mz
+  custom.mz.tol <- recover_mz_range * aligned.ftrs$mz
   custom.rt.tol <- get_custom_rt_tol(
     use.observed.range,
     pk.times,
-    rt.range,
+    recover_rt_range,
     aligned.ftrs
   )
 
@@ -771,10 +763,10 @@ recover.weaker <- function(filename,
           )
         }
 
-        this.pos.diff <- which.min(abs(extracted_features$pos - this.rec$labels[this.sel]))
+        this.pos.diff <- which.min(abs(extracted_features$pos - this.rec$rt[this.sel]))
         extracted_features <- extracted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
-          pos = this.rec$labels[this.sel],
+          pos = this.rec$rt[this.sel],
           area = this.rec$intensities[this.sel]
         )
         
@@ -782,13 +774,13 @@ recover.weaker <- function(filename,
 
         adjusted_features <- adjusted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
-          rt = this.rec$labels[this.sel] + this.time.adjust,
+          rt = this.rec$rt[this.sel] + this.time.adjust,
           area = this.rec$intensities[this.sel],
           sample_id = grep(sample_name, colnames(aligned.ftrs)) - 4 # offset for other columns `mz`, `rt` etc
         )
 
         sample_intensities[i] <- this.rec$intensities[this.sel]
-        sample_times[i] <- this.rec$labels[this.sel] + this.time.adjust
+        sample_times[i] <- this.rec$rt[this.sel] + this.time.adjust
         this.mz[i] <- this.rec$mz[this.sel]
       }
     }

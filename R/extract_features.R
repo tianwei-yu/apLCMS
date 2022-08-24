@@ -39,8 +39,8 @@ NULL
 extract_features <- function(
   cluster,
   filenames,
-  min_pres,
-  min_run,
+  min_presence,
+  min_elution_length,
   mz_tol,
   baseline_correct,
   baseline_correct_noise_percentile,
@@ -92,7 +92,8 @@ extract_features <- function(
     'compute_start_bound',
     'compute_end_bound',
     'compute_bounds',
-    'compute_scale'
+    'compute_scale',
+    'span'
   ))
   snow::clusterEvalQ(cluster, library("dplyr"))
 
@@ -100,12 +101,12 @@ extract_features <- function(
   snow::parLapply(cluster, filenames, function(filename) {
     profile <- proc.cdf(
       filename = filename,
-      min.pres = min_pres,
-      min.run = min_run,
-      tol = mz_tol,
-      baseline.correct = baseline_correct,
-      baseline.correct.noise.percentile = baseline_correct_noise_percentile,
-      intensity.weighted = intensity_weighted,
+      min_presence = min_presence,
+      min_elution_length = min_elution_length,
+      mz_tol = mz_tol,
+      baseline_correct = baseline_correct,
+      baseline_correct_noise_percentile = baseline_correct_noise_percentile,
+      intensity_weighted = intensity_weighted,
       do.plot = FALSE,
       cache = FALSE
     )
