@@ -24,7 +24,7 @@ patrick::with_parameters_test_that(
 )
 
 patrick::with_parameters_test_that(
-  "adjust time test",
+  "correct time test",
   {
     testdata <- file.path("..", "testdata")
 
@@ -64,7 +64,7 @@ patrick::with_parameters_test_that(
 
 
 patrick::with_parameters_test_that(
-  "adjust time complete",
+  "adjust time test",
   {
     testdata <- file.path("..", "testdata")
     
