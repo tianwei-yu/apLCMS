@@ -18,6 +18,22 @@ merge.new <- function(mean0, sd0, min0, max0, n, x) {
     return(c(mean1, sd1, min1, max1))
 }
 
+characterize <- function(existing.row, n, m, rt.row, ftrs.row){
+    existing.row[7] <- sum(as.numeric(existing.row[7]), length(ftrs.row) - 4, na.rm = T)
+    existing.row[8] <- (n + m) / as.numeric(existing.row[7])
+    existing.row[9] <- min(as.numeric(existing.row[6]), as.numeric(existing.row[9]), ftrs.row[3], na.rm = T)
+    existing.row[10] <- max(as.numeric(existing.row[6]), as.numeric(existing.row[10]), ftrs.row[4], na.rm = T)
+
+    this <- merge.new(as.numeric(existing.row[11]), as.numeric(existing.row[12]), as.numeric(existing.row[13]), as.numeric(existing.row[14]), n, rt.row[5:length(rt.row)])
+    existing.row[11:14] <- this
+
+    this <- merge.new(as.numeric(existing.row[15]), as.numeric(existing.row[16]), as.numeric(existing.row[17]), as.numeric(existing.row[18]), n, ftrs.row[5:length(ftrs.row)])
+    existing.row[15:18] <- this
+
+    return(existing.row)
+
+}
+
 #' Internal function: Updates the information of a feature for the known feature table.
 #'
 #' @description
@@ -43,16 +59,7 @@ peak.characterize <- function(existing.row = NA, ftrs.row, rt.row) {
     }
     m <- sum(!is.na(rt.row[5:length(rt.row)])) # times found in current experiment
 
-    existing.row[7] <- sum(as.numeric(existing.row[7]), length(ftrs.row) - 4, na.rm = T)
-    existing.row[8] <- (n + m) / as.numeric(existing.row[7])
-    existing.row[9] <- min(as.numeric(existing.row[6]), as.numeric(existing.row[9]), ftrs.row[3], na.rm = T)
-    existing.row[10] <- max(as.numeric(existing.row[6]), as.numeric(existing.row[10]), ftrs.row[4], na.rm = T)
-
-    this <- merge.new(as.numeric(existing.row[11]), as.numeric(existing.row[12]), as.numeric(existing.row[13]), as.numeric(existing.row[14]), n, rt.row[5:length(rt.row)])
-    existing.row[11:14] <- this
-
-    this <- merge.new(as.numeric(existing.row[15]), as.numeric(existing.row[16]), as.numeric(existing.row[17]), as.numeric(existing.row[18]), n, ftrs.row[5:length(ftrs.row)])
-    existing.row[15:18] <- this
+    existing.row <- characterize(existing.row, n, m, rt.row, ftrs.row)
 
     return(tibble::as_tibble(existing.row))
 }
