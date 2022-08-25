@@ -54,5 +54,5 @@ peak.characterize <- function(existing.row = NA, ftrs.row, rt.row) {
     this <- merge.new(as.numeric(existing.row[15]), as.numeric(existing.row[16]), as.numeric(existing.row[17]), as.numeric(existing.row[18]), n, ftrs.row[5:length(ftrs.row)])
     existing.row[15:18] <- this
 
-    return(existing.row)
+    return(tibble::as_tibble(existing.row))
 }
