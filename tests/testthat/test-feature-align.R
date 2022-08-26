@@ -12,8 +12,10 @@ patrick::with_parameters_test_that(
     corrected_files <- lapply(files, function(x) {
       file.path(testdata, "adjusted", paste0(x, ".parquet"))
     })
-    corrected_features <- lapply(corrected_files, arrow::read_parquet)
-    corrected_features <- lapply(corrected_features, as.matrix)
+
+    corrected_features <- lapply(corrected_files, function(x) {
+       arrow::read_parquet(x) |> dplyr::rename(rt = pos, sample_id = V6)
+    })
     
     aligned_actual <- feature.align(
         features = corrected_features,

@@ -696,14 +696,14 @@ recover.weaker <- function(filename,
   # # rounding is used to create a histogram of retention time values
   target_times <- compute_target_times(
     aligned.ftrs[, "rt"],
-    round(extracted_features$pos, 5),
+    round(extracted_features$rt, 5),
     round(adjusted_features$rt, 5)
   )
 
   # IMPORTANT: THIS CODE SECTION COULD BE USED TO REPLACE COMPUTE_TARGET_TIMES FOR THE TEST CASES AND
   # IS A MASSIVE SIMPLIFICATION.
   # sp <- splines::interpSpline(
-  #   unique(extracted_features$pos) ~ unique(adjusted_features$rt),
+  #   unique(extracted_features$rt) ~ unique(adjusted_features$rt),
   #   na.action = na.omit
   # )
   # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
@@ -763,14 +763,14 @@ recover.weaker <- function(filename,
           )
         }
 
-        this.pos.diff <- which.min(abs(extracted_features$pos - this.rec$rt[this.sel]))
+        this.pos.diff <- which.min(abs(extracted_features$rt - this.rec$rt[this.sel]))
         extracted_features <- extracted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
-          pos = this.rec$rt[this.sel],
+          rt = this.rec$rt[this.sel],
           area = this.rec$intensities[this.sel]
         )
         
-        this.time.adjust <- (-extracted_features$pos[this.pos.diff] + adjusted_features$rt[this.pos.diff])
+        this.time.adjust <- (-extracted_features$rt[this.pos.diff] + adjusted_features$rt[this.pos.diff])
 
         adjusted_features <- adjusted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
@@ -789,7 +789,7 @@ recover.weaker <- function(filename,
   to.return$this.mz <- this.mz
   to.return$this.ftrs <- sample_intensities
   to.return$this.times <- sample_times
-  to.return$this.f1 <- duplicate.row.remove(extracted_features |> dplyr::rename(rt = pos)) |> dplyr::rename(pos = rt)
+  to.return$this.f1 <- duplicate.row.remove(extracted_features)
   to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
   return(to.return)

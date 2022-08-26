@@ -168,7 +168,6 @@ create_aligned_feature_table <- function(all_table,
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @param rt_colname Name of the column containing the retention time information.
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
@@ -185,21 +184,13 @@ feature.align <- function(features,
                           rt_tol_relative = NA,
                           mz_max_diff = 1e-4,
                           mz_tol_absolute = 0.01,
-                          do.plot = TRUE,
-                          rt_colname = "pos") {
+                          do.plot = TRUE) {
     if (do.plot) {
         par(mfrow = c(3, 2))
         draw_plot(label = "Feature alignment", cex = 2)
         draw_plot()
     }
 
-    features <- lapply(features, function(x) {
-        x <- tibble::as_tibble(x)
-        if ("pos" %in% colnames(x)) {
-            x <- x |> dplyr::rename(rt = pos)
-        }
-        return(x)
-    })
 
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
