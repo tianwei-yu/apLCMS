@@ -25,7 +25,7 @@ compute_clusters <- function(feature_tables,
                              rt_tol_relative,
                              do.plot = FALSE) {
   number_of_samples <- length(feature_tables)
-  all <- concatenate_feature_tables(feature_tables, "rt")
+  all <- concatenate_feature_tables(feature_tables)
 
   if (is.na(mz_tol_relative)) {
     mz_tol_relative <- find.tol(
@@ -60,7 +60,7 @@ compute_clusters <- function(feature_tables,
     mz_tol_absolute = mz_tol_absolute,
     do.plot = do.plot
   )
-  all.ft <- res$features
+
   rt_tol_relative <- res$rt.tol
 
   message("**** performing time correction ****")
