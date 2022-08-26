@@ -136,7 +136,7 @@ augment_known_table <- function(
         existing.row = NA,
         ftrs.row = int_crosstab[i, ],
         rt.row = rt_crosstab[i, ])
-      known_table <- rbind(known_table, row)
+      known_table <- dplyr::bind_rows(known_table, row)
       pairing <- rbind(pairing, c(i, nrow(known_table)))
     }
   }
