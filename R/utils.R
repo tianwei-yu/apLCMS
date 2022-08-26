@@ -74,7 +74,7 @@ load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_
   tolerances <- arrow::read_parquet(tol_file)
   
   result <- list()
-  result$medatada <- as_tibble(metadata)
+  result$metadata <- as_tibble(metadata)
   result$intensity <- as_tibble(intensities)
   result$rt <- as_tibble(rt)
   result$mz_tol_relative <- tolerances$mz_tolerance
@@ -84,8 +84,8 @@ load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_
 
 create_feature_sample_table <- function(features) {
   table <- as_feature_sample_table(
-    rt_crosstab = features$rt_crosstab,
-    int_crosstab = features$int_crosstab
+    rt_crosstab = features$rt,
+    int_crosstab = features$intensity
   )
   return(table)
 }

@@ -48,22 +48,18 @@ patrick::with_parameters_test_that(
         moment_power = 1,
         BIC_factor = 2.0
     )
-    expected_filenames <- lapply(expected_files, function(x) {
-      file.path(testdata, "extracted", x)
-    })
-    expected <- lapply(expected_filenames, function(x) {
-      arrow::read_parquet(x) |> dplyr::rename(rt = pos)
+
+    keys <- c("mz", "rt", "sd1", "sd2")
+
+    expected <- lapply(expected_files, function(x) {
+      xx <- file.path(testdata, "extracted", x)
+      unique(arrow::read_parquet(xx)) |> dplyr::arrange_at(keys)
     })
     
-    actual <- unique(actual)
-    expected <- unique(expected)
-    keys <- c("mz", "rt", "sd1", "sd2")
     actual <- lapply(actual, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
+      x |> dplyr::arrange_at(keys)
     })
-    expected <- lapply(expected, function(x) {
-      as.data.frame(x) |> dplyr::arrange_at(keys)
-    })
+
     for (i in seq_along(files)) {
       actual_i <- actual[[i]]
       expected_i <- expected[[i]]

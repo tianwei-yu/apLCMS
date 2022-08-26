@@ -11,7 +11,7 @@ patrick::with_parameters_test_that(
     template_features <- compute_template(extracted)
 
     expected <- file.path(testdata, "template", "RCX_shortened.parquet")
-    expected <- arrow::read_parquet(expected) |> dplyr::rename(sample_id = label)
+    expected <- arrow::read_parquet(expected)
 
     expect_equal(template_features, expected)
   },
@@ -28,7 +28,7 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
 
     template_features <- file.path(testdata, "template", "RCX_shortened.parquet")
-    template_features <- arrow::read_parquet(template_features) |> dplyr::rename(sample_id = label)
+    template_features <- arrow::read_parquet(template_features)
 
     extracted <- file.path(testdata, "clusters", paste0(.test_name, "_extracted_clusters.parquet"))
     extracted <- arrow::read_parquet(extracted)
@@ -41,7 +41,6 @@ patrick::with_parameters_test_that(
     )
 
     expected <- tibble::as_tibble(arrow::read_parquet(file.path(testdata, "adjusted", paste0(.test_name, ".parquet"))))
-    expected <- expected |> dplyr::rename( rt = pos, sample_id = V6, cluster = V7)
     expect_equal(corrected, expected)
   },
   patrick::cases(

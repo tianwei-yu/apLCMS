@@ -3,12 +3,9 @@ patrick::with_parameters_test_that(
   {
     testdata <- file.path("..", "testdata")
 
-    filenames <- sapply(files, function(x) {
-      file.path(testdata, input, paste0(x, ".parquet"))
-    })
-
-    extracted <- lapply(filenames, function(x) {
-      tibble::as_tibble(arrow::read_parquet(x)) |> dplyr::rename(rt = pos)
+    extracted <- lapply(files, function(x) {
+      xx <- file.path(testdata, input, paste0(x, ".parquet"))
+      tibble::as_tibble(arrow::read_parquet(xx))
     })
 
     actual <- compute_clusters(
@@ -25,7 +22,7 @@ patrick::with_parameters_test_that(
     })
 
 
-    for(i in seq_along(filenames)) {
+    for(i in seq_along(files)) {
       expect_equal(actual$feature_tables[[i]], expected[[i]])
     }
 

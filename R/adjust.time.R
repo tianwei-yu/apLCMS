@@ -155,9 +155,6 @@ adjust.time <- function(extracted_features,
     draw_plot(label = "Retention time \n adjustment", cex = 2)
   }
 
-  rt_tol_relative <- res$rt_tol_relative
-  mz_tol_relative <- res$mz_tol_relative
-
   template_features <- compute_template(extracted_features)
 
   corrected_features <- foreach::foreach(this.feature = extracted_features) %do% 
