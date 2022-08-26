@@ -76,7 +76,7 @@ load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_
   
   result <- list()
   result$medatada <- as_tibble(metadata)
-  result$intensities <- as_tibble(intensities)
+  result$intensity <- as_tibble(intensities)
   result$rt <- as_tibble(rt)
   result$mz_tol_relative <- tolerances$mz_tolerance
   result$rt_tol_relative <- tolerances$rt_tolerance
