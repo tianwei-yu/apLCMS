@@ -12,7 +12,7 @@ patrick::with_parameters_test_that(
     template_features <- compute_template(extracted)
 
     expected <- file.path(testdata, "template", "RCX_shortened.parquet")
-    expected <- arrow::read_parquet(expected)
+    expected <- arrow::read_parquet(expected) |> dplyr::rename(sample_id = label)
 
     expect_equal(template_features, expected)
   },
@@ -29,7 +29,7 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
 
     template_features <- file.path(testdata, "template", "RCX_shortened.parquet")
-    template_features <- arrow::read_parquet(template_features)
+    template_features <- arrow::read_parquet(template_features) |> dplyr::rename(sample_id = label)
 
     extracted <- file.path(testdata, "clusters", paste0(.test_name, "_extracted_clusters.parquet"))
     extracted <- arrow::read_parquet(extracted)
