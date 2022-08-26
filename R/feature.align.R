@@ -1,50 +1,47 @@
 #' @import foreach
-NULL
-#> NULL
 
-to_attach <- function(peak, number_of_samples, use = "sum") {
-    strengths <- rep(0, number_of_samples)
-    if (is.null(nrow(peak))) {
-        strengths[peak[6]] <- peak[5]
-        return(c(peak[1], peak[2], peak[1], peak[1], strengths))
-    } else {
-        for (i in seq_along(strengths)) {
-            # select all areas/RTs from the same sample
-            values <- peak[peak[, 6] == i, 5]
-            if (use == "sum") {
-                strengths[i] <- sum(values)
-            }
-            if (use == "median") {
-                strengths[i] <- median(values)
-            }
-            # can be NA if pick does not contain any data from a sample
-        }
-        # average of m/z, average of rt, min of m/z, max of m/z, sum/median of areas/RTs
-        return(c(
-            mean(peak[, 1]), mean(peak[, 2]), min(peak[, 1]),
-            max(peak[, 1]), strengths
-        ))
-    }
+create_empty_tibble <- function(number_of_samples, medatada_colnames, intensity_colnames, rt_colnames) {
+    features <- new("list")
+    features$medatada <- as_tibble(matrix(nrow = 0, ncol = length(medatada_colnames)), .name_repair = ~ medatada_colnames)
+    features$intensity <- as_tibble(matrix(nrow = 0, ncol = length(intensity_colnames)), .name_repair = ~ intensity_colnames)
+    features$rt <- as_tibble(matrix(nrow = 0, ncol = length(rt_colnames)), .name_repair = ~ rt_colnames)
+    return(features)
 }
 
 
-create_output <- function(sample_grouped, number_of_samples, deviation) {
-    return(c(
-        to_attach(sample_grouped, number_of_samples, use = "sum"),
-        to_attach(sample_grouped[, c(1, 2, 3, 4, 2, 6)], number_of_samples, use = "median"),
-        deviation #mz standard deviation
-    ))
+add_row <- function(df, data, i, column_names) {
+    row <- matrix(c(i, data), nrow=1)
+    colnames(row) <- column_names
+    return(bind_rows(df, as_tibble(row)))
+}
 
-    # variable_metadata_row <- (feature_id, mean_mz, min_mz, max_mz, mean_rt, min_rt, max_rt, num_peaks, sample_presence)
-    # intensity_row <- (feature_id, sample_0_intensity, sample_1_intensity, ...)
-    # rt_row <- (feature_id, sample_0_rt, sample_1_rt, ...)
+
+create_output <- function(sample_grouped, number_of_samples) {
+    intensity_row <- rep(0, number_of_samples)
+    rt_row <- rep(0, number_of_samples)
+    sample_presence <- rep(0, number_of_samples)
+    
+    for (i in seq_along(intensity_row)) {
+        filtered <- filter(sample_grouped, sample_id == i)
+        if (nrow(filtered) != 0) {
+            sample_presence[i] <- 1
+            intensity_row[i] <- sum(filtered$area)
+            rt_row[i] <- median(filtered$rt)
+        }
+    }
+    
+    mz <- sample_grouped$mz
+    rt <- sample_grouped$rt
+    metadata_row <- c(mean(mz), min(mz), max(mz), mean(rt), min(rt), max(rt), nrow(sample_grouped), sample_presence)
+    
+    return(list(metadata_row = metadata_row, intensity_row = intensity_row, rt_row = rt_row))
 }
 
 
 validate_contents <- function(samples, min_occurrence) {
     # validate whether data is still from at least 'min_occurrence' number of samples
     if (!is.null(nrow(samples))) {
-        if (length(unique(samples[, 6])) >= min_occurrence) {
+        if (length(unique(samples$sample_id)) >= min_occurrence) {
             return(TRUE)
         }
         return(FALSE)
@@ -72,21 +69,18 @@ filter_based_on_density <- function(sample, turns, index, i) {
 
 
 select_rt <- function(sample, rt_tol_relative, min_occurrence, number_of_samples) {
-    # turns for rt
-    turns <- find_optima(sample[, 2], bandwidth = rt_tol_relative / 1.414)
+    turns <- find_optima(sample$rt, bandwidth = rt_tol_relative / 1.414)
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 2, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
-            return(create_output(sample_grouped, number_of_samples, sd(sample_grouped[, 1], na.rm = TRUE)))
+            return(create_output(sample_grouped, number_of_samples))
         }
     }
 }
 
 
 select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples) {
-    # turns for m/z
-    mz <- sample[, 1]
-    turns <- find_optima(mz, bandwidth = mz_tol_relative * median(mz))
+    turns <- find_optima(sample$mz, bandwidth = mz_tol_relative * median(sample$mz))
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 1, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
@@ -107,45 +101,33 @@ create_rows <- function(features,
         gc()
     } # call Garbage Collection for performance improvement?
 
-    # select a group
-    group_ids <- which(features$cluster == sel.labels[i])
-    if (length(group_ids) > 1) {
-        # select data from the group
-        # dplyr::slice(group_ids)
-        
-        sample <- cbind(
-            features$mz[group_ids],
-            features$rt[group_ids],
-            features$rt[group_ids], # pseudo mz.min
-            features$rt[group_ids], # pseudo mz.max
-            features$area[group_ids],
-            features$sample_id[group_ids]
-        )
-        # continue if data is from at least 'min_occurrence' samples
+    sample <- filter(features, cluster == sel.labels[i])
+    if (nrow(sample) > 1) {
         if (validate_contents(sample, min_occurrence)) {
             return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples))
         }
     } else if (min_occurrence == 1) {
-        sample_grouped <- c(
-            features$mz[group_ids], features$rt[group_ids], features$rt[group_ids],
-            features$rt[group_ids], features$area[group_ids], features$sample_id[group_ids]
-        )
-        return(create_output(sample_grouped, number_of_samples, NA))
+        return(create_output(sample_grouped, number_of_samples))
     }
     return(NULL)
 }
+
 
 create_aligned_feature_table <- function(all_table,
                                          min_occurrence,
                                          number_of_samples,
                                          rt_tol_relative,
                                          mz_tol_relative) {
-    aligned_features <- NULL
-
+    
+    medatada_colnames <- c("id", "mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "npeaks", paste0("sample_", 1:number_of_samples))
+    intensity_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_intensity"))
+    rt_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_rt"))
+    
+    aligned_features <- create_empty_tibble(number_of_samples, medatada_colnames, intensity_colnames, rt_colnames)
+    
     # table with number of values per group
     groups_cardinality <- table(all_table$cluster)
     # count those with minimal occurrence
-    # (times 3 ? shouldn't be number of samples) !!!
     sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
 
     # retention time alignment
@@ -159,8 +141,12 @@ create_aligned_feature_table <- function(all_table,
             min_occurrence,
             number_of_samples
         )
-
-        aligned_features <- rbind(aligned_features, rows)
+        
+        if (!is.null(rows)) {
+            aligned_features$medatada <- add_row(aligned_features$medatada, rows$metadata_row, i, medatada_colnames)
+            aligned_features$intensity <- add_row(aligned_features$intensity, rows$intensity_row, i, intensity_colnames)
+            aligned_features$rt <- add_row(aligned_features$rt, rows$rt_row, i, rt_colnames)
+        }
     }
     return(aligned_features)
 }
@@ -226,45 +212,19 @@ feature.align <- function(features,
         )
 
         all_table <- dplyr::bind_rows(res$feature_tables)
-        rt_tol_relative <- res$rt_tol_relative
-        mz_tol_relative <- res$mz_tol_relative
 
-        # create zero vectors of length number_of_samples + 4 ?
         aligned_features <- create_aligned_feature_table(
             all_table,
             min_occurrence,
             number_of_samples,
-            rt_tol_relative,
-            mz_tol_relative
+            res$rt_tol_relative,
+            res$mz_tol_relative
         )
+        
+        aligned_features$mz_tol_relative <- res$mz_tol_relative
+        aligned_features$rt_tol_relative <- res$rt_tol_relative
 
-        # select columns: average of m/z, average of rt, min of m/z, max of m/z, median of rt per sample (the second to_attach call)
-        times_start_idx <- 5 + number_of_samples
-        times_end_idx <- 2 * (4 + number_of_samples)
-        pk.times <- aligned_features[, times_start_idx:times_end_idx]
-        # select columns: average of m/z, average of rt, min of m/z, max of m/z, sum of areas per sample (the first to_attach call)
-        areas_end_idx <- 4 + number_of_samples
-        aligned_features <- aligned_features[, 1:areas_end_idx]
-
-        # rename columns on both tables, samples are called "exp_i"
-        colnames(aligned_features) <-
-            colnames(pk.times) <- c("mz", "time", "mz.min", "mz.max", paste("exp", 1:number_of_samples))
-
-        # return both tables and both computed tolerances
-        rec <- new("list")
-        rec$aligned_features <- aligned_features
-        rec$peak_times <- pk.times
-        rec$mz_tol_relative <- mz_tol_relative
-        rec$rt_tol_relative <- rt_tol_relative
-
-        if (do.plot) {
-            plot_rt_histograms(
-                pk.times,
-                aligned_features[, ncol(aligned_features)]
-            )
-        }
-
-        return(rec)
+        return(aligned_features)
     } else {
         message("There is but one experiment.  What are you trying to align?")
         return(0)

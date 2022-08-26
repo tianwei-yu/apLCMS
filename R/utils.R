@@ -68,19 +68,18 @@ wide_to_long_feature_table <- function(wide_table, sample_names) {
   return(long_features)
 }
 
-load_aligned_features <- function(rt_file, int_file, tol_file) {
-  rt_cross_table <- arrow::read_parquet(rt_file)
-  int_cross_table <- arrow::read_parquet(int_file)
-  tolerances_table <- arrow::read_parquet(tol_file)
-  
-  row.names(rt_cross_table) <- as.character(row.names(rt_cross_table))
-  row.names(int_cross_table) <- as.character(row.names(int_cross_table))
+load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_file) {
+  metadata <- arrow::read_parquet(metadata_file)
+  intensities <- arrow::read_parquet(intensities_file)
+  rt <- arrow::read_parquet(rt_file)
+  tolerances <- arrow::read_parquet(tol_file)
   
   result <- list()
-  result$mz_tolerance <- tolerances_table$mz_tolerance
-  result$rt_tolerance <- tolerances_table$rt_tolerance
-  result$rt_crosstab <- rt_cross_table
-  result$int_crosstab <- int_cross_table
+  result$medatada <- as_tibble(metadata)
+  result$intensity <- as_tibble(intensities)
+  result$rt <- as_tibble(rt)
+  result$mz_tol_relative <- tolerances$mz_tolerance
+  result$rt_tol_relative <- tolerances$rt_tolerance
   return(result)
 }
 
