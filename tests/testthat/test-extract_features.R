@@ -2,27 +2,17 @@ patrick::with_parameters_test_that(
   "extract single feature works",
   {
     skip_on_ci()
-    if(skip){
+    if (skip) {
       skip("skipping whole data test case")
     }
-    
+
     testdata <- file.path("..", "testdata")
 
     filenames <- lapply(files, function(x) {
       file.path(testdata, "input", x)
     })
 
-    # CRAN limits the number of cores available to packages to 2
-    # source https://stackoverflow.com/questions/50571325/r-cran-check-fail-when-using-parallel-functions#50571533
-    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      cluster <- 2L
-    } else {
-      # use all cores in devtools::test()
-      cluster <- parallel::detectCores()
-    }
+    cluster <- get_num_workers()
 
     if (!is(cluster, "cluster")) {
       cluster <- parallel::makeCluster(cluster)
@@ -30,23 +20,23 @@ patrick::with_parameters_test_that(
     }
 
     actual <- extract_features(
-        cluster = cluster,
-        filenames,
-        min_presence = min_presence,
-        min_elution_length = min_elution_length,
-        mz_tol = mz_tol,
-        baseline_correct = 0,
-        baseline_correct_noise_percentile = 0.05,
-        intensity_weighted = intensity_weighted,
-        min_bandwidth = NA,
-        max_bandwidth = NA,
-        sd_cut = sd_cut,
-        sigma_ratio_lim = sigma_ratio_lim,
-        shape_model = "bi-Gaussian",
-        peak_estim_method = "moment",
-        component_eliminate = 0.01,
-        moment_power = 1,
-        BIC_factor = 2.0
+      cluster = cluster,
+      filenames,
+      min_presence = min_presence,
+      min_elution_length = min_elution_length,
+      mz_tol = mz_tol,
+      baseline_correct = 0,
+      baseline_correct_noise_percentile = 0.05,
+      intensity_weighted = intensity_weighted,
+      min_bandwidth = NA,
+      max_bandwidth = NA,
+      sd_cut = sd_cut,
+      sigma_ratio_lim = sigma_ratio_lim,
+      shape_model = "bi-Gaussian",
+      peak_estim_method = "moment",
+      component_eliminate = 0.01,
+      moment_power = 1,
+      BIC_factor = 2.0
     )
     expected_filenames <- lapply(expected_files, function(x) {
       file.path(testdata, "extracted", x)
