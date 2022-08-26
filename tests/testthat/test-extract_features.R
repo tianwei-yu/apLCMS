@@ -51,11 +51,13 @@ patrick::with_parameters_test_that(
     expected_filenames <- lapply(expected_files, function(x) {
       file.path(testdata, "extracted", x)
     })
-    expected <- lapply(expected_filenames, arrow::read_parquet)
-    expected <- lapply(expected, as.data.frame)
+    expected <- lapply(expected_filenames, function(x) {
+      arrow::read_parquet(x) |> dplyr::rename(rt = pos)
+    })
+    
     actual <- unique(actual)
     expected <- unique(expected)
-    keys <- c("mz", "pos", "sd1", "sd2")
+    keys <- c("mz", "rt", "sd1", "sd2")
     actual <- lapply(actual, function(x) {
       as.data.frame(x) |> dplyr::arrange_at(keys)
     })

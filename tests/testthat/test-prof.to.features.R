@@ -14,7 +14,7 @@ patrick::with_parameters_test_that(
     )
 
     expected_path <- file.path(testdata, "features", expected_filename)
-    expected <- arrow::read_parquet(expected_path)
+    expected <- arrow::read_parquet(expected_path) |> dplyr::rename(rt = pos)
     expect_equal(actual, expected)
   },
   patrick::cases(
