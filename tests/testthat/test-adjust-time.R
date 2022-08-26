@@ -1,5 +1,5 @@
 patrick::with_parameters_test_that(
-  "adjust time test",
+  "get_template",
   {
     testdata <- file.path("..", "testdata")
 
@@ -8,32 +8,54 @@ patrick::with_parameters_test_that(
     })
 
     extracted <- lapply(filenames, arrow::read_parquet)
+    template_features <- compute_template(extracted)
 
-    corrected <- adjust.time(
-      extracted_features = extracted,
-      mz_tol_relative = mz_tol_relative,
-      rt_tol_relative = rt_tol_relative,
-      do.plot = do.plot
-    )
+    expected <- file.path(testdata, "template", "RCX_shortened.parquet")
+    expected <- arrow::read_parquet(expected) |> dplyr::rename(sample_id = label)
 
-    expected_filenames <- lapply(files, function(x) {
-      file.path(testdata, "adjusted", paste0(x, ".parquet"))
-    })
-
-    expected <- lapply(expected_filenames, function(x) {
-      tibble::as_tibble(arrow::read_parquet(x)) |> dplyr::rename(rt = pos, sample_id = V6, cluster = V7)
-    })
-
-    corrected <- lapply(corrected, tibble::as_tibble)
-
-    expect_equal(corrected, expected)
+    expect_equal(template_features, expected)
   },
   patrick::cases(
     RCX_shortened = list(
-      files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened"),
-      mz_tol_relative = 6.85676325338646e-06,
-      rt_tol_relative = 3.61858118506494,
-      do.plot = FALSE
+      files = c("RCX_06_shortened", "RCX_07_shortened", "RCX_08_shortened")
+    )
+  )
+)
+
+patrick::with_parameters_test_that(
+  "correct time test",
+  {
+    testdata <- file.path("..", "testdata")
+
+    template_features <- file.path(testdata, "template", "RCX_shortened.parquet")
+    template_features <- arrow::read_parquet(template_features) |> dplyr::rename(sample_id = label)
+
+    extracted <- file.path(testdata, "clusters", paste0(.test_name, "_extracted_clusters.parquet"))
+    extracted <- arrow::read_parquet(extracted)
+
+    corrected <- correct_time(
+      this.feature = extracted,
+      template_features = template_features,
+      mz_tol_relative = mz_tol_relative,
+      rt_tol_relative = rt_tol_relative
+    )
+
+    expected <- tibble::as_tibble(arrow::read_parquet(file.path(testdata, "adjusted", paste0(.test_name, ".parquet"))))
+    expected <- expected |> dplyr::rename( rt = pos, sample_id = V6, cluster = V7)
+    expect_equal(corrected, expected)
+  },
+  patrick::cases(
+    RCX_06_shortened = list(
+      mz_tol_relative = 6.856763e-06,
+      rt_tol_relative = 3.618581
+    ),
+    RCX_07_shortened = list(
+      mz_tol_relative = 6.856763e-06,
+      rt_tol_relative = 3.618581
+    ),
+    RCX_08_shortened = list(
+      mz_tol_relative = 6.856763e-06,
+      rt_tol_relative = 3.618581
     )
   )
 )

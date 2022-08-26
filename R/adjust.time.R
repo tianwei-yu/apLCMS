@@ -2,10 +2,10 @@
 NULL
 #> NULL
 
-compute_comb <- function(candi, template, this.feature, j) {
+compute_comb <- function(template_features, this.feature) {
   this.comb <- dplyr::bind_rows(
-    dplyr::bind_cols(candi, label = rep(template, nrow(candi))),
-    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), label = rep(j, nrow(this.feature)))
+    template_features,
+    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), sample_id = this.feature$sample_id)
   )
   this.comb <- this.comb |> dplyr::arrange_at("mz")
   return(this.comb)
@@ -13,16 +13,16 @@ compute_comb <- function(candi, template, this.feature, j) {
 
 compute_sel <- function(this.comb, mz_tol_relative, rt_tol_relative) {
   l <- nrow(this.comb)
-  sel <- which(this.comb[2:l, 1] - this.comb[1:(l - 1), 1] <
-    mz_tol_relative * this.comb[1:(l - 1), 1] * 2 &
-    abs(this.comb[2:l, 2] - this.comb[1:(l - 1), 2]) <
-      rt_tol_relative & this.comb[2:l, 3] != this.comb[1:(l - 1), 3])
+  sel <- which(this.comb$mz[2:l] - this.comb$mz[1:(l - 1)] <
+    mz_tol_relative * this.comb$mz[1:(l - 1)] * 2 &
+    abs(this.comb$rt[2:l] - this.comb$rt[1:(l - 1)]) <
+      rt_tol_relative & this.comb$sample_id[2:l] != this.comb$sample_id[1:(l - 1)])
   return(sel)
 }
 
 compute_template_adjusted_rt <- function(this.comb, sel, j) {
-  all.ftr.table <- cbind(this.comb[sel, 2], this.comb[sel + 1, 2])
-  to.flip <- which(this.comb[sel, 3] == j)
+  all.ftr.table <- cbind(this.comb$rt[sel], this.comb$rt[sel + 1])
+  to.flip <- which(this.comb$sample_id[sel] == j)
   temp <- all.ftr.table[to.flip, 2]
   all.ftr.table[to.flip, 2] <- all.ftr.table[to.flip, 1]
   all.ftr.table[to.flip, 1] <- temp
@@ -74,6 +74,46 @@ fill_missing_values <- function(orig.feature, this.feature) {
   return(this.feature)
 }
 
+compute_template <- function(extracted_features) {
+  num.ftrs <- sapply(extracted_features, nrow)
+  template <- which.max(num.ftrs)
+  message(paste("the template is sample", template))
+
+  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
+  template_features <- dplyr::bind_cols(candi, sample_id = rep(template, nrow(candi)))
+  return(tibble::as_tibble(template_features))
+}
+
+correct_time <- function(this.feature, template_features, mz_tol_relative, rt_tol_relative) {
+    orig.features <- this.feature
+    template <- unique(template_features$sample_id)[1]
+    j <- unique(this.feature$sample_id)[1]
+
+    if (j != template) {
+      this.comb <- compute_comb(template_features, this.feature)
+      sel <- compute_sel(this.comb, mz_tol_relative, rt_tol_relative)
+
+      if (length(sel) < 20) {
+        cat("too few, aborted")
+      } else {
+        all.ftr.table <- compute_template_adjusted_rt(this.comb, sel, j)
+        # the to be adjusted time
+        this.diff <- all.ftr.table[, 2]
+        # the difference between the true time and the to-be-adjusted time
+        avg_time <- all.ftr.table[, 1] - this.diff
+        this.feature <- compute_corrected_features(this.feature, this.diff, avg_time)
+      }
+    }
+
+    if (sum(is.na(this.feature$rt)) > 0) {
+      this.feature <- fill_missing_values(
+        orig.features,
+        this.feature
+      )
+    }
+
+  return(tibble::as_tibble(this.feature, column_name = c("mz", "rt", "sd1", "sd2", "area", "sample_id", "cluster")))
+}
 
 #' Adjust retention time across spectra.
 #'
@@ -115,45 +155,13 @@ adjust.time <- function(extracted_features,
     draw_plot(label = "Retention time \n adjustment", cex = 2)
   }
 
-  num.ftrs <- sapply(extracted_features, nrow)
-  template <- which.max(num.ftrs)
-  message(paste("the template is sample", template))
+  rt_tol_relative <- res$rt_tol_relative
+  mz_tol_relative <- res$mz_tol_relative
 
-  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
+  template_features <- compute_template(extracted_features)
 
-  corrected_features <- foreach::foreach(j = 1:number_of_samples, .export = c(
-    "compute_corrected_features",
-    "compute_template_adjusted_rt", "compute_comb", "compute_sel"
-  )) %dopar% {
-    this.feature <- extracted_features[[j]]
-    if (j != template) {
-      this.comb <- compute_comb(candi, template, this.feature, j)
-
-      sel <- compute_sel(this.comb, mz_tol_relative, rt_tol_relative)
-      if (length(sel) < 20) {
-        cat("too few, aborted")
-      } else {
-        all.ftr.table <- compute_template_adjusted_rt(this.comb, sel, j)
-
-        # the to be adjusted time
-        this.diff <- all.ftr.table[, 2]
-
-        # the difference between the true time and the to-be-adjusted time
-        avg_time <- all.ftr.table[, 1] - this.diff
-
-        this.feature <- compute_corrected_features(this.feature, this.diff, avg_time)
-      }
-    }
-
-    if (sum(is.na(this.feature$rt)) > 0) {
-      this.feature <- fill_missing_values(
-        extracted_features[[j]],
-        this.feature
-      )
-    }
-    this.feature
-  }
-
+  corrected_features <- foreach::foreach(this.feature = extracted_features) %do% 
+  correct_time(this.feature, template_features, mz_tol_relative, rt_tol_relative)
 
   if (do.plot) {
     draw_rt_correction_plot(
