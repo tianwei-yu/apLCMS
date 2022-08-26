@@ -73,39 +73,23 @@ patrick::with_parameters_test_that(
     # expect_equal(recovered_feature_sample_table_actual, recovered_feature_sample_table_expected)
 
     # create and load final files
-
-    extracted_recovered_actual <- lapply(recovered, function(x) x$extracted_features)
-    corrected_recovered_actual <- lapply(recovered, function(x) x$adjusted_features)
-
-    filenames <- lapply(files, function(x) {
-      file.path(testdata, "recovered", "recovered-extracted", paste0(x, ".parquet"))
-    })
-
-    extracted_recovered_expected <- lapply(filenames, arrow::read_parquet)
-
-    filenames <- lapply(files, function(x) {
-      file.path(testdata, "recovered", "recovered-corrected", paste0(x, ".parquet"))
-    })
-
-    corrected_recovered_expected <- lapply(filenames, function(x) {
-       arrow::read_parquet(x)
-    })
-    # preprocess dataframes
     keys <- c("mz", "rt", "sd1", "sd2", "area")
 
-    extracted_recovered_actual <- lapply(extracted_recovered_actual, function(x) {
-      x |> dplyr::arrange_at(keys)
-    })
-    corrected_recovered_actual <- lapply(corrected_recovered_actual, function(x) {
-      x |> dplyr::arrange_at(keys)
+    extracted_recovered_actual <- lapply(recovered, function(x) x$extracted_features |> dplyr::arrange_at(keys))
+    corrected_recovered_actual <- lapply(recovered, function(x) x$adjusted_features |> dplyr::arrange_at(keys))
+
+
+    extracted_recovered_expected <- lapply(files, function(x) {
+      xx <- file.path(testdata, "recovered", "recovered-extracted", paste0(x, ".parquet"))
+      arrow::read_parquet(xx) |> dplyr::arrange_at(keys)
     })
 
-    extracted_recovered_expected <- lapply(extracted_recovered_expected, function(x) {
-      x |> dplyr::arrange_at(keys)
+
+    corrected_recovered_expected <- lapply(files, function(x) {
+      xx <- file.path(testdata, "recovered", "recovered-corrected", paste0(x, ".parquet"))
+      arrow::read_parquet(xx) |> dplyr::arrange_at(keys)
     })
-    corrected_recovered_expected <- lapply(corrected_recovered_expected, function(x) {
-      x |> dplyr::arrange_at(keys)
-    })
+
 
     # compare files
     for (i in seq_along(files)) {
