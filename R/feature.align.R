@@ -1,5 +1,21 @@
 #' @import foreach
 
+create_empty_tibble <- function(number_of_samples, medatada_colnames, intensities_colnames, rt_colnames) {
+    features <- new("list")
+    features$medatada <- as_tibble(matrix(nrow = 0, ncol = length(medatada_colnames)), .name_repair = ~ medatada_colnames)
+    features$intensities <- as_tibble(matrix(nrow = 0, ncol = length(intensities_colnames)), .name_repair = ~ intensities_colnames)
+    features$rt <- as_tibble(matrix(nrow = 0, ncol = length(rt_colnames)), .name_repair = ~ rt_colnames)
+    return(features)
+}
+
+
+add_row <- function(df, data, i, column_names) {
+    row <- matrix(c(i, data), nrow=1)
+    colnames(row) <- column_names
+    return(bind_rows(df, as_tibble(row)))
+}
+
+
 create_output <- function(sample_grouped, number_of_samples) {
     intensity_row <- rep(0, number_of_samples)
     rt_row <- rep(0, number_of_samples)
@@ -14,8 +30,6 @@ create_output <- function(sample_grouped, number_of_samples) {
         }
     }
     
-    # TODO create tibble already here
-    # + new function which creates list of tibbles (with or without data)
     mz <- sample_grouped$mz
     rt <- sample_grouped$rt
     metadata_row <- c(mean(mz), min(mz), max(mz), mean(rt), min(rt), max(rt), nrow(sample_grouped), sample_presence)
@@ -104,14 +118,12 @@ create_aligned_feature_table <- function(all_table,
                                          number_of_samples,
                                          rt_tol_relative,
                                          mz_tol_relative) {
-    medatada_colnames <- c("id", "mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "npeaks", paste("sample_", 1:number_of_samples))
-    intensities_colnames <- c("id", paste("sample_", 1:number_of_samples, "_intensity"))
-    rt_colnames <- c("id", paste("sample_", 1:number_of_samples, "rt"))
     
-    aligned_features <- new("list")
-    aligned_features$medatada <- as_tibble(matrix(nrow = 0, ncol = length(medatada_colnames)), .name_repair = ~ medatada_colnames)
-    aligned_features$intensities <- as_tibble(matrix(nrow = 0, ncol = length(intensities_colnames)), .name_repair = ~ intensities_colnames)
-    aligned_features$rt <- as_tibble(matrix(nrow = 0, ncol = length(rt_colnames)), .name_repair = ~ rt_colnames)
+    medatada_colnames <- c("id", "mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "npeaks", paste0("sample_", 1:number_of_samples))
+    intensities_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_intensity"))
+    rt_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_rt"))
+    
+    aligned_features <- create_empty_tibble(number_of_samples, medatada_colnames, intensities_colnames, rt_colnames)
     
     # table with number of values per group
     groups_cardinality <- table(all_table$cluster)
@@ -131,17 +143,9 @@ create_aligned_feature_table <- function(all_table,
         )
         
         if (!is.null(rows)) {
-            metadata_row <- matrix(c(i, rows$metadata_row), nrow=1)
-            colnames(metadata_row) <- medatada_colnames
-            aligned_features$medatada <- bind_rows(aligned_features$medatada, as_tibble(metadata_row))
-            
-            intensity_row <- matrix(c(i, rows$intensity_row), nrow=1)
-            colnames(intensity_row) <- intensities_colnames
-            aligned_features$intensities <- bind_rows(aligned_features$intensities, as_tibble(intensity_row))
-            
-            rt_row <- matrix(c(i, rows$rt_row), nrow=1)
-            colnames(rt_row) <- rt_colnames
-            aligned_features$rt <- bind_rows(aligned_features$rt, as_tibble(rt_row))
+            aligned_features$medatada <- add_row(aligned_features$medatada, rows$metadata_row, i, medatada_colnames)
+            aligned_features$intensities <- add_row(aligned_features$intensities, rows$intensity_row, i, intensities_colnames)
+            aligned_features$rt <- add_row(aligned_features$rt, rows$rt_row, i, rt_colnames)
         }
     }
     return(aligned_features)
@@ -208,19 +212,17 @@ feature.align <- function(features,
         )
 
         all_table <- dplyr::bind_rows(res$feature_tables)
-        rt_tol_relative <- res$rt_tol_relative
-        mz_tol_relative <- res$mz_tol_relative
 
         aligned_features <- create_aligned_feature_table(
             all_table,
             min_occurrence,
             number_of_samples,
-            rt_tol_relative,
-            mz_tol_relative
+            res$rt_tol_relative,
+            res$mz_tol_relative
         )
         
-        aligned_features$mz_tol_relative <- mz_tol_relative
-        aligned_features$rt_tol_relative <- rt_tol_relative
+        aligned_features$mz_tol_relative <- res$mz_tol_relative
+        aligned_features$rt_tol_relative <- res$rt_tol_relative
 
         return(aligned_features)
     } else {
