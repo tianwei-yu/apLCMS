@@ -111,7 +111,7 @@ get_custom_rt_tol <- function(use_observed_range,
 
   if (use_observed_range) {
     # check observed rt range across ALL SAMPLES
-    all_peak_rts <- peak_rts[, 5:ncol(peak_rts)]
+    all_peak_rts <- peak_rts[, 2:ncol(peak_rts)]
     observed.rt.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
     sufficient_rts <- apply(!is.na(all_peak_rts), 1, sum) >= 5
     selection <- which(sufficient_rts & custom_rt_tol > observed.rt.range)
@@ -145,6 +145,7 @@ compute_target_times <- function(aligned_rts,
       original_subset ~ adjusted_subset,
       na.action = na.omit
     )
+
     aligned_rts[sel_non_na] <- predict(sp, aligned_rts[sel_non_na])$y
   }
 }
@@ -652,8 +653,9 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.rt.tol, this.f1, this.f2)
 recover.weaker <- function(filename,
                            sample_name,
-                           aligned.ftrs,
-                           pk.times,
+                           metadata_table,
+                           intensity_table,
+                           rt_table,
                            align.mz.tol,
                            align.rt.tol,
                            extracted_features,
@@ -682,20 +684,21 @@ recover.weaker <- function(filename,
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
 
-  sample_intensities <- aligned.ftrs[, sample_name]
-  sample_times <- pk.times[, sample_name]
+  sample_intensities <- dplyr::select(intensity_table, dplyr::contains(sample_name))
+  sample_times <- dplyr::select(rt_table, dplyr::contains(sample_name))
 
-  custom.mz.tol <- recover_mz_range * aligned.ftrs$mz
+  custom.mz.tol <- recover_mz_range * metadata_table$mz
   custom.rt.tol <- get_custom_rt_tol(
     use.observed.range,
-    pk.times,
+    rt_table,
     recover_rt_range,
-    aligned.ftrs
+    metadata_table
   )
 
   # # rounding is used to create a histogram of retention time values
+
   target_times <- compute_target_times(
-    aligned.ftrs[, "rt"],
+    metadata_table$rt,
     round(extracted_features$rt, 5),
     round(adjusted_features$rt, 5)
   )
@@ -711,7 +714,7 @@ recover.weaker <- function(filename,
 
   breaks <- predict_mz_break_indices(data_table, orig.tol)
 
-  this.mz <- rep(NA, length(sample_intensities))
+  this.mz <- rep(NA, nrow(sample_intensities))
   max_mz <- max(data_table$mz)
 
   # THIS CONSTRUCT TO EXTRACT MISSING FEATURES COULD BE USED TO POSSIBLY SPEED UP
@@ -726,10 +729,10 @@ recover.weaker <- function(filename,
 
   for (i in seq_along(sample_intensities))
   {
-    if (sample_intensities[i] == 0 && aligned.ftrs[i, "mz"] < max_mz) {
+    if (sample_intensities[i] == 0 && metadata_table$mz[i] < max_mz) {
       this.rec <- compute_rectangle(
         data_table,
-        aligned.ftrs[i, "mz"],
+        metadata_table$mz[i],
         breaks,
         custom.mz.tol[i],
         orig.tol,
@@ -757,7 +760,7 @@ recover.weaker <- function(filename,
           this.sel <- refine_selection(
             target_times[i],
             this.rec,
-            aligned.ftrs[i, 1],
+            metadata_table$mz[i],
             custom.rt.tol[i],
             custom.mz.tol[i]
           )
@@ -776,7 +779,7 @@ recover.weaker <- function(filename,
           mz = this.rec$mz[this.sel],
           rt = this.rec$rt[this.sel] + this.time.adjust,
           area = this.rec$intensities[this.sel],
-          sample_id = grep(sample_name, colnames(aligned.ftrs)) - 4 # offset for other columns `mz`, `rt` etc
+          sample_id = grep(sample_name, colnames(metadata_table)) - 8 # offset for other columns `mz`, `rt` etc
         )
 
         sample_intensities[i] <- this.rec$intensities[this.sel]
@@ -785,12 +788,13 @@ recover.weaker <- function(filename,
       }
     }
   }
-  to.return <- new("list")
-  to.return$this.mz <- this.mz
-  to.return$this.ftrs <- sample_intensities
-  to.return$this.times <- sample_times
-  to.return$this.f1 <- duplicate.row.remove(extracted_features)
-  to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
-  return(to.return)
+  # to.return <- new("list")
+  # to.return$this.mz <- this.mz
+  # to.return$this.ftrs <- sample_intensities
+  # to.return$this.times <- sample_times
+  # to.return$this.f1 <- duplicate.row.remove(extracted_features)
+  # to.return$this.f2 <- duplicate.row.remove(adjusted_features)
+
+  return(list(extracted_features = duplicate.row.remove(extracted_features), adjusted_features = duplicate.row.remove(adjusted_features)))
 }
