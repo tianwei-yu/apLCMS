@@ -232,8 +232,6 @@ unsupervised <- function(
     BIC_factor = BIC_factor
   )
 
-  # extracted <- lapply(extracted, function(x) dplyr::rename(x, rt = pos))
-
   message("**** computing clusters ****")
   res <- compute_clusters(
     feature_tables = extracted,

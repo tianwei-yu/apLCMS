@@ -7,9 +7,9 @@ NULL
 #' @param features list List of tibbles containing extracted feature tables.
 concatenate_feature_tables <- function(features) {
   for (i in seq_along(features)) {
-      if(!("sample_id" %in% colnames(features[[i]]))) {
-        features[[i]] <- tibble::add_column(features[[i]], sample_id = i)
-      }
+    if(!("sample_id" %in% colnames(features[[i]]))) {
+      features[[i]] <- tibble::add_column(features[[i]], sample_id = i)
+    }
   }
 
   merged <- dplyr::bind_rows(features)
