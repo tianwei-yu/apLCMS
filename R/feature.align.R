@@ -199,21 +199,13 @@ feature.align <- function(features,
                           rt_tol_relative = NA,
                           mz_max_diff = 1e-4,
                           mz_tol_absolute = 0.01,
-                          do.plot = TRUE,
-                          rt_colname = "pos") {
+                          do.plot = TRUE) {
     if (do.plot) {
         par(mfrow = c(3, 2))
         draw_plot(label = "Feature alignment", cex = 2)
         draw_plot()
     }
 
-    features <- lapply(features, function(x) {
-        x <- tibble::as_tibble(x)
-        if ("pos" %in% colnames(x)) {
-            x <- x |> dplyr::rename(rt = pos)
-        }
-        return(x)
-    })
 
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
