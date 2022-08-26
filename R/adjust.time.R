@@ -5,7 +5,7 @@ NULL
 compute_comb <- function(template_features, this.feature) {
   this.comb <- dplyr::bind_rows(
     template_features,
-    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), label = this.feature$sample_id)
+    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), sample_id = this.feature$sample_id)
   )
   this.comb <- this.comb |> dplyr::arrange_at("mz")
   return(this.comb)
@@ -13,16 +13,16 @@ compute_comb <- function(template_features, this.feature) {
 
 compute_sel <- function(this.comb, mz_tol_relative, rt_tol_relative) {
   l <- nrow(this.comb)
-  sel <- which(this.comb[2:l, 1] - this.comb[1:(l - 1), 1] <
-    mz_tol_relative * this.comb[1:(l - 1), 1] * 2 &
-    abs(this.comb[2:l, 2] - this.comb[1:(l - 1), 2]) <
-      rt_tol_relative & this.comb[2:l, 3] != this.comb[1:(l - 1), 3])
+  sel <- which(this.comb$mz[2:l] - this.comb$mz[1:(l - 1)] <
+    mz_tol_relative * this.comb$mz[1:(l - 1)] * 2 &
+    abs(this.comb$rt[2:l] - this.comb$rt[1:(l - 1)]) <
+      rt_tol_relative & this.comb$sample_id[2:l] != this.comb$sample_id[1:(l - 1)])
   return(sel)
 }
 
 compute_template_adjusted_rt <- function(this.comb, sel, j) {
-  all.ftr.table <- cbind(this.comb[sel, 2], this.comb[sel + 1, 2])
-  to.flip <- which(this.comb[sel, 3] == j)
+  all.ftr.table <- cbind(this.comb$rt[sel], this.comb$rt[sel + 1])
+  to.flip <- which(this.comb$sample_id[sel] == j)
   temp <- all.ftr.table[to.flip, 2]
   all.ftr.table[to.flip, 2] <- all.ftr.table[to.flip, 1]
   all.ftr.table[to.flip, 1] <- temp
@@ -80,13 +80,13 @@ compute_template <- function(extracted_features) {
   message(paste("the template is sample", template))
 
   candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
-  template_features <- dplyr::bind_cols(candi, label = rep(template, nrow(candi)))
+  template_features <- dplyr::bind_cols(candi, sample_id = rep(template, nrow(candi)))
   return(tibble::as_tibble(template_features))
 }
 
 correct_time <- function(this.feature, template_features, mz_tol_relative, rt_tol_relative) {
     orig.features <- this.feature
-    template <- unique(template_features$label)[1]
+    template <- unique(template_features$sample_id)[1]
     j <- unique(this.feature$sample_id)[1]
 
     if (j != template) {
