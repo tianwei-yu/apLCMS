@@ -1,9 +1,9 @@
 #' @import foreach
 
-create_empty_tibble <- function(number_of_samples, medatada_colnames, intensities_colnames, rt_colnames) {
+create_empty_tibble <- function(number_of_samples, medatada_colnames, intensity_colnames, rt_colnames) {
     features <- new("list")
     features$medatada <- as_tibble(matrix(nrow = 0, ncol = length(medatada_colnames)), .name_repair = ~ medatada_colnames)
-    features$intensities <- as_tibble(matrix(nrow = 0, ncol = length(intensities_colnames)), .name_repair = ~ intensities_colnames)
+    features$intensity <- as_tibble(matrix(nrow = 0, ncol = length(intensity_colnames)), .name_repair = ~ intensity_colnames)
     features$rt <- as_tibble(matrix(nrow = 0, ncol = length(rt_colnames)), .name_repair = ~ rt_colnames)
     return(features)
 }
@@ -120,10 +120,10 @@ create_aligned_feature_table <- function(all_table,
                                          mz_tol_relative) {
     
     medatada_colnames <- c("id", "mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "npeaks", paste0("sample_", 1:number_of_samples))
-    intensities_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_intensity"))
+    intensity_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_intensity"))
     rt_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_rt"))
     
-    aligned_features <- create_empty_tibble(number_of_samples, medatada_colnames, intensities_colnames, rt_colnames)
+    aligned_features <- create_empty_tibble(number_of_samples, medatada_colnames, intensity_colnames, rt_colnames)
     
     # table with number of values per group
     groups_cardinality <- table(all_table$cluster)
@@ -144,7 +144,7 @@ create_aligned_feature_table <- function(all_table,
         
         if (!is.null(rows)) {
             aligned_features$medatada <- add_row(aligned_features$medatada, rows$metadata_row, i, medatada_colnames)
-            aligned_features$intensities <- add_row(aligned_features$intensities, rows$intensity_row, i, intensities_colnames)
+            aligned_features$intensity <- add_row(aligned_features$intensity, rows$intensity_row, i, intensity_colnames)
             aligned_features$rt <- add_row(aligned_features$rt, rows$rt_row, i, rt_colnames)
         }
     }

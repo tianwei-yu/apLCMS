@@ -26,7 +26,7 @@ patrick::with_parameters_test_that(
     )
     
     aligned_expected <- load_aligned_features(file.path(testdata, "aligned", 'metadata_table.parquet'),
-                                              file.path(testdata, "aligned", 'intensities_table.parquet'),
+                                              file.path(testdata, "aligned", 'intensity_table.parquet'),
                                               file.path(testdata, "aligned", 'rt_table.parquet'),
                                               file.path(testdata, "aligned", 'tolerances.parquet'))
   
