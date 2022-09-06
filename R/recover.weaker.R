@@ -683,9 +683,8 @@ recover.weaker <- function(filename,
 
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
-
-  sample_intensities <- dplyr::select(intensity_table, dplyr::contains(sample_name))
-  sample_times <- dplyr::select(rt_table, dplyr::contains(sample_name))
+  
+  sample_intensities <- unlist(dplyr::select(intensity_table, dplyr::contains(sample_name)), use.names = FALSE)
 
   custom.mz.tol <- recover_mz_range * metadata_table$mz
   custom.rt.tol <- get_custom_rt_tol(
@@ -714,7 +713,6 @@ recover.weaker <- function(filename,
 
   breaks <- predict_mz_break_indices(data_table, orig.tol)
 
-  this.mz <- rep(NA, nrow(sample_intensities))
   max_mz <- max(data_table$mz)
 
   # THIS CONSTRUCT TO EXTRACT MISSING FEATURES COULD BE USED TO POSSIBLY SPEED UP
@@ -755,6 +753,7 @@ recover.weaker <- function(filename,
       )
       this.sel <- this.sel[this.sel != 1]
 
+
       if (length(this.sel) > 0) {
         if (length(this.sel) > 1) {
           this.sel <- refine_selection(
@@ -781,20 +780,14 @@ recover.weaker <- function(filename,
           area = this.rec$intensities[this.sel],
           sample_id = grep(sample_name, colnames(metadata_table)) - 8 # offset for other columns `mz`, `rt` etc
         )
-
-        sample_intensities[i] <- this.rec$intensities[this.sel]
-        sample_times[i] <- this.rec$rt[this.sel] + this.time.adjust
-        this.mz[i] <- this.rec$mz[this.sel]
       }
     }
   }
 
-  # to.return <- new("list")
-  # to.return$this.mz <- this.mz
-  # to.return$this.ftrs <- sample_intensities
-  # to.return$this.times <- sample_times
-  # to.return$this.f1 <- duplicate.row.remove(extracted_features)
-  # to.return$this.f2 <- duplicate.row.remove(adjusted_features)
-
-  return(list(extracted_features = duplicate.row.remove(extracted_features), adjusted_features = duplicate.row.remove(adjusted_features)))
+  return(
+    list(
+      extracted_features = duplicate.row.remove(extracted_features),
+      adjusted_features = duplicate.row.remove(adjusted_features)
+    )
+  )
 }

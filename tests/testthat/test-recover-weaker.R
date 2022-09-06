@@ -24,7 +24,6 @@ patrick::with_parameters_test_that(
       file.path(testdata, "aligned", "tolerances.parquet")
     )
 
-
     recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
         filename = ms_files[[i]],
@@ -35,8 +34,8 @@ patrick::with_parameters_test_that(
         rt_table = aligned$rt,
         intensity_table = aligned$intensity,
         orig.tol = mz_tol,
-        align.mz.tol = aligned$mz_tolerance,
-        align.rt.tol = aligned$rt_tolerance,
+        align.mz.tol = aligned$mz_tol_relative,
+        align.rt.tol = aligned$rt_tol_relative,
         recover_mz_range = recover_mz_range,
         recover_rt_range = recover_rt_range,
         use.observed.range = use_observed_range,
@@ -99,8 +98,8 @@ patrick::with_parameters_test_that(
 
       expect_equal(actual_extracted_i, expected_extracted_i)
 
-      # report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      # dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_extracted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
+      dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_extracted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
 
       # corrected recovered
       actual_corrected_i <- corrected_recovered_actual[[i]]
@@ -108,8 +107,8 @@ patrick::with_parameters_test_that(
 
       expect_equal(actual_corrected_i, expected_corrected_i)
 
-      # report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      # dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_adjusted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
+      dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_adjusted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
     }
   },
   patrick::cases(
