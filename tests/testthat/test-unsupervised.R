@@ -19,5 +19,8 @@ test_that("basic unsupervised test", {
   
   result <- unsupervised(test_files, cluster = num_workers)
 
+  report <- dataCompareR::rCompare(result$recovered_feature_sample_table, keys = c("feature", "mz", "rt", "sample_rt", "sample_intensity"), expected, mismatches = 100000)
+  dataCompareR::saveReport(report, reportName = "unsupervised_report", showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+
   expect_equal(result$recovered_feature_sample_table, expected)
 })
