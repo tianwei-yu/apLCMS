@@ -30,7 +30,6 @@ as_feature_sample_table <- function(metadata, rt_crosstab, int_crosstab) {
 
   data <- merge(x, y, by = c('feature', 'sample'))
   data <- merge(feature_table, data, by = 'feature')
-  browser()
   return(data)
 }
 
@@ -250,7 +249,7 @@ unsupervised <- function(
     do.plot = FALSE
   )
 
-  message("**** feature alignemnt ****")
+  message("**** feature alignment ****")
   aligned <- feature.align(
     features = corrected,
     min_occurrence = min_exp,
@@ -287,12 +286,12 @@ unsupervised <- function(
 
   recovered_adjusted <- lapply(recovered, function(x) x$adjusted_features)
 
-  message("**** feature alignemnt ****")
+  message("**** feature alignment ****")
   recovered_aligned <- feature.align(
     features = recovered_adjusted,
     min_occurrence = min_exp,
-    mz_tol_relative = res$mz_tol_relative,
-    rt_tol_relative = res$rt_tol_relative,
+    mz_tol_relative = aligned$mz_tol_relative,
+    rt_tol_relative = aligned$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     do.plot = FALSE
