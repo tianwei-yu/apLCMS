@@ -3,19 +3,7 @@ patrick::with_parameters_test_that("basic unsupervised test", {
   
   expected <- arrow::read_parquet(file.path("../testdata/recovered", paste0(.test_name, ".parquet")))
   
-  # CRAN limits the number of cores available to packages to 2
-  # source https://stackoverflow.com/questions/50571325/r-cran-check-fail-when-using-parallel-functions#50571533
-  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-  
-  if (nzchar(chk) && chk == "TRUE") {
-    # use 2 cores in CRAN/Travis/AppVeyor
-    num_workers <- 2L
-  } else {
-    # use all cores in devtools::test()
-    num_workers <- parallel::detectCores()
-  }
-
-  result <- unsupervised(test_files, cluster = num_workers)
+  result <- unsupervised(test_files, cluster = get_num_workers())
   keys <- c("mz", "rt", "sample", "sample_rt", "sample_intensity")
   actual <- result$recovered_feature_sample_table
 
