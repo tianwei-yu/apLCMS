@@ -210,6 +210,7 @@ unsupervised <- function(
 
   check_files(filenames)
   sample_names <- get_sample_name(filenames)
+  number_of_samples <- length(sample_names)
 
   message("**** feature extraction ****")
   extracted <- extract_features(
@@ -233,7 +234,7 @@ unsupervised <- function(
   )
 
   message("**** computing clusters ****")
-  res <- compute_clusters(
+  extracted_clusters <- compute_clusters(
     feature_tables = extracted,
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
@@ -243,21 +244,27 @@ unsupervised <- function(
 
   message("**** time correction ****")
   corrected <- adjust.time(
-    extracted_features = res$feature_tables,
-    mz_tol_relative = res$mz_tol_relative,
-    rt_tol_relative = res$rt_tol_relative,
+    extracted_features = extracted_clusters$feature_tables,
+    mz_tol_relative = extracted_clusters$mz_tol_relative,
+    rt_tol_relative = extracted_clusters$rt_tol_relative,
     do.plot = FALSE
   )
 
   message("**** feature alignment ****")
-  aligned <- feature.align(
-    features = corrected,
-    min_occurrence = min_exp,
-    mz_tol_relative = res$mz_tol_relative,
-    rt_tol_relative = res$rt_tol_relative,
+  adjusted_clusters <- compute_clusters(
+    feature_tables = corrected,
+    mz_tol_relative = extracted_clusters$mz_tol_relative,
+    mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
+    rt_tol_relative = align_rt_tol
+  )
+
+  aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(adjusted_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      adjusted_clusters$rt_tol_relative,
+      adjusted_clusters$mz_tol_relative
   )
 
   message("**** weaker signal recovery ****")
@@ -287,14 +294,20 @@ unsupervised <- function(
   recovered_adjusted <- lapply(recovered, function(x) x$adjusted_features)
 
   message("**** feature alignment ****")
-  recovered_aligned <- feature.align(
-    features = recovered_adjusted,
-    min_occurrence = min_exp,
-    mz_tol_relative = aligned$mz_tol_relative,
-    rt_tol_relative = aligned$rt_tol_relative,
+  recovered_clusters <- compute_clusters(
+    feature_tables = recovered_adjusted,
+    mz_tol_relative = adjusted_clusters$mz_tol_relative,
+    mz_tol_absolute = adjusted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
+    rt_tol_relative = align_rt_tol
+  )
+
+  recovered_aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(recovered_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      recovered_clusters$rt_tol_relative,
+      recovered_clusters$mz_tol_relative
   )
 
   aligned_feature_sample_table <- as_feature_sample_table(
