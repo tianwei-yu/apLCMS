@@ -8,19 +8,19 @@ as_feature_crosstab <- function(feature_names, sample_names, data) {
   as.data.frame(data)
 }
 
-as_feature_sample_table <- function(rt_crosstab, int_crosstab) {
-  feature_names <- rownames(rt_crosstab)
-  sample_names <- colnames(rt_crosstab)[-(1:4)]
+as_feature_sample_table <- function(metadata, rt_crosstab, int_crosstab) {
+  feature_names <- as.character(rt_crosstab$id)
+  sample_names <- colnames(metadata)[-c(1:8)]
 
   feature_table <- data.frame(
     feature = feature_names,
-    mz = rt_crosstab[, 1],
-    rt = rt_crosstab[, 2]
+    mz = metadata$mz,
+    rt = metadata$rt
   )
 
   # series of conversions to produce a table type from data.frame
-  rt_crosstab <- as.table(as.matrix(rt_crosstab[, -(1:4)]))
-  int_crosstab <- as.table(as.matrix(int_crosstab[, -(1:4)]))
+  rt_crosstab <- as.table(as.matrix(rt_crosstab[, -1]))
+  int_crosstab <- as.table(as.matrix(int_crosstab[, -1]))
 
   crosstab_axes <- list(feature = feature_names, sample = sample_names)
   dimnames(rt_crosstab) <- dimnames(int_crosstab) <- crosstab_axes
@@ -30,7 +30,7 @@ as_feature_sample_table <- function(rt_crosstab, int_crosstab) {
 
   data <- merge(x, y, by = c('feature', 'sample'))
   data <- merge(feature_table, data, by = 'feature')
-  data
+  return(data)
 }
 
 check_files <- function(filenames) {
@@ -210,6 +210,7 @@ unsupervised <- function(
 
   check_files(filenames)
   sample_names <- get_sample_name(filenames)
+  number_of_samples <- length(sample_names)
 
   message("**** feature extraction ****")
   extracted <- extract_features(
@@ -232,62 +233,101 @@ unsupervised <- function(
     BIC_factor = BIC_factor
   )
 
+  message("**** computing clusters ****")
+  extracted_clusters <- compute_clusters(
+    feature_tables = extracted,
+    mz_tol_relative = align_mz_tol,
+    mz_tol_absolute = max_align_mz_diff,
+    mz_max_diff = 10 * mz_tol,
+    rt_tol_relative = align_rt_tol
+  )
+
   message("**** time correction ****")
   corrected <- adjust.time(
-    extracted_features = extracted,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    extracted_features = extracted_clusters$feature_tables,
+    mz_tol_relative = extracted_clusters$mz_tol_relative,
+    rt_tol_relative = extracted_clusters$rt_tol_relative,
     do.plot = FALSE
   )
 
-  message("**** feature alignemnt ****")
-  aligned <- align_features(
-    sample_names = sample_names,
-    features = corrected,
-    min_occurrence = min_exp,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
+  message("**** feature alignment ****")
+  adjusted_clusters <- compute_clusters(
+    feature_tables = corrected,
+    mz_tol_relative = extracted_clusters$mz_tol_relative,
+    mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
+    rt_tol_relative = align_rt_tol
+  )
+
+  aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(adjusted_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      adjusted_clusters$rt_tol_relative,
+      adjusted_clusters$mz_tol_relative
   )
 
   message("**** weaker signal recovery ****")
-  recovered <- recover_weaker_signals(
-    cluster = cluster,
-    filenames = filenames,
-    extracted_features = extracted,
-    corrected_features = corrected,
-    aligned_rt_crosstab = aligned$rt_crosstab,
-    aligned_int_crosstab = aligned$int_crosstab,
-    original_mz_tolerance = mz_tol,
-    aligned_mz_tolerance = aligned$mz_tolerance,
-    aligned_rt_tolerance = aligned$rt_tolerance,
-    recover_mz_range = recover_mz_range,
-    recover_rt_range = recover_rt_range,
-    use_observed_range = use_observed_range,
-    min_bandwidth = min_bandwidth,
-    max_bandwidth = max_bandwidth,
-    recover_min_count = recover_min_count
+  recovered <- lapply(seq_along(filenames), function(i) {
+    recover.weaker(
+      filename = filenames[[i]],
+      sample_name = as.character(i),
+      extracted_features = extracted[[i]],
+      adjusted_features = corrected[[i]],
+      metadata_table = aligned$metadata,
+      rt_table = aligned$rt,
+      intensity_table = aligned$intensity,
+      orig.tol = mz_tol,
+      align.mz.tol = aligned$mz_tol_relative,
+      align.rt.tol = aligned$rt_tol_relative,
+      recover_mz_range = recover_mz_range,
+      recover_rt_range = recover_rt_range,
+      use.observed.range = use_observed_range,
+      bandwidth = 0.5,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      recover.min.count = recover_min_count,
+      intensity.weighted = intensity_weighted
+    )
+  })
+
+  recovered_adjusted <- lapply(recovered, function(x) x$adjusted_features)
+
+  message("**** feature alignment ****")
+  recovered_clusters <- compute_clusters(
+    feature_tables = recovered_adjusted,
+    mz_tol_relative = adjusted_clusters$mz_tol_relative,
+    mz_tol_absolute = adjusted_clusters$rt_tol_relative,
+    mz_max_diff = 10 * mz_tol,
+    rt_tol_relative = align_rt_tol
+  )
+
+  recovered_aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(recovered_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      recovered_clusters$rt_tol_relative,
+      recovered_clusters$mz_tol_relative
   )
 
   aligned_feature_sample_table <- as_feature_sample_table(
-    rt_crosstab = aligned$rt_crosstab,
-    int_crosstab = aligned$int_crosstab
+    metadata = aligned$metadata,
+    rt_crosstab = aligned$rt,
+    int_crosstab = aligned$intensity
   )
+
   recovered_feature_sample_table <- as_feature_sample_table(
-    rt_crosstab = recovered$rt_crosstab,
-    int_crosstab = recovered$int_crosstab
+    metadata = recovered_aligned$metadata,
+    rt_crosstab = recovered_aligned$rt,
+    int_crosstab = recovered_aligned$intensity
   )
 
   list(
     extracted_features = recovered$extracted_features,
-    corrected_features = recovered$corrected_features,
+    corrected_features = recovered$adjusted_features,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
-    aligned_mz_tolerance = as.numeric(aligned$mz_tolerance),
-    aligned_rt_tolerance = as.numeric(aligned$rt_tolerance)
+    aligned_mz_tolerance = as.numeric(aligned$mz_tol_relative),
+    aligned_rt_tolerance = as.numeric(aligned$rt_tol_relative)
   )
 }

@@ -119,7 +119,7 @@ correct_time <- function(this.feature, template_features, mz_tol_relative, rt_to
 #'
 #' This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
 #'
-#' @param extracted_features A list object. Each component is a matrix which is the output from proc.to.feature()
+#' @param extracted_features A list object. Each component is a matrix which is the output from compute_clusters
 #' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
 #'  program to search for the tolerance level based on the data. This value is expressed as the
 #'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
@@ -133,7 +133,6 @@ correct_time <- function(this.feature, template_features, mz_tol_relative, rt_to
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @param rt_colname contains the retention time information
 #' @return A list object with the exact same structure as the input object features, i.e. one matrix per profile
 #'  being processed. The only difference this output object has with the input object is that the retention time
 #'  column in each of the matrices is changed to new adjusted values.
@@ -144,10 +143,7 @@ adjust.time <- function(extracted_features,
                         mz_tol_relative = NA,
                         rt_tol_relative = NA,
                         colors = NA,
-                        mz_max_diff = 1e-4,
-                        mz_tol_absolute = 0.01,
-                        do.plot = TRUE,
-                        rt_colname = "pos") {
+                        do.plot = TRUE) {
   number_of_samples <- length(extracted_features)
 
   if (number_of_samples <= 1) {
@@ -158,20 +154,6 @@ adjust.time <- function(extracted_features,
     par(mfrow = c(2, 2))
     draw_plot(label = "Retention time \n adjustment", cex = 2)
   }
-
-  extracted_features <- lapply(extracted_features, function(x) tibble::as_tibble(x) |> dplyr::rename(rt = pos))
-
-  res <- compute_clusters(
-    extracted_features,
-    mz_tol_relative,
-    mz_tol_absolute,
-    mz_max_diff,
-    rt_tol_relative
-  )
-
-  extracted_features <- res$feature_tables
-  rt_tol_relative <- res$rt_tol_relative
-  mz_tol_relative <- res$mz_tol_relative
 
   template_features <- compute_template(extracted_features)
 

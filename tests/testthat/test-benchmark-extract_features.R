@@ -52,7 +52,7 @@ patrick::with_parameters_test_that(
     expected <- lapply(expected, as.data.frame)
     actual <- unique(actual)
     expected <- unique(expected)
-    keys <- c("mz", "pos", "sd1", "sd2")
+    keys <- c("mz", "rt", "sd1", "sd2")
     actual <- lapply(actual, function(x) {
       as.data.frame(x) |> dplyr::arrange_at(keys)
     })
