@@ -242,15 +242,19 @@ unsupervised <- function(
     rt_tol_relative = align_rt_tol
   )
 
+  message("**** computing template ****")
+  template_features <- compute_template(extracted_clusters$feature_tables)
+
+
   message("**** time correction ****")
-  corrected <- adjust.time(
-    extracted_features = extracted_clusters$feature_tables,
-    mz_tol_relative = extracted_clusters$mz_tol_relative,
-    rt_tol_relative = extracted_clusters$rt_tol_relative,
-    do.plot = FALSE
+  corrected <- foreach::foreach(this.feature = extracted_clusters$feature_tables) %do% correct_time(
+    this.feature,
+    template_features,
+    extracted_clusters$mz_tol_relative,
+    extracted_clusters$rt_tol_relative
   )
 
-  message("**** feature alignment ****")
+  message("**** computing clusters ****")
   adjusted_clusters <- compute_clusters(
     feature_tables = corrected,
     mz_tol_relative = extracted_clusters$mz_tol_relative,
@@ -259,6 +263,7 @@ unsupervised <- function(
     rt_tol_relative = align_rt_tol
   )
 
+  message("**** feature alignment ****")
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
@@ -293,7 +298,7 @@ unsupervised <- function(
 
   recovered_adjusted <- lapply(recovered, function(x) x$adjusted_features)
 
-  message("**** feature alignment ****")
+  message("**** computing clusters ****")
   recovered_clusters <- compute_clusters(
     feature_tables = recovered_adjusted,
     mz_tol_relative = adjusted_clusters$mz_tol_relative,
@@ -302,6 +307,7 @@ unsupervised <- function(
     rt_tol_relative = align_rt_tol
   )
 
+  message("**** feature alignment ****")
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(recovered_clusters$feature_tables),
       min_exp,
