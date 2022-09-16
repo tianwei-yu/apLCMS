@@ -1,0 +1,2 @@
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/unsupervised/RCX_shortened_unsupervised.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/unsupervised/mbr_test_unsupervised.parquet
