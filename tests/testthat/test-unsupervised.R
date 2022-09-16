@@ -7,6 +7,8 @@ patrick::with_parameters_test_that("basic unsupervised test", {
   keys <- c("mz", "rt", "sample", "sample_rt", "sample_intensity")
   actual <- result$recovered_feature_sample_table
 
+  # # This piece of code serves to re-introduce the actual filenames in the actual outputs.
+  # # This was needed for comparison in the previous test cases.
   # levels(actual$sample) <- sapply(files, get_sample_name)
   # actual <- actual |> dplyr::arrange_at(keys)
   # expected <- expected |> dplyr::arrange_at(keys)

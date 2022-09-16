@@ -3,3 +3,4 @@ tests/testdata/mbr*
 .vscode
 *.Rcheck
 *.tar.gz
+*.Rmd
