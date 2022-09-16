@@ -1,6 +1,7 @@
 patrick::with_parameters_test_that(
   "recover weaker signals test",
   {
+    store_reports <- FALSE
     testdata <- file.path("..", "testdata")
 
     ms_files <- sapply(files, function(x) {
@@ -47,30 +48,6 @@ patrick::with_parameters_test_that(
       )
     })
 
-    # feature_table <- dplyr::select(aligned$metadata, c(mz, rt, mzmin, mzmax))
-    # rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
-    # int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
-
-    # feature_names <- rownames(feature_table)
-    # sample_names <- get_sample_name(ms_files)
-
-    # browser()
-    # recovered_actual <- list(
-    #   extracted_features = lapply(recovered, function(x) x$this.f1),
-    #   corrected_features = lapply(recovered, function(x) x$this.f2),
-    #   rt = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
-    #   intensity = as_feature_crosstab(feature_names, sample_names, int_crosstab)
-    # )
-
-    # aligned_feature_sample_table_actual <- create_feature_sample_table(aligned)
-    # recovered_feature_sample_table_actual <- create_feature_sample_table(recovered_actual)
-
-    # aligned_feature_sample_table_expected <- arrow::read_parquet(file.path(testdata, "recovered", "aligned_feature_sample_table.parquet"))
-    # recovered_feature_sample_table_expected <- arrow::read_parquet(file.path(testdata, "recovered", "recovered_feature_sample_table.parquet"))
-
-    # expect_equal(aligned_feature_sample_table_actual, aligned_feature_sample_table_expected)
-    # expect_equal(recovered_feature_sample_table_actual, recovered_feature_sample_table_expected)
-
     # create and load final files
     keys <- c("mz", "rt", "sd1", "sd2", "area")
 
@@ -98,17 +75,42 @@ patrick::with_parameters_test_that(
 
       expect_equal(actual_extracted_i, expected_extracted_i)
 
-      report <- dataCompareR::rCompare(actual_extracted_i, expected_extracted_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_extracted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
-
       # corrected recovered
       actual_corrected_i <- corrected_recovered_actual[[i]]
       expected_corrected_i <- corrected_recovered_expected[[i]]
 
       expect_equal(actual_corrected_i, expected_corrected_i)
 
-      report <- dataCompareR::rCompare(actual_corrected_i, expected_corrected_i, keys = keys, roundDigits = 4, mismatches = 100000)
-      dataCompareR::saveReport(report, reportName = paste0(files[[i]],"_adjusted"), showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
+      if (store_reports) {
+        report_extracted <- dataCompareR::rCompare(
+          actual_extracted_i,
+          expected_extracted_i,
+          keys = keys,
+          roundDigits = 4,
+          mismatches = 100000
+        )
+        dataCompareR::saveReport(
+          report_extracted,
+          reportName = paste0(files[[i]], "_extracted"),
+          showInViewer = FALSE,
+          HTMLReport = FALSE,
+          mismatchCount = 10000
+        )
+        report_corrected <- dataCompareR::rCompare(
+          actual_corrected_i,
+          expected_corrected_i,
+          keys = keys,
+          roundDigits = 4,
+          mismatches = 100000
+        )
+        dataCompareR::saveReport(
+          report_corrected,
+          reportName = paste0(files[[i]], "_adjusted"),
+          showInViewer = FALSE,
+          HTMLReport = FALSE,
+          mismatchCount = 10000
+        )
+      }
     }
   },
   patrick::cases(

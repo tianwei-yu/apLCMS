@@ -45,7 +45,7 @@ patrick::with_parameters_test_that(
       xx <- file.path(testdata, "extracted", x)
       unique(arrow::read_parquet(xx)) |> dplyr::arrange_at(keys)
     })
-    
+
     actual <- lapply(actual, function(x) {
       x |> dplyr::arrange_at(keys)
     })
@@ -56,6 +56,7 @@ patrick::with_parameters_test_that(
       report <- dataCompareR::rCompare(actual_i, expected_i, keys = keys, roundDigits = 4, mismatches = 100000)
       dataCompareR::saveReport(report, reportName = files[[i]], showInViewer = FALSE, HTMLReport = FALSE, mismatchCount = 10000)
       expect_true(nrow(report$rowMatching$inboth) >= 0.9 * nrow(expected_i))
+      
       incommon <- as.numeric(rownames(report$rowMatching$inboth))
       subset_actual <- actual_i %>% dplyr::slice(incommon)
       subset_expected <- expected_i %>% dplyr::slice(incommon)
