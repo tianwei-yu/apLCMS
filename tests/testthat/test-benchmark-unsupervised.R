@@ -27,8 +27,7 @@ patrick::with_parameters_test_that(
       times = 10L
     )
 
-    expected_path <- file.path(testdata, expected_filename)
-    expected <- arrow::read_parquet(expected_path)
+    expected <- arrow::read_parquet(file.path("../testdata/unsupervised", paste0(.test_name, "_unsupervised.parquet")))
     expect_equal(result$recovered_feature_sample_table, expected)
 
     cat("\n\n")
@@ -36,9 +35,8 @@ patrick::with_parameters_test_that(
     cat("\n")
   },
   patrick::cases(
-    RCX_shortened = list(
+    mbr_test = list(
       filename = c("mbr_test0", "mbr_test1", "mbr_test2"),
-      expected_filename = "unsupervised_recovered_feature_sample_table.parquet",
       skip = TRUE
     )
   )
