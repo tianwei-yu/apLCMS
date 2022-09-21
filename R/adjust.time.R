@@ -79,7 +79,7 @@ compute_template <- function(extracted_features) {
   template <- which.max(num.ftrs)
   message(paste("the template is sample", template))
 
-  candi <- extracted_features[[template]] |> dplyr::select(c(mz, rt))
+  candi <- tibble::as_tibble(extracted_features[[template]]) |> dplyr::select(c(mz, rt))
   template_features <- dplyr::bind_cols(candi, sample_id = rep(template, nrow(candi)))
   return(tibble::as_tibble(template_features))
 }
@@ -120,28 +120,22 @@ correct_time <- function(this.feature, template_features, mz_tol_relative, rt_to
 #' This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
 #'
 #' @param extracted_features A list object. Each component is a matrix which is the output from compute_clusters
-#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
-#'  program to search for the tolerance level based on the data. This value is expressed as the
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. This value is expressed as the
 #'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
-#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which
-#'  allows the program to search for the tolerance level based on the data.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment.
 #' @param colors The vector of colors to be used for the line plots of time adjustments. The default is NA,
 #'  in which case the program uses a set of default color set.
-#' @param mz_max_diff Argument passed to find.tol(). Consider only m/z diffs smaller than this value.
-#'  This is only used when the mz_tol_relative is NA.
-#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable
-#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly
-#'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
 #' @return A list object with the exact same structure as the input object features, i.e. one matrix per profile
 #'  being processed. The only difference this output object has with the input object is that the retention time
 #'  column in each of the matrices is changed to new adjusted values.
 #' @export
 #' @examples
-#' adjust.time(extracted_features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
+#' data(extracted)
+#' adjust.time(extracted, 10e-06, 5, do.plot = FALSE)
 adjust.time <- function(extracted_features,
-                        mz_tol_relative = NA,
-                        rt_tol_relative = NA,
+                        mz_tol_relative,
+                        rt_tol_relative,
                         colors = NA,
                         do.plot = TRUE) {
   number_of_samples <- length(extracted_features)

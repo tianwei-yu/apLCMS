@@ -2,9 +2,9 @@
 
 create_empty_tibble <- function(number_of_samples, metadata_colnames, intensity_colnames, rt_colnames) {
     features <- new("list")
-    features$metadata <- as_tibble(matrix(nrow = 0, ncol = length(metadata_colnames)), .name_repair = ~ metadata_colnames)
-    features$intensity <- as_tibble(matrix(nrow = 0, ncol = length(intensity_colnames)), .name_repair = ~ intensity_colnames)
-    features$rt <- as_tibble(matrix(nrow = 0, ncol = length(rt_colnames)), .name_repair = ~ rt_colnames)
+    features$metadata <- tibble::as_tibble(matrix(nrow = 0, ncol = length(metadata_colnames)), .name_repair = ~ metadata_colnames)
+    features$intensity <- tibble::as_tibble(matrix(nrow = 0, ncol = length(intensity_colnames)), .name_repair = ~ intensity_colnames)
+    features$rt <- tibble::as_tibble(matrix(nrow = 0, ncol = length(rt_colnames)), .name_repair = ~ rt_colnames)
     return(features)
 }
 
@@ -12,7 +12,7 @@ create_empty_tibble <- function(number_of_samples, metadata_colnames, intensity_
 add_row <- function(df, data, i, column_names) {
     row <- matrix(c(i, data), nrow=1)
     colnames(row) <- column_names
-    return(bind_rows(df, as_tibble(row)))
+    return(dplyr::bind_rows(df, tibble::as_tibble(row)))
 }
 
 
@@ -101,7 +101,7 @@ create_rows <- function(features,
         gc()
     } # call Garbage Collection for performance improvement?
 
-    sample <- filter(features, cluster == sel.labels[i])
+    sample <- dplyr::filter(features, cluster == sel.labels[i])
     if (nrow(sample) > 1) {
         if (validate_contents(sample, min_occurrence)) {
             return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples))
@@ -177,7 +177,8 @@ create_aligned_feature_table <- function(all_table,
 #' }
 #' @export
 #' @examples
-#' feature.align(features, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
+#' data(extracted)
+#' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
 feature.align <- function(features,
                           min_occurrence = 2,
                           mz_tol_relative = NA,
