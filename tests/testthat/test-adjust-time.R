@@ -1,5 +1,5 @@
 patrick::with_parameters_test_that(
-  "get_template",
+  "compute template",
   {
     testdata <- file.path("..", "testdata")
 
