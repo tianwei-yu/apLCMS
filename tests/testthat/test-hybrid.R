@@ -1,5 +1,4 @@
 patrick::with_parameters_test_that("basic hybrid test", {
-  skip("Disabled")
   if(ci_skip == TRUE) skip_on_ci()
 
   testdata <- file.path("..", "testdata")
