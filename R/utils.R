@@ -5,12 +5,11 @@ NULL
 #' Concatenate multiple feature lists and add the sample id (origin of feature) as additional column.
 #' 
 #' @param features list List of tibbles containing extracted feature tables.
-#' @param rt_colname string Name of retention time information column, usually "pos".
-concatenate_feature_tables <- function(features, rt_colname) {
+concatenate_feature_tables <- function(features) {
   for (i in seq_along(features)) {
-      if(!("sample_id" %in% colnames(features[[i]]))) {
-        features[[i]] <- tibble::add_column(features[[i]], sample_id = i)
-      }
+    if(!("sample_id" %in% colnames(features[[i]]))) {
+      features[[i]] <- tibble::add_column(features[[i]], sample_id = i)
+    }
   }
 
   merged <- dplyr::bind_rows(features)
@@ -68,26 +67,25 @@ wide_to_long_feature_table <- function(wide_table, sample_names) {
   return(long_features)
 }
 
-load_aligned_features <- function(rt_file, int_file, tol_file) {
-  rt_cross_table <- arrow::read_parquet(rt_file)
-  int_cross_table <- arrow::read_parquet(int_file)
-  tolerances_table <- arrow::read_parquet(tol_file)
-  
-  row.names(rt_cross_table) <- as.character(row.names(rt_cross_table))
-  row.names(int_cross_table) <- as.character(row.names(int_cross_table))
+load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_file) {
+  metadata <- arrow::read_parquet(metadata_file)
+  intensities <- arrow::read_parquet(intensities_file)
+  rt <- arrow::read_parquet(rt_file)
+  tolerances <- arrow::read_parquet(tol_file)
   
   result <- list()
-  result$mz_tolerance <- tolerances_table$mz_tolerance
-  result$rt_tolerance <- tolerances_table$rt_tolerance
-  result$rt_crosstab <- rt_cross_table
-  result$int_crosstab <- int_cross_table
+  result$metadata <- as_tibble(metadata)
+  result$intensity <- as_tibble(intensities)
+  result$rt <- as_tibble(rt)
+  result$mz_tol_relative <- tolerances$mz_tolerance
+  result$rt_tol_relative <- tolerances$rt_tolerance
   return(result)
 }
 
 create_feature_sample_table <- function(features) {
   table <- as_feature_sample_table(
-    rt_crosstab = features$rt_crosstab,
-    int_crosstab = features$int_crosstab
+    rt_crosstab = features$rt,
+    int_crosstab = features$intensity
   )
   return(table)
 }

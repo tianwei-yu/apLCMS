@@ -111,7 +111,7 @@ get_custom_rt_tol <- function(use_observed_range,
 
   if (use_observed_range) {
     # check observed rt range across ALL SAMPLES
-    all_peak_rts <- peak_rts[, 5:ncol(peak_rts)]
+    all_peak_rts <- peak_rts[, 2:ncol(peak_rts)]
     observed.rt.range <- (apply(all_peak_rts, 1, max) - apply(all_peak_rts, 1, min)) / 2
     sufficient_rts <- apply(!is.na(all_peak_rts), 1, sum) >= 5
     selection <- which(sufficient_rts & custom_rt_tol > observed.rt.range)
@@ -145,6 +145,7 @@ compute_target_times <- function(aligned_rts,
       original_subset ~ adjusted_subset,
       na.action = na.omit
     )
+
     aligned_rts[sel_non_na] <- predict(sp, aligned_rts[sel_non_na])$y
   }
 }
@@ -652,8 +653,9 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.rt.tol, this.f1, this.f2)
 recover.weaker <- function(filename,
                            sample_name,
-                           aligned.ftrs,
-                           pk.times,
+                           metadata_table,
+                           intensity_table,
+                           rt_table,
                            align.mz.tol,
                            align.rt.tol,
                            extracted_features,
@@ -681,29 +683,29 @@ recover.weaker <- function(filename,
 
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
+  
+  sample_intensities <- unlist(dplyr::select(intensity_table, dplyr::contains(sample_name)), use.names = FALSE)
 
-  sample_intensities <- aligned.ftrs[, sample_name]
-  sample_times <- pk.times[, sample_name]
-
-  custom.mz.tol <- recover_mz_range * aligned.ftrs$mz
+  custom.mz.tol <- recover_mz_range * metadata_table$mz
   custom.rt.tol <- get_custom_rt_tol(
     use.observed.range,
-    pk.times,
+    rt_table,
     recover_rt_range,
-    aligned.ftrs
+    metadata_table
   )
 
   # # rounding is used to create a histogram of retention time values
+
   target_times <- compute_target_times(
-    aligned.ftrs[, "rt"],
-    round(extracted_features$pos, 5),
+    metadata_table$rt,
+    round(extracted_features$rt, 5),
     round(adjusted_features$rt, 5)
   )
 
   # IMPORTANT: THIS CODE SECTION COULD BE USED TO REPLACE COMPUTE_TARGET_TIMES FOR THE TEST CASES AND
   # IS A MASSIVE SIMPLIFICATION.
   # sp <- splines::interpSpline(
-  #   unique(extracted_features$pos) ~ unique(adjusted_features$rt),
+  #   unique(extracted_features$rt) ~ unique(adjusted_features$rt),
   #   na.action = na.omit
   # )
   # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
@@ -711,7 +713,6 @@ recover.weaker <- function(filename,
 
   breaks <- predict_mz_break_indices(data_table, orig.tol)
 
-  this.mz <- rep(NA, length(sample_intensities))
   max_mz <- max(data_table$mz)
 
   # THIS CONSTRUCT TO EXTRACT MISSING FEATURES COULD BE USED TO POSSIBLY SPEED UP
@@ -726,10 +727,10 @@ recover.weaker <- function(filename,
 
   for (i in seq_along(sample_intensities))
   {
-    if (sample_intensities[i] == 0 && aligned.ftrs[i, "mz"] < max_mz) {
+    if (sample_intensities[i] == 0 && metadata_table$mz[i] < max_mz) {
       this.rec <- compute_rectangle(
         data_table,
-        aligned.ftrs[i, "mz"],
+        metadata_table$mz[i],
         breaks,
         custom.mz.tol[i],
         orig.tol,
@@ -752,45 +753,41 @@ recover.weaker <- function(filename,
       )
       this.sel <- this.sel[this.sel != 1]
 
+
       if (length(this.sel) > 0) {
         if (length(this.sel) > 1) {
           this.sel <- refine_selection(
             target_times[i],
             this.rec,
-            aligned.ftrs[i, 1],
+            metadata_table$mz[i],
             custom.rt.tol[i],
             custom.mz.tol[i]
           )
         }
 
-        this.pos.diff <- which.min(abs(extracted_features$pos - this.rec$rt[this.sel]))
+        this.pos.diff <- which.min(abs(extracted_features$rt - this.rec$rt[this.sel]))
         extracted_features <- extracted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
-          pos = this.rec$rt[this.sel],
+          rt = this.rec$rt[this.sel],
           area = this.rec$intensities[this.sel]
         )
         
-        this.time.adjust <- (-extracted_features$pos[this.pos.diff] + adjusted_features$rt[this.pos.diff])
+        this.time.adjust <- (-extracted_features$rt[this.pos.diff] + adjusted_features$rt[this.pos.diff])
 
         adjusted_features <- adjusted_features |> tibble::add_row(
           mz = this.rec$mz[this.sel],
           rt = this.rec$rt[this.sel] + this.time.adjust,
           area = this.rec$intensities[this.sel],
-          sample_id = grep(sample_name, colnames(aligned.ftrs)) - 4 # offset for other columns `mz`, `rt` etc
+          sample_id = grep(sample_name, colnames(metadata_table)) - 8 # offset for other columns `mz`, `rt` etc
         )
-
-        sample_intensities[i] <- this.rec$intensities[this.sel]
-        sample_times[i] <- this.rec$rt[this.sel] + this.time.adjust
-        this.mz[i] <- this.rec$mz[this.sel]
       }
     }
   }
-  to.return <- new("list")
-  to.return$this.mz <- this.mz
-  to.return$this.ftrs <- sample_intensities
-  to.return$this.times <- sample_times
-  to.return$this.f1 <- duplicate.row.remove(extracted_features |> dplyr::rename(rt = pos)) |> dplyr::rename(pos = rt)
-  to.return$this.f2 <- duplicate.row.remove(adjusted_features)
 
-  return(to.return)
+  return(
+    list(
+      extracted_features = duplicate.row.remove(extracted_features),
+      adjusted_features = duplicate.row.remove(adjusted_features)
+    )
+  )
 }

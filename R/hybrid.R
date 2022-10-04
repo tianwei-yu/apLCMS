@@ -136,7 +136,7 @@ augment_known_table <- function(
         existing.row = NA,
         ftrs.row = int_crosstab[i, ],
         rt.row = rt_crosstab[i, ])
-      known_table <- rbind(known_table, row)
+      known_table <- dplyr::bind_rows(known_table, row)
       pairing <- rbind(pairing, c(i, nrow(known_table)))
     }
   }
@@ -256,13 +256,20 @@ hybrid <- function(
     BIC_factor = BIC_factor
   )
 
+ message("**** computing clusters ****")
+  res <- compute_clusters(
+    feature_tables = extracted,
+    mz_tol_relative = align_mz_tol,
+    mz_tol_absolute = max_align_mz_diff,
+    mz_max_diff = 10 * mz_tol,
+    rt_tol_relative = align_rt_tol
+  )
+
   message("**** time correction ****")
   corrected <- adjust.time(
-    extracted_features = extracted,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    extracted_features = res$feature_tables,
+    mz_tol_relative = res$mz_tol_relative,
+    rt_tol_relative = res$rt_tol_relative,
     do.plot = FALSE
   )
 
@@ -305,13 +312,20 @@ hybrid <- function(
     recover_min_count = recover_min_count
   )
 
+  message("**** third time computing clusters ****")
+  recovered_clusters <- compute_clusters(
+    feature_tables = recovered$extracted_features,
+    mz_tol_relative = align_mz_tol,
+    mz_tol_absolute = max_align_mz_diff,
+    mz_max_diff = 10 * mz_tol,
+    rt_tol_relative = align_rt_tol
+  )
+
   message("**** second round time correction ****")
   recovered_corrected <- adjust.time(
-    extracted_features = recovered$extracted_features,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    extracted_features = recovered_clusters$feature_tables,
+    mz_tol_relative = recovered_clusters$mz_tol_relative,
+    rt_tol_relative = recovered_clusters$rt_tol_relative,
     do.plot = FALSE
   )
 

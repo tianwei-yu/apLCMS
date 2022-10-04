@@ -18,20 +18,12 @@ test_that("basic two-step hybrid test", {
   expected_final_features <- readRDS("../testdata/final_ftrs.Rda")
   known_table <- arrow::read_parquet("../testdata/known_table.parquet")
 
-  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-  if (nzchar(chk) && chk == "TRUE") {
-    num_workers <- 2L
-  } else {
-    num_workers <- parallel::detectCores()
-  }
-
   result <- two.step.hybrid(
     filenames = test_names,
     metadata = metadata,
     work_dir = tempdir,
     known.table = known_table,
-    cluster = num_workers
+    cluster = get_num_workers()
   )
   final_features <- result$final_features
 

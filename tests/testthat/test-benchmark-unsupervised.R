@@ -1,7 +1,7 @@
 patrick::with_parameters_test_that(
   "test benchmark",
   {
-    if(skip){
+    if (skip) {
       skip("Disabled")
     }
 
@@ -10,20 +10,10 @@ patrick::with_parameters_test_that(
     testdata <- file.path("..", "testdata")
 
     filenames <- lapply(filename, function(x) {
-      file.path(testdata, paste0(x, ".mzml"))
+      file.path(testdata, "input", paste0(x, ".mzml"))
     })
 
-    # CRAN limits the number of cores available to packages to 2
-    # source https://stackoverflow.com/questions/50571325/r-cran-check-fail-when-using-parallel-functions#50571533
-    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-    if (nzchar(chk) && chk == "TRUE") {
-      # use 2 cores in CRAN/Travis/AppVeyor
-      cluster <- 2L
-    } else {
-      # use all cores in devtools::test()
-      cluster <- parallel::detectCores()
-    }
+    cluster <- get_num_workers()
 
     if (!is(cluster, "cluster")) {
       cluster <- parallel::makeCluster(cluster)
@@ -32,13 +22,12 @@ patrick::with_parameters_test_that(
 
     res <- microbenchmark::microbenchmark(
       unsupervised = {
-          result <- unsupervised(unlist(filenames), cluster = cluster)
+        result <- unsupervised(unlist(filenames), cluster = cluster)
       },
       times = 10L
     )
 
-    expected_path <- file.path(testdata, expected_filename)
-    expected <- arrow::read_parquet(expected_path)
+    expected <- arrow::read_parquet(file.path("../testdata/unsupervised", paste0(.test_name, "_unsupervised.parquet")))
     expect_equal(result$recovered_feature_sample_table, expected)
 
     cat("\n\n")
@@ -46,9 +35,8 @@ patrick::with_parameters_test_that(
     cat("\n")
   },
   patrick::cases(
-    RCX_shortened = list(
+    mbr_test = list(
       filename = c("mbr_test0", "mbr_test1", "mbr_test2"),
-      expected_filename = "unsupervised_recovered_feature_sample_table.parquet",
       skip = TRUE
     )
   )
