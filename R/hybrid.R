@@ -2,15 +2,15 @@
 NULL
 #> NULL
 
-.merge_peaks <- function(aligned, known_table, match_tol_ppm, mz_tol_relative) {
+.merge_peaks <- function(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative) {
   if (is.na(match_tol_ppm)) {
     match_tol_ppm <- mz_tol_relative * 1e+06
   }
-  features <- tibble::as_tibble(aligned$int_crosstab)
-  known_mz <- known_table[, 6]
-  known_rt <- known_table[, 11]
+  features <- aligned$intensity
+  known_mz <- known_table[, 'm.z']
+  known_rt <- known_table[, 'RT_mean']
 
-  mass_d2 <- mass.match(features$mz, known_mz, match_tol_ppm)
+  mass_d2 <- mass.match(aligned$metadata['mz'], known_mz, match_tol_ppm)
   mass_matched_pos <- which(mass_d2 > 0)
 
   known_assigned <- rep(0, nrow(known_table))
@@ -22,12 +22,12 @@ NULL
     if (new_assigned[i] == 0) {
       # find all potentially related known/newly found peaks
       prev_sel_new <- i
-      threshold <- features$mz[i] * match_tol_ppm / 1e+06
+      threshold <- aligned$metadata[i, 'mz'] * match_tol_ppm / 1e+06
 
-      sel_known <- which(abs(known_mz - features$mz[i]) < threshold)
+      sel_known <- which(abs(known_mz - aligned$metadata[i, 'mz']) < threshold)
       sel_new <- NULL
       for (m in seq_along(sel_known)) {
-        distance <- abs(features$mz - known_mz[sel_known[m]])
+        distance <- abs(aligned$metadata['mz'] - known_mz[sel_known[m]])
         sel_new <- c(sel_new, which(distance < threshold))
       }
       sel_known <- unique(sel_known)
@@ -38,13 +38,13 @@ NULL
 
         sel_known <- NULL
         for (m in seq_along(sel_new)) {
-          distance <- abs(known_mz - features$mz[sel_new[m]])
+          distance <- abs(known_mz - aligned$metadata[sel_new[m], 'mz'])
           sel_known <- c(sel_known, which(distance < threshold))
         }
 
         sel_new <- NULL
         for (m in seq_along(sel_known)) {
-          distance <- abs(features$mz - known_mz[sel_known[m]])
+          distance <- abs(aligned$metadata['mz'] - known_mz[sel_known[m]])
           sel_new <- c(sel_new, which(distance < threshold))
         }
 
@@ -56,14 +56,14 @@ NULL
         matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
 
       for (k in seq_along(sel_known)) {
-        time_matched[k, ] <- abs(features$rt[sel_new] - known_rt[sel_known[k]])
-        mass_matched[k, ] <- abs(features$mz[sel_new] - known_mz[sel_known[k]])
+        time_matched[k, ] <- abs(aligned$metadata[sel_new, 'rt'] - known_rt[sel_known[k]])
+        mass_matched[k, ] <- abs(aligned$metadata[sel_new, 'mz'] - known_mz[sel_known[k]])
       }
       mass_matched <- mass_matched/median(known_mz[sel_known])
       time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
 
-      time_matched[is.na(time_matched)] <- aligned$rt_tolerance / 2
-      both_matched <- find.match(time_matched, aligned$rt_tolerance / 2)
+      time_matched[is.na(time_matched)] <- rt_tol_relative / 2
+      both_matched <- find.match(time_matched, rt_tol_relative / 2)
 
       for (m in seq_along(sel_new)) {
         k <- which(both_matched[, m] == 1)
