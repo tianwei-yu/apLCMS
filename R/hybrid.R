@@ -2,11 +2,10 @@
 NULL
 #> NULL
 
-.merge_peaks <- function(aligned, known_table, match_tol_ppm) {
+.merge_peaks <- function(aligned, known_table, match_tol_ppm, mz_tol_relative) {
   if (is.na(match_tol_ppm)) {
-    match_tol_ppm <- aligned$mz_tolerance * 1e+06
+    match_tol_ppm <- mz_tol_relative * 1e+06
   }
-
   features <- tibble::as_tibble(aligned$int_crosstab)
   known_mz <- known_table[, 6]
   known_rt <- known_table[, 11]
@@ -82,8 +81,14 @@ NULL
 }
 
 #' @export
-augment_with_known_features <- function(aligned, known_table, match_tol_ppm) {
-  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
+augment_with_known_features <- function(
+  aligned,
+  known_table,
+  match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative
+  ) {
+  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative)
 
   features <- aligned$int_crosstab
   n_entries <- nrow(known_table) - nrow(pairing)
@@ -234,6 +239,7 @@ hybrid <- function(
 
   check_files(filenames)
   sample_names <- get_sample_name(filenames)
+  number_of_samples <- length(sample_names)
 
   message("**** feature extraction ****")
   extracted <- extract_features(
@@ -274,22 +280,21 @@ hybrid <- function(
   )
 
   message("**** feature alignment ****")
-  aligned <- align_features(
-    sample_names = sample_names,
-    features = corrected,
-    min_occurrence = min_exp,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
-  )
+  aligned <- create_aligned_feature_table(
+    dplyr::bind_rows(res$feature_tables),
+    min_exp,
+    number_of_samples,
+    res$rt_tol_relative,
+    res$mz_tol_relative
+)
 
   message("**** augmenting with known peaks ****")
   merged <- augment_with_known_features(
     aligned = aligned,
     known_table = known_table,
-    match_tol_ppm = match_tol_ppm
+    match_tol_ppm = match_tol_ppm,
+    mz_tol_relative = align_mz_tol,
+    rt_tol_relative = align_rt_tol
   )
 
 
