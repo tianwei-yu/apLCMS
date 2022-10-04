@@ -2,64 +2,65 @@
 NULL
 #> NULL
 
-compute_comb <- function(template_features, this.feature) {
-  this.comb <- dplyr::bind_rows(
+compute_comb <- function(template_features, features) {
+  combined <- dplyr::bind_rows(
     template_features,
-    dplyr::bind_cols(this.feature |> dplyr::select(c(mz, rt)), sample_id = this.feature$sample_id)
+    dplyr::bind_cols(features |> dplyr::select(c(mz, rt)), sample_id = features$sample_id)
   )
-  this.comb <- this.comb |> dplyr::arrange_at("mz")
-  return(this.comb)
+  combined <- combined |> dplyr::arrange_at("mz")
+  return(combined)
 }
 
-compute_sel <- function(this.comb, mz_tol_relative, rt_tol_relative) {
-  l <- nrow(this.comb)
-  sel <- which(this.comb$mz[2:l] - this.comb$mz[1:(l - 1)] <
-    mz_tol_relative * this.comb$mz[1:(l - 1)] * 2 &
-    abs(this.comb$rt[2:l] - this.comb$rt[1:(l - 1)]) <
-      rt_tol_relative & this.comb$sample_id[2:l] != this.comb$sample_id[1:(l - 1)])
+compute_sel <- function(combined, mz_tol_relative, rt_tol_relative) {
+  l <- nrow(combined)
+  sel <- which(combined$mz[2:l] - combined$mz[1:(l - 1)] <
+    mz_tol_relative * combined$mz[1:(l - 1)] * 2 &
+    abs(combined$rt[2:l] - combined$rt[1:(l - 1)]) <
+      rt_tol_relative & combined$sample_id[2:l] != combined$sample_id[1:(l - 1)])
   return(sel)
 }
 
-compute_template_adjusted_rt <- function(this.comb, sel, j) {
-  all.ftr.table <- cbind(this.comb$rt[sel], this.comb$rt[sel + 1])
-  to.flip <- which(this.comb$sample_id[sel] == j)
-  temp <- all.ftr.table[to.flip, 2]
-  all.ftr.table[to.flip, 2] <- all.ftr.table[to.flip, 1]
-  all.ftr.table[to.flip, 1] <- temp
+compute_template_adjusted_rt <- function(combined, sel, j) {
+  all_features <- cbind(combined$rt[sel], combined$rt[sel + 1])
+  flip_indices <- which(combined$sample_id[sel] == j)
+  temp <- all_features[flip_indices, 2]
+  all_features[flip_indices, 2] <- all_features[flip_indices, 1]
+  all_features[flip_indices, 1] <- temp
 
   # now the first column is the template retention time.
   # the second column is the to-be-adjusted retention time
 
-  cat(c("sample", j, "using", nrow(all.ftr.table), ", "))
+  cat(c("sample", j, "using", nrow(all_features), ", "))
   if (j %% 3 == 0) {
     cat("\n")
   }
 
-  all.ftr.table <- all.ftr.table[order(all.ftr.table[, 2]), ]
-  return(all.ftr.table)
+  all_features <- all_features[order(all_features[, 2]), ]
+  return(all_features)
 }
 
-compute_corrected_features <- function(this.feature, this.diff, avg_time) {
-  this.feature <- this.feature[order(this.feature$rt, this.feature$mz), ]
-  this.corrected <- this.old <- this.feature$rt
-  to.correct <- this.old[this.old >= min(this.diff) &
-    this.old <= max(this.diff)]
+compute_corrected_features <- function(features, delta_rt, avg_time) {
+  features <- features[order(features$rt, features$mz), ]
+  corrected <- features$rt
+  original <- features$rt
+  to_correct <- original[original >= min(delta_rt) &
+    original <= max(delta_rt)]
 
-  this.smooth <- ksmooth(this.diff, avg_time,
+  this.smooth <- ksmooth(delta_rt, avg_time,
     kernel = "normal",
-    bandwidth = (max(this.diff) - min(this.diff)) / 5,
-    x.points = to.correct
+    bandwidth = (max(delta_rt) - min(delta_rt)) / 5,
+    x.points = to_correct
   )
 
-  this.corrected[dplyr::between(this.old, min(this.diff), max(this.diff))] <-
-    this.smooth$y + to.correct
-  this.corrected[this.old < min(this.diff)] <- this.corrected[this.old < min(this.diff)] +
+  corrected[dplyr::between(original, min(delta_rt), max(delta_rt))] <-
+    this.smooth$y + to_correct
+  corrected[original < min(delta_rt)] <- corrected[original < min(delta_rt)] +
     mean(this.smooth$y[this.smooth$x == min(this.smooth$x)])
-  this.corrected[this.old > max(this.diff)] <- this.corrected[this.old > max(this.diff)] +
+  corrected[original > max(delta_rt)] <- corrected[original > max(delta_rt)] +
     mean(this.smooth$y[this.smooth$x == max(this.smooth$x)])
-  this.feature$rt <- this.corrected
-  this.feature <- this.feature[order(this.feature$mz, this.feature$rt), ]
-  return(this.feature)
+  features$rt <- corrected
+  features <- features[order(features$mz, features$rt), ]
+  return(features)
 }
 
 fill_missing_values <- function(orig.feature, this.feature) {
@@ -94,7 +95,7 @@ correct_time <- function(this.feature, template_features, mz_tol_relative, rt_to
       sel <- compute_sel(this.comb, mz_tol_relative, rt_tol_relative)
 
       if (length(sel) < 20) {
-        cat("too few, aborted")
+        stop("too few, aborted")
       } else {
         all.ftr.table <- compute_template_adjusted_rt(this.comb, sel, j)
         # the to be adjusted time
@@ -151,8 +152,12 @@ adjust.time <- function(extracted_features,
 
   template_features <- compute_template(extracted_features)
 
-  corrected_features <- foreach::foreach(this.feature = extracted_features) %do% 
-  correct_time(this.feature, template_features, mz_tol_relative, rt_tol_relative)
+  corrected_features <- foreach::foreach(features = extracted_features) %do% correct_time(
+    features,
+    template_features,
+    mz_tol_relative,
+    rt_tol_relative
+  )
 
   if (do.plot) {
     draw_rt_correction_plot(
