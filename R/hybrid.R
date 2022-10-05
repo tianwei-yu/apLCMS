@@ -7,10 +7,8 @@ NULL
     match_tol_ppm <- mz_tol_relative * 1e+06
   }
   features <- aligned$intensity
-  known_mz <- known_table[, 'm.z']
-  known_rt <- known_table[, 'RT_mean']
 
-  mass_d2 <- mass.match(aligned$metadata['mz'], known_mz, match_tol_ppm)
+  mass_d2 <- mass.match(aligned$metadata['mz'], known_table['m.z'], match_tol_ppm)
   mass_matched_pos <- which(mass_d2 > 0)
 
   known_assigned <- rep(0, nrow(known_table))
@@ -24,10 +22,10 @@ NULL
       prev_sel_new <- i
       threshold <- aligned$metadata[i, 'mz'] * match_tol_ppm / 1e+06
 
-      sel_known <- which(abs(known_mz - aligned$metadata[i, 'mz']) < threshold)
+      sel_known <- which(abs(known_table['m.z'] - aligned$metadata[i, 'mz']) < threshold)
       sel_new <- NULL
       for (m in seq_along(sel_known)) {
-        distance <- abs(aligned$metadata['mz'] - known_mz[sel_known[m]])
+        distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
         sel_new <- c(sel_new, which(distance < threshold))
       }
       sel_known <- unique(sel_known)
@@ -38,13 +36,13 @@ NULL
 
         sel_known <- NULL
         for (m in seq_along(sel_new)) {
-          distance <- abs(known_mz - aligned$metadata[sel_new[m], 'mz'])
+          distance <- abs(known_table['m.z'] - aligned$metadata[sel_new[m], 'mz'])
           sel_known <- c(sel_known, which(distance < threshold))
         }
 
         sel_new <- NULL
         for (m in seq_along(sel_known)) {
-          distance <- abs(aligned$metadata['mz'] - known_mz[sel_known[m]])
+          distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
           sel_new <- c(sel_new, which(distance < threshold))
         }
 
@@ -56,10 +54,10 @@ NULL
         matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
 
       for (k in seq_along(sel_known)) {
-        time_matched[k, ] <- abs(aligned$metadata[sel_new, 'rt'] - known_rt[sel_known[k]])
-        mass_matched[k, ] <- abs(aligned$metadata[sel_new, 'mz'] - known_mz[sel_known[k]])
+        time_matched[k, ] <- abs(aligned$metadata[sel_new, 'rt'] - known_table[sel_known[k], 'RT_mean'])
+        mass_matched[k, ] <- abs(aligned$metadata[sel_new, 'm.z'] - known_table[sel_known[k], 'm.z'])
       }
-      mass_matched <- mass_matched/median(known_mz[sel_known])
+      mass_matched <- mass_matched/median(known_table[sel_known, 'm.z'])
       time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
 
       time_matched[is.na(time_matched)] <- rt_tol_relative / 2
