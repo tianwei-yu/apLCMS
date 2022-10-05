@@ -2,16 +2,22 @@
 NULL
 #> NULL
 
-.merge_peaks <- function(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative) {
+.merge_peaks <- function(aligned,
+  known_table,
+  match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative) {
+
   if (is.na(match_tol_ppm)) {
     match_tol_ppm <- mz_tol_relative * 1e+06
   }
-  features <- aligned$intensity
 
-  mass_matched_pos <- find_mz_match(aligned$metadata['mz'], known_table['m.z'], match_tol_ppm)
+  mass_matched_pos <- find_mz_match(aligned$metadata['mz'],
+    known_table['m.z'],
+    match_tol_ppm)
 
   known_assigned <- rep(0, nrow(known_table))
-  new_assigned <- rep(0, nrow(features))
+  new_assigned <- rep(0, nrow(aligned$metadata))
   pairing <- matrix(0, ncol = 2, nrow = 0)
   colnames(pairing) <- c("new", "known")
 
@@ -19,7 +25,7 @@ NULL
     if (new_assigned[i] == 0) {
       # find all potentially related known/newly found peaks
       prev_sel_new <- i
-      threshold <- aligned$metadata[i, 'mz'] * match_tol_ppm / 1e+06
+      threshold <- aligned$metadata[i, 'mz'] * mz_tol_relative
 
       sel_known <- which(abs(known_table['m.z'] - aligned$metadata[i, 'mz']) < threshold)
       sel_new <- NULL
