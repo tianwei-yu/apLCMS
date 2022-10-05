@@ -12,14 +12,13 @@ NULL
     match_tol_ppm <- mz_tol_relative * 1e+06
   }
 
-  mass_matched_pos <- find_mz_match(aligned$metadata['mz'],
+  mass_matched_pos <- find_mz_match(aligned$metadata[['mz']],
     known_table['m.z'],
     match_tol_ppm)
 
   known_assigned <- rep(0, nrow(known_table))
   new_assigned <- rep(0, nrow(aligned$metadata))
-  pairing <- matrix(0, ncol = 2, nrow = 0)
-  colnames(pairing) <- c("new", "known")
+  pairing <- data.frame(new = numeric(), known = numeric())
 
   for (i in mass_matched_pos) {
     if (new_assigned[i] == 0) {
@@ -77,7 +76,6 @@ NULL
           pairing <- rbind(pairing, c(sel_new[m], sel_known[k]))
         }
       }
-    }
   }
 
   pairing

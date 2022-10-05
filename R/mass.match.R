@@ -10,7 +10,7 @@
 #'  known_mz = 20
 #' )
 find_mz_match <- function(sample_mz, known_mz, match_tol_ppm = 5) {
-  matched_mz_idx <- rep(0, nrow(sample_mz))
+  matched_mz_idx <- rep(0, length(sample_mz))
   match_tol_ppm <- match_tol_ppm / 1e6
 
   for (i in seq_along(sample_mz)) {
