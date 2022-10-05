@@ -2,7 +2,7 @@
 #' @param sample_mz The mz array for which to compute the matching.
 #' @param known_mz The mz value with which to match.
 #' @param match_tol_ppm Matching tolerance in ppm.
-#' @return Binary vector, 1 indicating a match, 0 a mismatch.
+#' @return Indicies of m/z values within the tolerance of any known m/z.
 #' @export
 #' @examples
 #' find_mz_match(
@@ -19,5 +19,5 @@ find_mz_match <- function(sample_mz, known_mz, match_tol_ppm = 5) {
       matched_mz_idx[i] <- 1
     }
   }
-  return(matched_mz_idx)
+  return(which(matched_mz_idx == 1))
 }

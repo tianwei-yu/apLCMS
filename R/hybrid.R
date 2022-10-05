@@ -8,8 +8,7 @@ NULL
   }
   features <- aligned$intensity
 
-  mass_d2 <- find_mz_match(aligned$metadata['mz'], known_table['m.z'], match_tol_ppm)
-  mass_matched_pos <- which(mass_d2 > 0)
+  mass_matched_pos <- find_mz_match(aligned$metadata['mz'], known_table['m.z'], match_tol_ppm)
 
   known_assigned <- rep(0, nrow(known_table))
   new_assigned <- rep(0, nrow(features))
