@@ -293,8 +293,8 @@ hybrid <- function(
     aligned = aligned,
     known_table = known_table,
     match_tol_ppm = match_tol_ppm,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol
+    mz_tol_relative = res$mz_tol_relative,
+    rt_tol_relative = res$rt_tol_relative
   )
 
 
