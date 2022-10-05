@@ -21,61 +21,63 @@ NULL
   pairing <- data.frame(new = numeric(), known = numeric())
 
   for (i in mass_matched_pos) {
-    if (new_assigned[i] == 0) {
-      # find all potentially related known/newly found peaks
-      prev_sel_new <- i
-      threshold <- aligned$metadata[i, 'mz'] * mz_tol_relative
+    if (new_assigned[i] != 0) {
+      next
+    }
+    # find all potentially related known/newly found peaks
+    prev_sel_new <- i
+    threshold <- aligned$metadata[i, 'mz'] * mz_tol_relative
 
-      sel_known <- which(abs(known_table['m.z'] - aligned$metadata[i, 'mz']) < threshold)
+    sel_known <- which(abs(known_table['m.z'] - aligned$metadata[i, 'mz']) < threshold)
+    sel_new <- NULL
+    for (m in seq_along(sel_known)) {
+      distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
+      sel_new <- c(sel_new, which(distance < threshold))
+    }
+    sel_known <- unique(sel_known)
+    sel_new <- unique(sel_new)
+
+    while (length(sel_new) > length(prev_sel_new)) {
+      prev_sel_new <- sel_new
+
+      sel_known <- NULL
+      for (m in seq_along(sel_new)) {
+        distance <- abs(known_table['m.z'] - aligned$metadata[sel_new[m], 'mz'])
+        sel_known <- c(sel_known, which(distance < threshold))
+      }
+
       sel_new <- NULL
       for (m in seq_along(sel_known)) {
         distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
         sel_new <- c(sel_new, which(distance < threshold))
       }
+
       sel_known <- unique(sel_known)
       sel_new <- unique(sel_new)
+    }
 
-      while (length(sel_new) > length(prev_sel_new)) {
-        prev_sel_new <- sel_new
+    time_matched <- mass_matched <-
+      matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
 
-        sel_known <- NULL
-        for (m in seq_along(sel_new)) {
-          distance <- abs(known_table['m.z'] - aligned$metadata[sel_new[m], 'mz'])
-          sel_known <- c(sel_known, which(distance < threshold))
-        }
+    for (k in seq_along(sel_known)) {
+      time_matched[k, ] <- abs(aligned$metadata[sel_new, 'rt'] - known_table[sel_known[k], 'RT_mean'])
+      mass_matched[k, ] <- abs(aligned$metadata[sel_new, 'm.z'] - known_table[sel_known[k], 'm.z'])
+    }
+    mass_matched <- mass_matched/median(known_table[sel_known, 'm.z'])
+    time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
 
-        sel_new <- NULL
-        for (m in seq_along(sel_known)) {
-          distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
-          sel_new <- c(sel_new, which(distance < threshold))
-        }
+    time_matched[is.na(time_matched)] <- rt_tol_relative / 2
+    both_matched <- find.match(time_matched, rt_tol_relative / 2)
 
-        sel_known <- unique(sel_known)
-        sel_new <- unique(sel_new)
+    for (m in seq_along(sel_new)) {
+      k <- which(both_matched[, m] == 1)
+
+      if (length(k) == 1 && known_assigned[sel_known[k]] == 0) {
+        new_assigned[sel_new[m]] <- 1
+        known_assigned[sel_known[k]] <- 1
+        pairing <- rbind(pairing, c(sel_new[m], sel_known[k]))
       }
-
-      time_matched <- mass_matched <-
-        matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
-
-      for (k in seq_along(sel_known)) {
-        time_matched[k, ] <- abs(aligned$metadata[sel_new, 'rt'] - known_table[sel_known[k], 'RT_mean'])
-        mass_matched[k, ] <- abs(aligned$metadata[sel_new, 'm.z'] - known_table[sel_known[k], 'm.z'])
-      }
-      mass_matched <- mass_matched/median(known_table[sel_known, 'm.z'])
-      time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
-
-      time_matched[is.na(time_matched)] <- rt_tol_relative / 2
-      both_matched <- find.match(time_matched, rt_tol_relative / 2)
-
-      for (m in seq_along(sel_new)) {
-        k <- which(both_matched[, m] == 1)
-
-        if (length(k) == 1 && known_assigned[sel_known[k]] == 0) {
-          new_assigned[sel_new[m]] <- 1
-          known_assigned[sel_known[k]] <- 1
-          pairing <- rbind(pairing, c(sel_new[m], sel_known[k]))
-        }
-      }
+    }
   }
 
   pairing
