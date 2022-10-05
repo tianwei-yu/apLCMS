@@ -265,7 +265,7 @@ semi.sup <- function(
     is.done<-all.files[which(all.files == this.name)]
     if(length(is.done)==0)
     {
-        mass.d2<-mass.match(aligned$aligned_features[,1], known.table[,6],match.tol.ppm)
+        mass.d2<-find_mz_match(aligned$aligned_features[,1], known.table[,6],match.tol.ppm)
         mass.matched.pos<-which(mass.d2>0)
         
         known.assigned<-rep(0, nrow(known.table))
