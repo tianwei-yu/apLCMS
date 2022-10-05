@@ -18,7 +18,7 @@ NULL
 
   known_assigned <- rep(0, nrow(known_table))
   new_assigned <- rep(0, nrow(aligned$metadata))
-  pairing <- data.frame(new = numeric(), known = numeric())
+  pairing <- matrix(0, nrow = 0, ncol = 2)
 
   for (i in mass_matched_pos) {
     if (new_assigned[i] != 0) {
@@ -26,43 +26,41 @@ NULL
     }
     # find all potentially related known/newly found peaks
     prev_sel_new <- i
-    threshold <- aligned$metadata[i, 'mz'] * mz_tol_relative
+    threshold <- aligned$metadata[[i, 'mz']] * mz_tol_relative
 
-    sel_known <- which(abs(known_table['m.z'] - aligned$metadata[i, 'mz']) < threshold)
-    sel_new <- NULL
+    sel_known <- which(abs(known_table[['m.z']] - aligned$metadata[[i, 'mz']]) < threshold)
+    sel_new <- c()
     for (m in seq_along(sel_known)) {
-      distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
-      sel_new <- c(sel_new, which(distance < threshold))
+      distance <- abs(aligned$metadata[['mz']] - known_table[[sel_known[m], 'm.z']])
+      sel_new <- unique(c(sel_new, which(distance < threshold)))
     }
-    sel_known <- unique(sel_known)
-    sel_new <- unique(sel_new)
 
     while (length(sel_new) > length(prev_sel_new)) {
       prev_sel_new <- sel_new
 
       sel_known <- NULL
       for (m in seq_along(sel_new)) {
-        distance <- abs(known_table['m.z'] - aligned$metadata[sel_new[m], 'mz'])
-        sel_known <- c(sel_known, which(distance < threshold))
+        distance <- abs(known_table[['m.z']] - aligned$metadata[[sel_new[m], 'mz']])
+        sel_known <- unique(c(sel_known, which(distance < threshold)))
       }
 
       sel_new <- NULL
       for (m in seq_along(sel_known)) {
-        distance <- abs(aligned$metadata['mz'] - known_table[sel_known[m], 'm.z'])
-        sel_new <- c(sel_new, which(distance < threshold))
+        distance <- abs(aligned$metadata[['mz']] - known_table[[sel_known[m], 'm.z']])
+        sel_new <- unique(c(sel_new, which(distance < threshold)))
       }
-
-      sel_known <- unique(sel_known)
-      sel_new <- unique(sel_new)
     }
 
-    time_matched <- mass_matched <-
-      matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
+    time_matched <- mass_matched <- matrix(
+      data = 0,
+      nrow = length(sel_known),
+      ncol = length(sel_new))
 
     for (k in seq_along(sel_known)) {
-      time_matched[k, ] <- abs(aligned$metadata[sel_new, 'rt'] - known_table[sel_known[k], 'RT_mean'])
-      mass_matched[k, ] <- abs(aligned$metadata[sel_new, 'm.z'] - known_table[sel_known[k], 'm.z'])
+      time_matched[k,] <- abs(aligned$metadata$rt[sel_new] - known_table[[sel_known[k], 'RT_mean']])
+      mass_matched[k,] <- abs(aligned$metadata$mz[sel_new] - known_table[[sel_known[k], 'm.z']])
     }
+
     mass_matched <- mass_matched/median(known_table[sel_known, 'm.z'])
     time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
 
@@ -79,8 +77,8 @@ NULL
       }
     }
   }
-
-  pairing
+  colnames(pairing) <- c('new', 'known')
+  return(pairing)
 }
 
 #' @export
@@ -91,7 +89,7 @@ augment_with_known_features <- function(
   mz_tol_relative,
   rt_tol_relative
   ) {
-  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative)
+  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
 
   features <- aligned$int_crosstab
   n_entries <- nrow(known_table) - nrow(pairing)
