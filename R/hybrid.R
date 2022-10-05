@@ -2,7 +2,7 @@
 NULL
 #> NULL
 
-.merge_peaks <- function(aligned,
+match_peaks <- function(aligned,
   known_table,
   match_tol_ppm,
   mz_tol_relative,
@@ -89,7 +89,7 @@ augment_with_known_features <- function(
   mz_tol_relative,
   rt_tol_relative
   ) {
-  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
+  pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
 
   features <- aligned$int_crosstab
   n_entries <- nrow(known_table) - nrow(pairing)
@@ -122,7 +122,7 @@ augment_known_table <- function(
   match_tol_ppm,
   new_feature_min_count
 ) {
-  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
+  pairing <- match_peaks(aligned, known_table, match_tol_ppm)
   rt_crosstab <- as.matrix(aligned$rt_crosstab)
   int_crosstab <- as.matrix(aligned$int_crosstab)
 
