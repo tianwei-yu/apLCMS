@@ -270,7 +270,7 @@ hybrid <- function(
   )
 
  message("**** computing clusters ****")
-  res <- compute_clusters(
+  extracted_clusters <- compute_clusters(
     feature_tables = extracted,
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
@@ -278,79 +278,108 @@ hybrid <- function(
     rt_tol_relative = align_rt_tol
   )
 
-  message("**** time correction ****") # compute teamplates + ...
-  corrected <- adjust.time(
-    extracted_features = res$feature_tables,
-    mz_tol_relative = res$mz_tol_relative,
-    rt_tol_relative = res$rt_tol_relative,
-    do.plot = FALSE
+  message("**** computing template ****")
+  template_features <- compute_template(extracted_clusters$feature_tables)
+
+
+  message("**** time correction ****")
+  corrected <- foreach::foreach(this.feature = extracted_clusters$feature_tables) %do% correct_time(
+    this.feature,
+    template_features,
+    extracted_clusters$mz_tol_relative,
+    extracted_clusters$rt_tol_relative
+  )
+
+  message("**** computing clusters ****")
+  adjusted_clusters <- compute_clusters(
+    feature_tables = corrected,
+    mz_tol_relative = extracted_clusters$mz_tol_relative,
+    mz_tol_absolute = extracted_clusters$rt_tol_relative,
+    mz_max_diff = 10 * mz_tol,
+    rt_tol_relative = align_rt_tol
   )
 
   message("**** feature alignment ****")
   aligned <- create_aligned_feature_table(
-    dplyr::bind_rows(res$feature_tables),
-    min_exp,
-    number_of_samples,
-    res$rt_tol_relative,
-    res$mz_tol_relative
-)
+      dplyr::bind_rows(adjusted_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      adjusted_clusters$rt_tol_relative,
+      adjusted_clusters$mz_tol_relative
+  )
 
   message("**** augmenting with known peaks ****")
   merged <- augment_with_known_features(
     aligned = aligned,
     known_table = known_table,
     match_tol_ppm = match_tol_ppm,
-    mz_tol_relative = res$mz_tol_relative,
-    rt_tol_relative = res$rt_tol_relative
+    mz_tol_relative = adjusted_clusters$mz_tol_relative,
+    rt_tol_relative = adjusted_clusters$rt_tol_relative
   )
-
 
   message("**** weaker signal recovery ****")
-  recovered <- recover_weaker_signals(
-    cluster = cluster,
-    filenames = filenames,
-    extracted_features = extracted,
-    corrected_features = corrected,
-    aligned_rt_crosstab = merged$rt_crosstab,
-    aligned_int_crosstab = merged$int_crosstab,
-    original_mz_tolerance = mz_tol,
-    aligned_mz_tolerance = aligned$mz_tolerance,
-    aligned_rt_tolerance = aligned$rt_tolerance,
-    recover_mz_range = recover_mz_range,
-    recover_rt_range = recover_rt_range,
-    use_observed_range = use_observed_range,
-    min_bandwidth = min_bandwidth,
-    max_bandwidth = max_bandwidth,
-    recover_min_count = recover_min_count
-  )
+  recovered <- lapply(seq_along(filenames), function(i) {
+    recover.weaker(
+      filename = filenames[[i]],
+      sample_name = as.character(i),
+      extracted_features = extracted[[i]],
+      adjusted_features = corrected[[i]],
+      metadata_table = aligned$metadata,
+      rt_table = aligned$rt,
+      intensity_table = aligned$intensity,
+      orig.tol = mz_tol,
+      align.mz.tol = aligned$mz_tol_relative,
+      align.rt.tol = aligned$rt_tol_relative,
+      recover_mz_range = recover_mz_range,
+      recover_rt_range = recover_rt_range,
+      use.observed.range = use_observed_range,
+      bandwidth = 0.5,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      recover.min.count = recover_min_count,
+      intensity.weighted = intensity_weighted
+    )
+  })
+
+  recovered_adjusted <- lapply(recovered, function(x) x$adjusted_features)
 
   message("**** third time computing clusters ****")
   recovered_clusters <- compute_clusters(
-    feature_tables = recovered$extracted_features,
+    feature_tables = recovered_adjusted,
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = align_rt_tol
   )
 
-  message("**** second round time correction ****")
-  recovered_corrected <- adjust.time(
-    extracted_features = recovered_clusters$feature_tables,
-    mz_tol_relative = recovered_clusters$mz_tol_relative,
-    rt_tol_relative = recovered_clusters$rt_tol_relative,
-    do.plot = FALSE
+  message("**** computing template ****")
+  template_features <- compute_template(recovered_clusters$feature_tables)
+
+
+  message("**** second time correction ****")
+  corrected <- foreach::foreach(this.feature = recovered_clusters$feature_tables) %do% correct_time(
+    this.feature,
+    template_features,
+    recovered_clusters$mz_tol_relative,
+    recovered_clusters$rt_tol_relative
   )
 
-  message("**** second round feature alignment ****")
-  recovered_aligned <- align_features(
-    sample_names = sample_names,
-    features = recovered_corrected,
-    min_occurrence = min_exp,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
+  message("**** fourth computing clusters ****")
+  adjusted_clusters <- compute_clusters(
+    feature_tables = corrected,
+    mz_tol_relative = recovered_clusters$mz_tol_relative,
+    mz_tol_absolute = recovered_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
+    rt_tol_relative = align_rt_tol
+  )
+
+  message("**** second feature alignment ****")
+  aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(adjusted_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      adjusted_clusters$rt_tol_relative,
+      adjusted_clusters$mz_tol_relative
   )
 
   message("**** augmenting known table ****")
