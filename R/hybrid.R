@@ -91,6 +91,17 @@ match_peaks <- function(aligned,
   return(pairing)
 }
 
+#' Add newly detected features to a known features table.
+#' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
+#' @param known_table A table of known/previously detected peaks.
+#' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
+#'  value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#'  the tolerance level based on the data.
+#' @return Known table with novel features.
+#' @import dplyr
 #' @export
 augment_with_known_features <- function(
   aligned,
@@ -101,29 +112,14 @@ augment_with_known_features <- function(
   ) {
   pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
 
-  features <- aligned$int_crosstab
-  n_entries <- nrow(known_table) - nrow(pairing)
-  to_add_ftrs <- matrix(0, ncol = ncol(features), nrow = n_entries)
-  to_add_times <- matrix(NA, ncol = ncol(features), nrow = n_entries)
+  known_table <- tibble(known_table)[-pairing[,'known'], ]
+  metadata <- select(known_table, c('m.z', 'mz_min', 'mz_max', 'RT_mean', 'RT_min', 'RT_max'))
+  colnames(metadata) <- c('mz', 'mzmin', 'mzmax', 'rt', 'rtmin', 'rtmax')
 
-  colnames(to_add_ftrs) <- colnames(aligned$int_crosstab)
-  colnames(to_add_times) <- colnames(aligned$rt_crosstab)
+  metadata <- bind_rows(select(aligned$metadata, -id), metadata) |>
+    rowid_to_column('id')
 
-  sel <- seq_len(nrow(known_table))
-  if (nrow(pairing) > 0) {
-    sel <- sel[-(pairing[, 2])]
-  }
-
-
-  to_add_ftrs[, 1] <- to_add_times[, 1] <- known_table[sel, 6]
-  to_add_ftrs[, 2] <- to_add_times[, 2] <- known_table[sel, 11]
-  to_add_ftrs[, 3] <- to_add_times[, 3] <- known_table[sel, 9]
-  to_add_ftrs[, 4] <- to_add_times[, 4] <- known_table[sel, 10]
-
-  list(
-    rt_crosstab = rbind(aligned$rt_crosstab, to_add_times),
-    int_crosstab = rbind(aligned$int_crosstab, to_add_ftrs)
-  )
+  return(metadata)
 }
 
 augment_known_table <- function(
