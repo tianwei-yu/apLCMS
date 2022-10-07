@@ -2,6 +2,16 @@
 NULL
 #> NULL
 
+#' Match peaks from sample table to already known peaks via similar m/z and rt.
+#' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
+#' @param known_table A table of known/previously detected peaks.
+#' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
+#'  value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#'  the tolerance level based on the data.
+#' @return n x 2 matrix containing sample features-known features pairs.
 match_peaks <- function(aligned,
   known_table,
   match_tol_ppm,
@@ -272,7 +282,7 @@ hybrid <- function(
     rt_tol_relative = align_rt_tol
   )
 
-  message("**** time correction ****")
+  message("**** time correction ****") # compute teamplates + ...
   corrected <- adjust.time(
     extracted_features = res$feature_tables,
     mz_tol_relative = res$mz_tol_relative,
