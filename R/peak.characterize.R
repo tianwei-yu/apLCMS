@@ -18,19 +18,19 @@ merge.new <- function(mean0, sd0, min0, max0, n, x) {
     return(c(mean1, sd1, min1, max1))
 }
 
-characterize <- function(existing.row, n, m, rt.row, ftrs.row){
-    existing.row[7] <- sum(existing.row[7], length(ftrs.row) - 4, na.rm = T)
-    existing.row[8] <- (n + m) / existing.row[7]
-    existing.row[9] <- min(existing.row[6], existing.row[9], ftrs.row[3], na.rm = T)
-    existing.row[10] <- max(existing.row[6], existing.row[10], ftrs.row[4], na.rm = T)
+characterize <- function(existing_row, n, m, metadata_row, rt_row, ftrs_row){
+    existing_row[7] <- sum(existing_row[7], length(ftrs_row) - 4, na.rm = T)
+    existing_row[8] <- (n + m) / existing_row[7]
+    existing_row[9] <- min(existing_row[6], existing_row[9], ftrs_row[3], na.rm = T)
+    existing_row[10] <- max(existing_row[6], existing_row[10], ftrs_row[4], na.rm = T)
 
-    this <- merge.new(existing.row[11], existing.row[12], existing.row[13], existing.row[14], n, rt.row[5:length(rt.row)])
+    this <- merge.new(existing_row[11], existing_row[12], existing_row[13], existing_row[14], n, rt_row[5:length(rt_row)])
     existing.row[11:14] <- this
 
-    this <- merge.new(existing.row[15], existing.row[16], existing.row[17], existing.row[18], n, ftrs.row[5:length(ftrs.row)])
-    existing.row[15:18] <- this
+    this <- merge.new(existing_row[15], existing_row[16], existing_row[17], existing_row[18], n, ftrs_row[5:length(ftrs_row)])
+    existing_row[15:18] <- this
 
-    return(existing.row)
+    return(existing_row)
 }
 
 #' Internal function: Updates the information of a feature for the known feature table.
