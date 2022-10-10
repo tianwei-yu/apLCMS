@@ -146,8 +146,9 @@ augment_known_table <- function(
   pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
 
   for (i in seq_len(nrow(pairing))) {
-    known_table[pairing[i, 'known'], ] <- peak.characterize(
+    known_table[pairing[i, 'known'], ] <- peak_characterize(
       existing_row = known_table[pairing[i, 'known'], ],
+      metadata_row = aligned$metadata[pairing[i, 'new'], ],
       ftrs_row = aligned$intensity[pairing[i, 'new'], ],
       rt_row = aligned$rt[pairing[i, 'new'], ])
   }
@@ -157,7 +158,7 @@ augment_known_table <- function(
 
   for (i in newly_found_ftrs) {
     if (num_exp_found[i] >= new_feature_min_count) {
-      row <- peak.characterize(
+      row <- peak_characterize(
         existing.row = NA,
         ftrs.row = aligned$intensity[i, ],
         rt.row = aligned$rt[i, ])

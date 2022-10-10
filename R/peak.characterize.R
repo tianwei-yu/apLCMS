@@ -43,8 +43,8 @@ characterize <- function(existing.row, n, m, rt.row, ftrs.row){
 #' @param rt_row The row of the matched feature in the new retention time table of aligned features.
 #' @return A vector, the updated row for the known feature table.
 #' @examples
-#' peak.characterize(existing_row = NA, ftrs_row, rt_row)
-peak.characterize <- function(existing_row = NA, metadata_row, ftrs_row, rt_row) {
+#' peak_characterize(existing_row = NA, ftrs_row, rt_row)
+peak_characterize <- function(existing_row = NA, metadata_row, ftrs_row, rt_row) {
     ftrs_row[2:length(ftrs_row)] <- log10(ftrs_row[2:length(ftrs_row)] + 1)
     ftrs_row[ftrs_row == 0] <- NA
     if (length(existing_row) == 1) {
