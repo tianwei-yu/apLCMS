@@ -408,12 +408,14 @@ hybrid <- function(
   )
 
   aligned_feature_sample_table <- as_feature_sample_table(
-    rt_crosstab = aligned$rt_crosstab,
-    int_crosstab = aligned$int_crosstab
+    metadata = aligned$metadata,
+    rt_crosstab = aligned$rt,
+    int_crosstab = aligned$intensity
   )
   recovered_feature_sample_table <- as_feature_sample_table(
-    rt_crosstab = recovered_aligned$rt_crosstab,
-    int_crosstab = recovered_aligned$int_crosstab
+    metadata = recovered_aligned$metadata,
+    rt_crosstab = recovered_aligned$rt,
+    int_crosstab = recovered_aligned$intensity
   )
 
   list(
