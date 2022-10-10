@@ -44,19 +44,19 @@ characterize <- function(existing.row, n, m, rt.row, ftrs.row){
 #' @return A vector, the updated row for the known feature table.
 #' @examples
 #' peak.characterize(existing_row = NA, ftrs_row, rt_row)
-peak.characterize <- function(existing_row = NA, ftrs_row, rt_row) {
-    ftrs_row[5:length(ftrs_row)] <- log10(ftrs_row[5:length(ftrs_row)] + 1)
+peak.characterize <- function(existing_row = NA, metadata_row, ftrs_row, rt_row) {
+    ftrs_row[2:length(ftrs_row)] <- log10(ftrs_row[2:length(ftrs_row)] + 1)
     ftrs_row[ftrs_row == 0] <- NA
     if (length(existing_row) == 1) {
         existing_row <- rep(NA, 18)
-        existing_row[6] <- ftrs_row[1]
+        existing_row[6] <- metadata_row$mz
     }
 
     n <- round(as.numeric(existing_row[7]) * as.numeric(existing_row[8])) # times found in previous experiments
     if (is.na(n)) {
         n <- 0
     }
-    m <- sum(!is.na(rt_row[5:length(rt_row)])) # times found in current experiment
+    m <- sum(!is.na(rt_row[2:length(rt_row)])) # times found in current experiment
 
     existing_row <- characterize(existing_row, n, m, rt_row, ftrs_row)
 
