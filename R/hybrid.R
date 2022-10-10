@@ -144,25 +144,23 @@ augment_known_table <- function(
   new_feature_min_count
 ) {
   pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
-  rt_crosstab <- as.matrix(aligned$rt_crosstab)
-  int_crosstab <- as.matrix(aligned$int_crosstab)
 
   for (i in seq_len(nrow(pairing))) {
     known_table[pairing[i, 'known'], ] <- peak.characterize(
       existing_row = known_table[pairing[i, 'known'], ],
-      ftrs_row = int_crosstab[pairing[i, 'new'], ],
-      rt_row = rt_crosstab[pairing[i, 'new'], ])
+      ftrs_row = aligned$intensity[pairing[i, 'new'], ],
+      rt_row = aligned$rt[pairing[i, 'new'], ])
   }
 
   newly_found_ftrs <- which(!(seq_len(nrow(alined$metadata)) %in% pairing[, 'new']))
-  num_exp_found <- apply(int_crosstab != 0, 1, sum)
+  num_exp_found <- apply(aligned$intensity != 0, 1, sum)
 
   for (i in newly_found_ftrs) {
     if (num_exp_found[i] >= new_feature_min_count) {
       row <- peak.characterize(
         existing.row = NA,
-        ftrs.row = int_crosstab[i, ],
-        rt.row = rt_crosstab[i, ])
+        ftrs.row = aligned$intensity[i, ],
+        rt.row = aligned$rt[i, ])
       known_table <- dplyr::bind_rows(known_table, row)
       pairing <- rbind(pairing, c(i, nrow(known_table)))
     }
