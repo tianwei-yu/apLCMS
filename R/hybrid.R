@@ -139,20 +139,22 @@ augment_known_table <- function(
   aligned,
   known_table,
   match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative,
   new_feature_min_count
 ) {
-  pairing <- match_peaks(aligned, known_table, match_tol_ppm)
+  pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
   rt_crosstab <- as.matrix(aligned$rt_crosstab)
   int_crosstab <- as.matrix(aligned$int_crosstab)
 
   for (i in seq_len(nrow(pairing))) {
-    known_table[pairing[i, 2], ] <- peak.characterize(
-      existing.row = known_table[pairing[i, 2], ],
-      ftrs.row = int_crosstab[pairing[i, 1], ],
-      rt.row = rt_crosstab[pairing[i, 1], ])
+    known_table[pairing[i, 'known'], ] <- peak.characterize(
+      existing.row = known_table[pairing[i, 'known'], ],
+      ftrs.row = int_crosstab[pairing[i, 'new'], ],
+      rt.row = rt_crosstab[pairing[i, 'new'], ])
   }
 
-  newly_found_ftrs <- which(!(seq_len(nrow(int_crosstab)) %in% pairing[, 1]))
+  newly_found_ftrs <- which(!(seq_len(nrow(alined$metadata)) %in% pairing[, 'new']))
   num_exp_found <- apply(int_crosstab != 0, 1, sum)
 
   for (i in newly_found_ftrs) {
@@ -387,7 +389,7 @@ hybrid <- function(
   )
 
   message("**** second feature alignment ****")
-  aligned <- create_aligned_feature_table(
+  recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
       number_of_samples,
@@ -400,6 +402,8 @@ hybrid <- function(
     aligned = recovered_aligned,
     known_table = known_table,
     match_tol_ppm = match_tol_ppm,
+    mz_tol_relative = adjusted_clusters$mz_tol_relative,
+    rt_tol_relative = adjusted_clusters$rt_tol_relative,
     new_feature_min_count = new_feature_min_count
   )
 
