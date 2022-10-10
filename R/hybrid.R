@@ -153,7 +153,7 @@ augment_known_table <- function(
       rt_row = aligned$rt[pairing[i, 'new'], ])
   }
 
-  newly_found_ftrs <- which(!(seq_len(nrow(alined$metadata)) %in% pairing[, 'new']))
+  newly_found_ftrs <- which(!(seq_len(nrow(aligned$metadata)) %in% pairing[, 'new']))
   num_exp_found <- apply(aligned$intensity != 0, 1, sum)
 
   for (i in newly_found_ftrs) {
