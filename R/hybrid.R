@@ -116,10 +116,23 @@ augment_with_known_features <- function(
   metadata <- select(known_table, c('m.z', 'mz_min', 'mz_max', 'RT_mean', 'RT_min', 'RT_max'))
   colnames(metadata) <- c('mz', 'mzmin', 'mzmax', 'rt', 'rtmin', 'rtmax')
 
-  metadata <- bind_rows(select(aligned$metadata, -id), metadata) |>
+  new_features_num <- nrow(metadata)
+  samples_num <- ncol(select(aligned$intensity, -id))
+
+  aligned$metadata <- bind_rows(select(aligned$metadata, -id), metadata) |>
     rowid_to_column('id')
 
-  return(metadata)
+  rt <- data.frame(matrix(data = NA, nrow = new_features_num, ncol = samples_num))
+  colnames(rt) <- colnames(select(aligned$rt, -id))
+  aligned$rt <- bind_rows(select(aligned$rt, -id), rt) |>
+    rowid_to_column('id')
+
+  intensity <- data.frame(matrix(data = 0, nrow = new_features_num, ncol = samples_num))
+  colnames(intensity) <- colnames(select(aligned$intensity, -id))
+  aligned$intensity <- bind_rows(select(aligned$intensity, -id), intensity) |>
+    rowid_to_column('id')
+
+  return(aligned)
 }
 
 augment_known_table <- function(
