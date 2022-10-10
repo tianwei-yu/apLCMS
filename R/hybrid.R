@@ -159,9 +159,10 @@ augment_known_table <- function(
   for (i in newly_found_ftrs) {
     if (num_exp_found[i] >= new_feature_min_count) {
       row <- peak_characterize(
-        existing.row = NA,
-        ftrs.row = aligned$intensity[i, ],
-        rt.row = aligned$rt[i, ])
+        existing_row = NA,
+        metadata_row = aligned$metadata[i, ],
+        ftrs_row = aligned$intensity[i, ],
+        rt_row = aligned$rt[i, ])
       known_table <- dplyr::bind_rows(known_table, row)
       pairing <- rbind(pairing, c(i, nrow(known_table)))
     }
