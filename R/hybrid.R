@@ -149,9 +149,9 @@ augment_known_table <- function(
 
   for (i in seq_len(nrow(pairing))) {
     known_table[pairing[i, 'known'], ] <- peak.characterize(
-      existing.row = known_table[pairing[i, 'known'], ],
-      ftrs.row = int_crosstab[pairing[i, 'new'], ],
-      rt.row = rt_crosstab[pairing[i, 'new'], ])
+      existing_row = known_table[pairing[i, 'known'], ],
+      ftrs_row = int_crosstab[pairing[i, 'new'], ],
+      rt_row = rt_crosstab[pairing[i, 'new'], ])
   }
 
   newly_found_ftrs <- which(!(seq_len(nrow(alined$metadata)) %in% pairing[, 'new']))

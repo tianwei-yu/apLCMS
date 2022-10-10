@@ -38,27 +38,27 @@ characterize <- function(existing.row, n, m, rt.row, ftrs.row){
 #' @description
 #' The function takes the information about the feature in the known feature table (if available), and updates it using the
 #' information found in the current dataset.
-#' @param existing.row The existing row in the known feature table.
-#' @param ftrs.row The row of the matched feature in the new aligned feature table.
-#' @param rt.row The row of the matched feature in the new retention time table of aligned features.
+#' @param existing_row The existing row in the known feature table.
+#' @param ftrs_row The row of the matched feature in the new aligned feature table.
+#' @param rt_row The row of the matched feature in the new retention time table of aligned features.
 #' @return A vector, the updated row for the known feature table.
 #' @examples
-#' peak.characterize(existing.row = NA, ftrs.row, rt.row)
-peak.characterize <- function(existing.row = NA, ftrs.row, rt.row) {
-    ftrs.row[5:length(ftrs.row)] <- log10(ftrs.row[5:length(ftrs.row)] + 1)
-    ftrs.row[ftrs.row == 0] <- NA
-    if (length(existing.row) == 1) {
-        existing.row <- rep(NA, 18)
-        existing.row[6] <- ftrs.row[1]
+#' peak.characterize(existing_row = NA, ftrs_row, rt_row)
+peak.characterize <- function(existing_row = NA, ftrs_row, rt_row) {
+    ftrs_row[5:length(ftrs_row)] <- log10(ftrs_row[5:length(ftrs_row)] + 1)
+    ftrs_row[ftrs_row == 0] <- NA
+    if (length(existing_row) == 1) {
+        existing_row <- rep(NA, 18)
+        existing_row[6] <- ftrs_row[1]
     }
 
-    n <- round(as.numeric(existing.row[7]) * as.numeric(existing.row[8])) # times found in previous experiments
+    n <- round(as.numeric(existing_row[7]) * as.numeric(existing_row[8])) # times found in previous experiments
     if (is.na(n)) {
         n <- 0
     }
-    m <- sum(!is.na(rt.row[5:length(rt.row)])) # times found in current experiment
+    m <- sum(!is.na(rt_row[5:length(rt_row)])) # times found in current experiment
 
-    existing.row <- characterize(existing.row, n, m, rt.row, ftrs.row)
+    existing_row <- characterize(existing_row, n, m, rt_row, ftrs_row)
 
-    return(tibble::as_tibble(existing.row))
+    return(tibble::as_tibble(existing_row))
 }
