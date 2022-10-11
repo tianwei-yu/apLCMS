@@ -420,7 +420,7 @@ hybrid <- function(
 
   list(
     extracted_features = recovered$extracted_features,
-    corrected_features = recovered_corrected,
+    corrected_features = corrected,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
     aligned_mz_tolerance = as.numeric(recovered_aligned$mz_tolerance),
