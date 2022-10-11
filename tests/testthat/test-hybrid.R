@@ -1,6 +1,7 @@
 patrick::with_parameters_test_that("basic hybrid test", {
   if(ci_skip == TRUE) skip_on_ci()
 
+  store_reports <- FALSE
   testdata <- file.path("..", "testdata")
 
   test_files <- sapply(files, function(x) {
@@ -21,6 +22,23 @@ patrick::with_parameters_test_that("basic hybrid test", {
   expected <- arrow::read_parquet(
     file.path(testdata, "hybrid", paste0(.test_name, "_recovered_feature_sample_table.parquet"))
   )
+
+  if (store_reports) {
+  report <- dataCompareR::rCompare(
+    actual,
+    expected,
+    keys = keys,
+    roundDigits = 3,
+    mismatches = 100000
+  )
+  dataCompareR::saveReport(
+    report,
+    reportName = paste0(.test_name, "_hybrid_report"),
+    showInViewer = FALSE,
+    HTMLReport = FALSE,
+    mismatchCount = 10000
+  )
+}
 
   expect_equal(actual$recovered_feature_sample_table, expected)
 }, patrick::cases(
