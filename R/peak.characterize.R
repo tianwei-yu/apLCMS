@@ -25,7 +25,7 @@ characterize <- function(existing_row, n, m, metadata_row, rt_row, ftrs_row) {
     existing_row[10] <- max(existing_row[6], existing_row[10], metadata_row$mzmax, na.rm = T)
 
     this <- merge.new(existing_row[11], existing_row[12], existing_row[13], existing_row[14], n, rt_row[2:length(rt_row)])
-    existing.row[11:14] <- this
+    existing_row[11:14] <- this
 
     this <- merge.new(existing_row[15], existing_row[16], existing_row[17], existing_row[18], n, ftrs_row[2:length(ftrs_row)])
     existing_row[15:18] <- this
