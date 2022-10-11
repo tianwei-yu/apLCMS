@@ -58,7 +58,7 @@ peak_characterize <- function(existing_row = NA, metadata_row, ftrs_row, rt_row)
     }
     m <- sum(!is.na(rt_row[2:length(rt_row)])) # times found in current experiment
 
-    existing_row <- characterize(existing_row, n, m, rt_row, ftrs_row)
+    existing_row <- characterize(existing_row, n, m, metadata_row, rt_row, ftrs_row)
 
     return(tibble::as_tibble(existing_row))
 }
