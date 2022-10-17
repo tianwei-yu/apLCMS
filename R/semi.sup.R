@@ -265,8 +265,7 @@ semi.sup <- function(
     is.done<-all.files[which(all.files == this.name)]
     if(length(is.done)==0)
     {
-        mass.d2<-mass.match(aligned$aligned_features[,1], known.table[,6],match.tol.ppm)
-        mass.matched.pos<-which(mass.d2>0)
+        mass.matched.pos<-find_mz_match(aligned$aligned_features[,1], known.table[,6],match.tol.ppm)
         
         known.assigned<-rep(0, nrow(known.table))
         new.assigned<-rep(0, nrow(aligned$aligned_features))
@@ -547,7 +546,7 @@ semi.sup <- function(
         
         for(i in 1:nrow(new.known.pairing))
         {
-            known.2[new.known.pairing[i,2],]<-peak.characterize(existing.row=known.2[new.known.pairing[i,2],],ftrs.row=aligned.recov$aligned.ftrs[new.known.pairing[i,1],], rt.row=aligned.recov$pk.times[new.known.pairing[i,1],])
+            known.2[new.known.pairing[i,2],]<-peak_characterize(existing.row=known.2[new.known.pairing[i,2],],ftrs.row=aligned.recov$aligned.ftrs[new.known.pairing[i,1],], rt.row=aligned.recov$pk.times[new.known.pairing[i,1],])
         }
         
         
@@ -557,7 +556,7 @@ semi.sup <- function(
         {
             if(num.exp.found[i] >= new.feature.min.count)
             {
-                this.row<-peak.characterize(existing.row=NA,ftrs.row=aligned.recov$aligned.ftrs[i,], rt.row=aligned.recov$pk.times[i,])
+                this.row<-peak_characterize(existing.row=NA,ftrs.row=aligned.recov$aligned.ftrs[i,], rt.row=aligned.recov$pk.times[i,])
                 known.2<-rbind(known.2, this.row)
                 new.known.pairing<-rbind(new.known.pairing, c(i,nrow(known.2)))
             }

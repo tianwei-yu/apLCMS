@@ -2,140 +2,167 @@
 NULL
 #> NULL
 
-.merge_peaks <- function(aligned, known_table, match_tol_ppm) {
+#' Match peaks from sample table to already known peaks via similar m/z and rt.
+#' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
+#' @param known_table A table of known/previously detected peaks.
+#' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
+#'  value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#'  the tolerance level based on the data.
+#' @return n x 2 matrix containing sample features-known features pairs.
+match_peaks <- function(aligned,
+  known_table,
+  match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative) {
+
   if (is.na(match_tol_ppm)) {
-    match_tol_ppm <- aligned$mz_tolerance * 1e+06
+    match_tol_ppm <- mz_tol_relative * 1e+06
   }
 
-  features <- tibble::as_tibble(aligned$int_crosstab)
-  known_mz <- known_table[, 6]
-  known_rt <- known_table[, 11]
-
-  mass_d2 <- mass.match(features$mz, known_mz, match_tol_ppm)
-  mass_matched_pos <- which(mass_d2 > 0)
+  mass_matched_pos <- find_mz_match(aligned$metadata[['mz']],
+    known_table['m.z'],
+    match_tol_ppm)
 
   known_assigned <- rep(0, nrow(known_table))
-  new_assigned <- rep(0, nrow(features))
-  pairing <- matrix(0, ncol = 2, nrow = 0)
-  colnames(pairing) <- c("new", "known")
+  new_assigned <- rep(0, nrow(aligned$metadata))
+  pairing <- matrix(0, nrow = 0, ncol = 2)
 
   for (i in mass_matched_pos) {
-    if (new_assigned[i] == 0) {
-      # find all potentially related known/newly found peaks
-      prev_sel_new <- i
-      threshold <- features$mz[i] * match_tol_ppm / 1e+06
+    if (new_assigned[i] != 0) {
+      next
+    }
+    # find all potentially related known/newly found peaks
+    prev_sel_new <- i
+    threshold <- aligned$metadata[[i, 'mz']] * mz_tol_relative
 
-      sel_known <- which(abs(known_mz - features$mz[i]) < threshold)
+    sel_known <- which(abs(known_table[['m.z']] - aligned$metadata[[i, 'mz']]) < threshold)
+    sel_new <- c()
+    for (m in seq_along(sel_known)) {
+      distance <- abs(aligned$metadata[['mz']] - known_table[[sel_known[m], 'm.z']])
+      sel_new <- unique(c(sel_new, which(distance < threshold)))
+    }
+
+    while (length(sel_new) > length(prev_sel_new)) {
+      prev_sel_new <- sel_new
+
+      sel_known <- NULL
+      for (m in seq_along(sel_new)) {
+        distance <- abs(known_table[['m.z']] - aligned$metadata[[sel_new[m], 'mz']])
+        sel_known <- unique(c(sel_known, which(distance < threshold)))
+      }
+
       sel_new <- NULL
       for (m in seq_along(sel_known)) {
-        distance <- abs(features$mz - known_mz[sel_known[m]])
-        sel_new <- c(sel_new, which(distance < threshold))
+        distance <- abs(aligned$metadata[['mz']] - known_table[[sel_known[m], 'm.z']])
+        sel_new <- unique(c(sel_new, which(distance < threshold)))
       }
-      sel_known <- unique(sel_known)
-      sel_new <- unique(sel_new)
+    }
 
-      while (length(sel_new) > length(prev_sel_new)) {
-        prev_sel_new <- sel_new
+    time_matched <- mass_matched <- matrix(
+      data = 0,
+      nrow = length(sel_known),
+      ncol = length(sel_new))
 
-        sel_known <- NULL
-        for (m in seq_along(sel_new)) {
-          distance <- abs(known_mz - features$mz[sel_new[m]])
-          sel_known <- c(sel_known, which(distance < threshold))
-        }
+    for (k in seq_along(sel_known)) {
+      time_matched[k,] <- abs(aligned$metadata$rt[sel_new] - known_table[[sel_known[k], 'RT_mean']])
+      mass_matched[k,] <- abs(aligned$metadata$mz[sel_new] - known_table[[sel_known[k], 'm.z']])
+    }
 
-        sel_new <- NULL
-        for (m in seq_along(sel_known)) {
-          distance <- abs(features$mz - known_mz[sel_known[m]])
-          sel_new <- c(sel_new, which(distance < threshold))
-        }
+    mass_matched <- mass_matched/median(known_table[sel_known, 'm.z'])
+    time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
 
-        sel_known <- unique(sel_known)
-        sel_new <- unique(sel_new)
-      }
+    time_matched[is.na(time_matched)] <- rt_tol_relative / 2
+    both_matched <- find.match(time_matched, rt_tol_relative / 2)
 
-      time_matched <- mass_matched <-
-        matrix(data = 0, nrow = length(sel_known), ncol = length(sel_new))
+    for (m in seq_along(sel_new)) {
+      k <- which(both_matched[, m] == 1)
 
-      for (k in seq_along(sel_known)) {
-        time_matched[k, ] <- abs(features$rt[sel_new] - known_rt[sel_known[k]])
-        mass_matched[k, ] <- abs(features$mz[sel_new] - known_mz[sel_known[k]])
-      }
-      mass_matched <- mass_matched/median(known_mz[sel_known])
-      time_matched[mass_matched <= match_tol_ppm * 1e-06] <- 1e+10
-
-      time_matched[is.na(time_matched)] <- aligned$rt_tolerance / 2
-      both_matched <- find.match(time_matched, aligned$rt_tolerance / 2)
-
-      for (m in seq_along(sel_new)) {
-        k <- which(both_matched[, m] == 1)
-
-        if (length(k) == 1 && known_assigned[sel_known[k]] == 0) {
-          new_assigned[sel_new[m]] <- 1
-          known_assigned[sel_known[k]] <- 1
-          pairing <- rbind(pairing, c(sel_new[m], sel_known[k]))
-        }
+      if (length(k) == 1 && known_assigned[sel_known[k]] == 0) {
+        new_assigned[sel_new[m]] <- 1
+        known_assigned[sel_known[k]] <- 1
+        pairing <- rbind(pairing, c(sel_new[m], sel_known[k]))
       }
     }
   }
-
-  pairing
+  colnames(pairing) <- c('new', 'known')
+  return(pairing)
 }
 
+#' Add newly detected features to a known features table.
+#' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
+#' @param known_table A table of known/previously detected peaks.
+#' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
+#'  value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#'  the tolerance level based on the data.
+#' @return Known table with novel features.
+#' @import dplyr
 #' @export
-augment_with_known_features <- function(aligned, known_table, match_tol_ppm) {
-  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
+augment_with_known_features <- function(
+  aligned,
+  known_table,
+  match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative
+  ) {
+  pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
 
-  features <- aligned$int_crosstab
-  n_entries <- nrow(known_table) - nrow(pairing)
-  to_add_ftrs <- matrix(0, ncol = ncol(features), nrow = n_entries)
-  to_add_times <- matrix(NA, ncol = ncol(features), nrow = n_entries)
+  known_table <- tibble(known_table)[-pairing[,'known'], ]
+  metadata <- select(known_table, c('m.z', 'mz_min', 'mz_max', 'RT_mean', 'RT_min', 'RT_max'))
+  colnames(metadata) <- c('mz', 'mzmin', 'mzmax', 'rt', 'rtmin', 'rtmax')
 
-  colnames(to_add_ftrs) <- colnames(aligned$int_crosstab)
-  colnames(to_add_times) <- colnames(aligned$rt_crosstab)
+  new_features_num <- nrow(metadata)
+  samples_num <- ncol(select(aligned$intensity, -id))
 
-  sel <- seq_len(nrow(known_table))
-  if (nrow(pairing) > 0) {
-    sel <- sel[-(pairing[, 2])]
-  }
+  aligned$metadata <- bind_rows(select(aligned$metadata, -id), metadata) |>
+    rowid_to_column('id')
 
+  rt <- data.frame(matrix(data = NA, nrow = new_features_num, ncol = samples_num))
+  colnames(rt) <- colnames(select(aligned$rt, -id))
+  aligned$rt <- bind_rows(select(aligned$rt, -id), rt) |>
+    rowid_to_column('id')
 
-  to_add_ftrs[, 1] <- to_add_times[, 1] <- known_table[sel, 6]
-  to_add_ftrs[, 2] <- to_add_times[, 2] <- known_table[sel, 11]
-  to_add_ftrs[, 3] <- to_add_times[, 3] <- known_table[sel, 9]
-  to_add_ftrs[, 4] <- to_add_times[, 4] <- known_table[sel, 10]
+  intensity <- data.frame(matrix(data = 0, nrow = new_features_num, ncol = samples_num))
+  colnames(intensity) <- colnames(select(aligned$intensity, -id))
+  aligned$intensity <- bind_rows(select(aligned$intensity, -id), intensity) |>
+    rowid_to_column('id')
 
-  list(
-    rt_crosstab = rbind(aligned$rt_crosstab, to_add_times),
-    int_crosstab = rbind(aligned$int_crosstab, to_add_ftrs)
-  )
+  return(aligned)
 }
 
 augment_known_table <- function(
   aligned,
   known_table,
   match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative,
   new_feature_min_count
 ) {
-  pairing <- .merge_peaks(aligned, known_table, match_tol_ppm)
-  rt_crosstab <- as.matrix(aligned$rt_crosstab)
-  int_crosstab <- as.matrix(aligned$int_crosstab)
+  pairing <- match_peaks(aligned, known_table, match_tol_ppm, mz_tol_relative, rt_tol_relative)
 
   for (i in seq_len(nrow(pairing))) {
-    known_table[pairing[i, 2], ] <- peak.characterize(
-      existing.row = known_table[pairing[i, 2], ],
-      ftrs.row = int_crosstab[pairing[i, 1], ],
-      rt.row = rt_crosstab[pairing[i, 1], ])
+    known_table[pairing[i, 'known'], ] <- peak_characterize(
+      existing_row = known_table[pairing[i, 'known'], ],
+      metadata_row = aligned$metadata[pairing[i, 'new'], ],
+      ftrs_row = aligned$intensity[pairing[i, 'new'], ],
+      rt_row = aligned$rt[pairing[i, 'new'], ])
   }
 
-  newly_found_ftrs <- which(!(seq_len(nrow(int_crosstab)) %in% pairing[, 1]))
-  num_exp_found <- apply(int_crosstab != 0, 1, sum)
+  newly_found_ftrs <- which(!(seq_len(nrow(aligned$metadata)) %in% pairing[, 'new']))
+  num_exp_found <- apply(aligned$intensity != 0, 1, sum)
 
   for (i in newly_found_ftrs) {
     if (num_exp_found[i] >= new_feature_min_count) {
-      row <- peak.characterize(
-        existing.row = NA,
-        ftrs.row = int_crosstab[i, ],
-        rt.row = rt_crosstab[i, ])
+      row <- peak_characterize(
+        existing_row = NA,
+        metadata_row = aligned$metadata[i, ],
+        ftrs_row = aligned$intensity[i, ],
+        rt_row = aligned$rt[i, ])
       known_table <- dplyr::bind_rows(known_table, row)
       pairing <- rbind(pairing, c(i, nrow(known_table)))
     }
@@ -234,6 +261,7 @@ hybrid <- function(
 
   check_files(filenames)
   sample_names <- get_sample_name(filenames)
+  number_of_samples <- length(sample_names)
 
   message("**** feature extraction ****")
   extracted <- extract_features(
@@ -257,7 +285,7 @@ hybrid <- function(
   )
 
  message("**** computing clusters ****")
-  res <- compute_clusters(
+  extracted_clusters <- compute_clusters(
     feature_tables = extracted,
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
@@ -265,80 +293,108 @@ hybrid <- function(
     rt_tol_relative = align_rt_tol
   )
 
+  message("**** computing template ****")
+  template_features <- compute_template(extracted_clusters$feature_tables)
+
+
   message("**** time correction ****")
-  corrected <- adjust.time(
-    extracted_features = res$feature_tables,
-    mz_tol_relative = res$mz_tol_relative,
-    rt_tol_relative = res$rt_tol_relative,
-    do.plot = FALSE
+  corrected <- foreach::foreach(this.feature = extracted_clusters$feature_tables) %do% correct_time(
+    this.feature,
+    template_features,
+    extracted_clusters$mz_tol_relative,
+    extracted_clusters$rt_tol_relative
+  )
+
+  message("**** computing clusters ****")
+  adjusted_clusters <- compute_clusters(
+    feature_tables = corrected,
+    mz_tol_relative = extracted_clusters$mz_tol_relative,
+    mz_tol_absolute = extracted_clusters$rt_tol_relative,
+    mz_max_diff = 10 * mz_tol,
+    rt_tol_relative = align_rt_tol
   )
 
   message("**** feature alignment ****")
-  aligned <- align_features(
-    sample_names = sample_names,
-    features = corrected,
-    min_occurrence = min_exp,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
+  aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(adjusted_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      adjusted_clusters$rt_tol_relative,
+      adjusted_clusters$mz_tol_relative
   )
 
   message("**** augmenting with known peaks ****")
   merged <- augment_with_known_features(
     aligned = aligned,
     known_table = known_table,
-    match_tol_ppm = match_tol_ppm
+    match_tol_ppm = match_tol_ppm,
+    mz_tol_relative = adjusted_clusters$mz_tol_relative,
+    rt_tol_relative = adjusted_clusters$rt_tol_relative
   )
-
 
   message("**** weaker signal recovery ****")
-  recovered <- recover_weaker_signals(
-    cluster = cluster,
-    filenames = filenames,
-    extracted_features = extracted,
-    corrected_features = corrected,
-    aligned_rt_crosstab = merged$rt_crosstab,
-    aligned_int_crosstab = merged$int_crosstab,
-    original_mz_tolerance = mz_tol,
-    aligned_mz_tolerance = aligned$mz_tolerance,
-    aligned_rt_tolerance = aligned$rt_tolerance,
-    recover_mz_range = recover_mz_range,
-    recover_rt_range = recover_rt_range,
-    use_observed_range = use_observed_range,
-    min_bandwidth = min_bandwidth,
-    max_bandwidth = max_bandwidth,
-    recover_min_count = recover_min_count
-  )
+  recovered <- lapply(seq_along(filenames), function(i) {
+    recover.weaker(
+      filename = filenames[[i]],
+      sample_name = as.character(i),
+      extracted_features = extracted[[i]],
+      adjusted_features = corrected[[i]],
+      metadata_table = merged$metadata,
+      rt_table = merged$rt,
+      intensity_table = merged$intensity,
+      orig.tol = mz_tol,
+      align.mz.tol = extracted_clusters$mz_tol_relative,
+      align.rt.tol = extracted_clusters$rt_tol_relative,
+      recover_mz_range = recover_mz_range,
+      recover_rt_range = recover_rt_range,
+      use.observed.range = use_observed_range,
+      bandwidth = 0.5,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      recover.min.count = recover_min_count,
+      intensity.weighted = intensity_weighted
+    )
+  })
+
+  recovered_adjusted <- lapply(recovered, function(x) x$adjusted_features)
 
   message("**** third time computing clusters ****")
   recovered_clusters <- compute_clusters(
-    feature_tables = recovered$extracted_features,
+    feature_tables = recovered_adjusted,
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = align_rt_tol
   )
 
-  message("**** second round time correction ****")
-  recovered_corrected <- adjust.time(
-    extracted_features = recovered_clusters$feature_tables,
-    mz_tol_relative = recovered_clusters$mz_tol_relative,
-    rt_tol_relative = recovered_clusters$rt_tol_relative,
-    do.plot = FALSE
+  message("**** computing template ****")
+  template_features <- compute_template(recovered_clusters$feature_tables)
+
+
+  message("**** second time correction ****")
+  corrected <- foreach::foreach(this.feature = recovered_clusters$feature_tables) %do% correct_time(
+    this.feature,
+    template_features,
+    recovered_clusters$mz_tol_relative,
+    recovered_clusters$rt_tol_relative
   )
 
-  message("**** second round feature alignment ****")
-  recovered_aligned <- align_features(
-    sample_names = sample_names,
-    features = recovered_corrected,
-    min_occurrence = min_exp,
-    mz_tol_relative = align_mz_tol,
-    rt_tol_relative = align_rt_tol,
+  message("**** fourth computing clusters ****")
+  adjusted_clusters <- compute_clusters(
+    feature_tables = corrected,
+    mz_tol_relative = recovered_clusters$mz_tol_relative,
+    mz_tol_absolute = recovered_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
-    do.plot = FALSE
+    rt_tol_relative = align_rt_tol
+  )
+
+  message("**** second feature alignment ****")
+  recovered_aligned <- create_aligned_feature_table(
+      dplyr::bind_rows(adjusted_clusters$feature_tables),
+      min_exp,
+      number_of_samples,
+      adjusted_clusters$rt_tol_relative,
+      adjusted_clusters$mz_tol_relative
   )
 
   message("**** augmenting known table ****")
@@ -346,21 +402,25 @@ hybrid <- function(
     aligned = recovered_aligned,
     known_table = known_table,
     match_tol_ppm = match_tol_ppm,
+    mz_tol_relative = adjusted_clusters$mz_tol_relative,
+    rt_tol_relative = adjusted_clusters$rt_tol_relative,
     new_feature_min_count = new_feature_min_count
   )
 
   aligned_feature_sample_table <- as_feature_sample_table(
-    rt_crosstab = aligned$rt_crosstab,
-    int_crosstab = aligned$int_crosstab
+    metadata = aligned$metadata,
+    rt_crosstab = aligned$rt,
+    int_crosstab = aligned$intensity
   )
   recovered_feature_sample_table <- as_feature_sample_table(
-    rt_crosstab = recovered_aligned$rt_crosstab,
-    int_crosstab = recovered_aligned$int_crosstab
+    metadata = recovered_aligned$metadata,
+    rt_crosstab = recovered_aligned$rt,
+    int_crosstab = recovered_aligned$intensity
   )
 
   list(
     extracted_features = recovered$extracted_features,
-    corrected_features = recovered_corrected,
+    corrected_features = corrected,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
     aligned_mz_tolerance = as.numeric(recovered_aligned$mz_tolerance),
