@@ -1,3 +1,11 @@
+ #' labels is the index of time points
+ sort_labels_index <- function(matrix) {
+   labels <- matrix
+   times <- unique(labels)
+   times <- times[order(times)] 
+   for (i in 1:length(times)) labels[which(matrix == times[i])] <- i # now labels is the index of time points
+   return(labels)
+ }
 #' Continuity index
 #'
 #' This is an internal function. It uses continuity index (or "run filter") to select putative peaks from EIC.
@@ -24,13 +32,7 @@ cont.index <- function(newprof,
   times <- unique(labels)
   times <- times[order(times)]  
   
-  sort_labels_index <- function(matrix) {
-    labels <- matrix
-    times <- unique(labels)
-    times <- times[order(times)] 
-    for (i in 1:length(times)) labels[which(matrix == times[i])] <- i # now labels is the index of time points
-    return(labels)
-  }
+
   newprof[, 2] <- sort_labels_index(newprof[, 2])
 
   times <- times[order(times)]
