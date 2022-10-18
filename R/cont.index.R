@@ -35,11 +35,8 @@ cont.index <- function(newprof,
 
   newprof[, 2] <- sort_labels_index(newprof[, 2])
 
-  times <- times[order(times)]
-  l <- nrow(newprof)
   timeline <- rep(0, length(times))
-  i <- 1
-  num.stack <- 1
+
 
   diff_times <- (max(times) - min(times))
   min.count.run <- min.run * length(times) / diff_times
