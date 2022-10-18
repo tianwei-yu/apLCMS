@@ -42,7 +42,7 @@ cont.index <- function(newprof,
   min.count.run <- min.run * length(times) / diff_times
 
   grps <- newprof[, 4]
-  uniq.grp <- unique(grps)
+  #uniq.grp <- unique(grps) unsused
   curr.label <- 1
 
   ttt <- table(grps)
