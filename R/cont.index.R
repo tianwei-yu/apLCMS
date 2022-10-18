@@ -16,36 +16,31 @@
 #' @export
 #' @examples
 #' cont.index(newprof, min.pres = min.pres, min.run = min.run)
-cont.index <- function(newprof, min.pres = 0.6, min.run = 5) {
-  collapse <- function(a) {
-    a <- a[order(a[, 2]), ]
-    a.breaks <- compute_breaks_3(a[, 2])
-
-    newa <- c(0, 0, 0, 0)
-    for (i in 2:length(a.breaks))
-    {
-      sel <- (a.breaks[i - 1] + 1):a.breaks[i]
-      newa <- rbind(newa, c(median(a[a.breaks[i], 1]), a[a.breaks[i], 2], sum(a[sel, 3]), a[a.breaks[i], 4]))
-    }
-
-    return(newa[-1, ])
-  }
-
+cont.index <- function(newprof,
+                       min.pres = 0.6,
+                       min.run = 5) {
+  
   labels <- newprof[, 2]
   times <- unique(labels)
-  times <- times[order(times)]
-  time.points <- length(times)
-
-  for (i in 1:length(times)) labels[which(newprof[, 2] == times[i])] <- i # now labels is the index of time points
-  newprof[, 2] <- labels
+  times <- times[order(times)]  
+  
+  sort_labels_index <- function(matrix) {
+    labels <- matrix
+    times <- unique(labels)
+    times <- times[order(times)] 
+    for (i in 1:length(times)) labels[which(matrix == times[i])] <- i # now labels is the index of time points
+    return(labels)
+  }
+  newprof[, 2] <- sort_labels_index(newprof[, 2])
 
   times <- times[order(times)]
   l <- nrow(newprof)
-  timeline <- rep(0, time.points)
+  timeline <- rep(0, length(times))
   i <- 1
   num.stack <- 1
-  min.count.run <- min.run * time.points / (max(times) - min(times))
-  aver.time.range <- (max(times) - min(times)) / time.points
+
+  diff_times <- (max(times) - min(times))
+  min.count.run <- min.run * length(times) / diff_times
 
   grps <- newprof[, 4]
   uniq.grp <- unique(grps)
@@ -83,7 +78,16 @@ cont.index <- function(newprof, min.pres = 0.6, min.run = 5) {
 
     to.keep <- this.times * 0
 
-    dens <- ksmooth(seq(-min.run + 1, length(this.timeline) + min.run), c(rep(0, min.run), this.timeline, rep(0, min.run)), kernel = "box", bandwidth = min.run, x.points = 1:length(this.timeline))
+    dens <- ksmooth(
+      seq(-min.run + 1, length(this.timeline) + min.run),
+      c(rep(0, min.run),
+      this.timeline,
+      rep(0, min.run)),
+      kernel = "box",
+      bandwidth = min.run,
+      x.points = 1:length(this.timeline)
+    )
+
     dens <- dens$y
 
     if (max(dens) >= min.pres) {
@@ -123,5 +127,6 @@ cont.index <- function(newprof, min.pres = 0.6, min.run = 5) {
   results$height.rec <- height.rec[1:(curr.label - 1)]
   results$time.range.rec <- time.range.rec[1:(curr.label - 1)]
   results$mz.pres.rec <- mz.pres.rec[1:(curr.label - 1)]
+
   return(results)
 }
