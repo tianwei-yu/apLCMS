@@ -1,11 +1,14 @@
- #' labels is the index of time points
- sort_labels_index <- function(matrix) {
-   labels <- matrix
-   times <- unique(labels)
-   times <- times[order(times)] 
-   for (i in 1:length(times)) labels[which(matrix == times[i])] <- i # now labels is the index of time points
-   return(labels)
- }
+# computes unique groups
+compute_uniq_grp <- function(profile, min.count.run, min.pres = 0.6) {
+  grps <- profile  
+  ttt <- table(grps)
+  ttt <- ttt[ttt >= max(min.count.run * min.pres, 2)]
+  unique.grp <- as.numeric(names(ttt))
+  return(unique.grp)
+  }
+
+
+
 #' Continuity index
 #'
 #' This is an internal function. It uses continuity index (or "run filter") to select putative peaks from EIC.
@@ -28,55 +31,55 @@ cont.index <- function(newprof,
                        min.pres = 0.6,
                        min.run = 5) {
   
-  labels <- newprof[, 2]
+  
+  # ordering retention time values
+  labels <- newprof[,2]
   times <- unique(labels)
   times <- times[order(times)]  
+  time.points <- length(times)
+ 
+  for (i in 1:length(times)) labels[which(newprof[,2] == times[i])] <- i #now labels is the index of time points
+  newprof[,2] <- labels  ## is it a vector of indices ??
+
   
+  # set lower bounds of elution time
+  min.count.run <- min.run * time.points / (max(times) - min(times))
+  min.run <- round(min.count.run)
 
-  newprof[, 2] <- sort_labels_index(newprof[, 2])
+  # computes unique groups
+  uniq.grp <- compute_uniq_grp(newprof[, 4], min.count.run)
 
-  timeline <- rep(0, length(times))
 
+  # rearrange profile data
+  newprof <- newprof[newprof[, 4] %in% uniq.grp, ] 
+  newprof <- newprof[order(newprof[, 4], newprof[, 1]), ] 
 
-  diff_times <- (max(times) - min(times))
-  min.count.run <- min.run * length(times) / diff_times
-
-  grps <- newprof[, 4]
-  #uniq.grp <- unique(grps) unsused
-  curr.label <- 1
-
-  ttt <- table(grps)
-  ttt <- ttt[ttt >= max(min.count.run * min.pres, 2)]
-  uniq.grp <- as.numeric(names(ttt))
-
-  newprof <- newprof[newprof[, 4] %in% uniq.grp, ]
-  newprof <- newprof[order(newprof[, 4], newprof[, 1]), ]
-  r.newprof <- nrow(newprof)
+  # computes break points
   breaks <- compute_breaks_3(newprof[, 4])
 
+
+  # init counters for loop
   new.rec <- newprof * 0
   rec.pointer <- 1
-
+  curr.label <- 1
   height.rec <- mz.pres.rec <- time.range.rec <- rep(0, length(breaks))
-  mz.pres.ptr <- 1
-
-  min.run <- round(min.count.run)
+  timeline <- rep(0, time.points)
 
   for (m in 2:length(breaks))
   {
     this.prof <- newprof[(breaks[m - 1] + 1):breaks[m], ]
-
     this.prof <- this.prof[order(this.prof[, 2]), ]
+    
+    # init loop variables
+    this.mass <- this.prof[, 1]
     this.times <- this.prof[, 2]
     this.intensi <- this.prof[, 3]
-    this.mass <- this.prof[, 1]
     this.grp <- this.prof[1, 4]
-
     this.timeline <- timeline
     this.timeline[this.times] <- 1
-
     to.keep <- this.times * 0
 
+    # computes the Nadaraya-Watson kernel regression estimate 
     dens <- ksmooth(
       seq(-min.run + 1, length(this.timeline) + min.run),
       c(rep(0, min.run),
@@ -86,9 +89,9 @@ cont.index <- function(newprof,
       bandwidth = min.run,
       x.points = 1:length(this.timeline)
     )
-
     dens <- dens$y
 
+    # run filtering  
     if (max(dens) >= min.pres) {
       measured.points <- good.points <- timeline
       measured.points[this.times] <- 1
@@ -119,8 +122,10 @@ cont.index <- function(newprof,
       rec.pointer <- rec.pointer + r.new
     }
   }
+
   new.rec <- new.rec[1:(rec.pointer - 1), ]
   new.rec[, 2] <- times[new.rec[, 2]]
+
   results <- new("list")
   results$new.rec <- new.rec
   results$height.rec <- height.rec[1:(curr.label - 1)]
