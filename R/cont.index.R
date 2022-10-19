@@ -1,4 +1,4 @@
-# computes unique groups
+# Computes unique groups
 compute_uniq_grp <- function(profile, min.count.run, min.pres = 0.6) {
   grps <- profile  
   ttt <- table(grps)
@@ -6,8 +6,6 @@ compute_uniq_grp <- function(profile, min.count.run, min.pres = 0.6) {
   unique.grp <- as.numeric(names(ttt))
   return(unique.grp)
   }
-
-
 
 #' Continuity index
 #'
@@ -39,8 +37,7 @@ cont.index <- function(newprof,
   time.points <- length(times)
  
   for (i in 1:length(times)) labels[which(newprof[,2] == times[i])] <- i #now labels is the index of time points
-  newprof[,2] <- labels  ## is it a vector of indices ??
-
+  newprof[,2] <- labels  
   
   # set lower bounds of elution time
   min.count.run <- min.run * time.points / (max(times) - min(times))
@@ -49,14 +46,12 @@ cont.index <- function(newprof,
   # computes unique groups
   uniq.grp <- compute_uniq_grp(newprof[, 4], min.count.run)
 
-
   # rearrange profile data
   newprof <- newprof[newprof[, 4] %in% uniq.grp, ] 
   newprof <- newprof[order(newprof[, 4], newprof[, 1]), ] 
 
   # computes break points
   breaks <- compute_breaks_3(newprof[, 4])
-
 
   # init counters for loop
   new.rec <- newprof * 0
@@ -89,9 +84,10 @@ cont.index <- function(newprof,
       bandwidth = min.run,
       x.points = 1:length(this.timeline)
     )
+
     dens <- dens$y
 
-    # run filtering  
+    # perform filtering based on the kernel regression estimate
     if (max(dens) >= min.pres) {
       measured.points <- good.points <- timeline
       measured.points[this.times] <- 1
@@ -108,7 +104,8 @@ cont.index <- function(newprof,
       measured.points <- measured.points * good.points
       to.keep[which(this.times %in% which(measured.points == 1))] <- 1
     }
-
+    
+    # operation over filtered indices 
     if (sum(to.keep) > 0) {
       this.sel <- which(to.keep == 1)
       this.new <- cbind(this.mass[this.sel], this.times[this.sel], this.intensi[this.sel], rep(this.grp, length(this.sel)))
