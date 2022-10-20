@@ -9,6 +9,7 @@ patrick::with_parameters_test_that(
     })
 
     actual <- compute_clusters(
+      sample_names = files,
       feature_tables = extracted,
       mz_tol_relative = NA,
       rt_tol_relative = NA,

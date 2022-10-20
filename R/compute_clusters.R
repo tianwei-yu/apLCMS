@@ -18,15 +18,16 @@
 #'   \item rt_tol_relative - float - Newly determined relative rt tolerance.
 #'   \item mz_tol_relative - float - Newly determined relative mz tolerance.
 #'}
-compute_clusters <- function(feature_tables,
+compute_clusters <- function(sample_names,
+                             feature_tables,
                              mz_tol_relative,
                              mz_tol_absolute,
                              mz_max_diff,
                              rt_tol_relative,
                              do.plot = FALSE) {
   number_of_samples <- length(feature_tables)
-  all <- concatenate_feature_tables(feature_tables)
-
+  all <- concatenate_feature_tables(sample_names, feature_tables)
+  
   if (is.na(mz_tol_relative)) {
     mz_tol_relative <- find.tol(
       all$mz,

@@ -5,10 +5,10 @@ NULL
 #' Concatenate multiple feature lists and add the sample id (origin of feature) as additional column.
 #' 
 #' @param features list List of tibbles containing extracted feature tables.
-concatenate_feature_tables <- function(features) {
+concatenate_feature_tables <- function(sample_names, features) {
   for (i in seq_along(features)) {
     if(!("sample_id" %in% colnames(features[[i]]))) {
-      features[[i]] <- tibble::add_column(features[[i]], sample_id = i)
+      features[[i]] <- tibble::add_column(features[[i]], sample_id = sample_names[i])
     }
   }
 
