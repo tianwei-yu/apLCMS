@@ -5,7 +5,29 @@ compute_uniq_grp <- function(profile, min.count.run, min.pres = 0.6) {
   ttt <- ttt[ttt >= max(min.count.run * min.pres, 2)]
   unique.grp <- as.numeric(names(ttt))
   return(unique.grp)
-  }
+}
+#' @description
+#' Computes the smoothed retention times by using The Nadaraya-Watson kernel regression estimate function.
+#' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
+#' @param times. Retention times vector.
+#' @return predicted rt.
+#' @examples
+#' predict_smoothed_rt(min.run = min.run, times)
+predict_smoothed_rt <- function(min.run = 5, times) {
+  # ksmooth(x, y, kernel, bandwidth, range, n.points, x.points)
+  smooth <- ksmooth(
+    seq(-min.run + 1, length(times) + min.run), 
+    c(rep(0, min.run),   
+    times,       
+    rep(0, min.run)),    
+    kernel = "box",      
+    bandwidth = min.run, 
+    x.points = 1:length(times) 
+  ) 
+  # vector of smoothed estimates for the regression at the corresponding x
+  smooth <- smooth$y  
+  return(smooth)
+}
 
 #' Continuity index
 #'
@@ -30,17 +52,22 @@ cont.index <- function(newprof,
                        min.run = 5) {
   
   
+  # newprof[,1] : mz
+  # newprof[,2] : rt
+  # newprof[,3] : intensi
+  # newprof[,4] : EIC labels (Extracted Ions Chromatograms)
+
   # ordering retention time values
   labels <- newprof[,2]
   times <- unique(labels)
   times <- times[order(times)]  
-  time.points <- length(times)
+  #time.points <- length(times)
  
   for (i in 1:length(times)) labels[which(newprof[,2] == times[i])] <- i #now labels is the index of time points
   newprof[,2] <- labels  
   
   # set lower bounds of elution time
-  min.count.run <- min.run * time.points / (max(times) - min(times))
+  min.count.run <- min.run * length(times) / (max(times) - min(times))
   min.run <- round(min.count.run)
 
   # computes unique groups
@@ -58,7 +85,7 @@ cont.index <- function(newprof,
   rec.pointer <- 1
   curr.label <- 1
   height.rec <- mz.pres.rec <- time.range.rec <- rep(0, length(breaks))
-  timeline <- rep(0, time.points)
+  timeline <- rep(0, length(times))
 
   for (m in 2:length(breaks))
   {
@@ -73,26 +100,16 @@ cont.index <- function(newprof,
     this.timeline <- timeline
     this.timeline[this.times] <- 1
     to.keep <- this.times * 0
-
-    # computes the Nadaraya-Watson kernel regression estimate 
-    dens <- ksmooth(
-      seq(-min.run + 1, length(this.timeline) + min.run),
-      c(rep(0, min.run),
-      this.timeline,
-      rep(0, min.run)),
-      kernel = "box",
-      bandwidth = min.run,
-      x.points = 1:length(this.timeline)
-    )
-
-    dens <- dens$y
+    
+    # Computes predicted smoothed-rt
+    this.smooth <- predict_smoothed_rt(min.run, this.timeline)
 
     # perform filtering based on the kernel regression estimate
-    if (max(dens) >= min.pres) {
+    if (max(this.smooth) >= min.pres) {
       measured.points <- good.points <- timeline
       measured.points[this.times] <- 1
 
-      good.sel <- which(dens >= min.pres)
+      good.sel <- which(this.smooth >= min.pres)
       good.points[good.sel] <- 1
       for (j in (-min.run):min.run)
       {
