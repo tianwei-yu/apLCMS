@@ -67,7 +67,7 @@ patrick::with_parameters_test_that(
     aligned_actual <- create_aligned_feature_table(
         dplyr::bind_rows(corrected_features),
         min_occurrence,
-        length(files),
+        files,
         rt_tol_relative,
         mz_tol_relative
     )
