@@ -363,6 +363,8 @@ two.step.hybrid <- function(filenames,
   batches_idx <- unique(metadata$batch)
   batchwise <- new("list")
   message("* processing ", length(batches_idx), " batches separately")
+  
+  sample_names <- get_sample_name(filenames)
 
   for (batch.i in batches_idx) {
     files_batch <- dplyr::filter(filenames_batchwise, batch == batch.i)$filename
@@ -391,7 +393,8 @@ two.step.hybrid <- function(filenames,
       use.observed.range = use.observed.range,
       shape.model = shape.model,
       new.feature.min.count = new.feature.min.count,
-      recover.min.count = recover.min.count
+      recover.min.count = recover.min.count,
+      sample_names = sample_names
     )
 
     features$final.ftrs <- features$final.ftrs[order(features$final.ftrs[, 1], features$final.ftrs[, 2]), ]
