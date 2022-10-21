@@ -290,7 +290,8 @@ hybrid <- function(
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = align_rt_tol,
+    sample_names = sample_names
   )
 
   message("**** computing template ****")

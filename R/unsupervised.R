@@ -238,12 +238,12 @@ unsupervised <- function(
 
   message("**** computing clusters ****")
   extracted_clusters <- compute_clusters(
-    sample_names = sample_names,
     feature_tables = extracted,
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = align_rt_tol,
+    sample_names = sample_names
   )
 
   message("**** computing template ****")
@@ -260,7 +260,6 @@ unsupervised <- function(
 
   message("**** computing clusters ****")
   adjusted_clusters <- compute_clusters(
-    sample_names = sample_names,
     feature_tables = corrected,
     mz_tol_relative = extracted_clusters$mz_tol_relative,
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
