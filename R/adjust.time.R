@@ -30,10 +30,10 @@ compute_template_adjusted_rt <- function(combined, sel, j) {
   # now the first column is the template retention time.
   # the second column is the to-be-adjusted retention time
 
-  cat(c("sample", j, "using", nrow(all_features), ", "))
-  if (j %% 3 == 0) {
-    cat("\n")
-  }
+  # cat(c("sample", j, "using", nrow(all_features), ", "))
+  # if (j %% 3 == 0) {
+  #   cat("\n")
+  # }
 
   all_features <- all_features[order(all_features[, 2]), ]
   return(all_features)
@@ -77,10 +77,11 @@ fill_missing_values <- function(orig.feature, this.feature) {
 
 compute_template <- function(extracted_features) {
   num.ftrs <- sapply(extracted_features, nrow)
-  template <- which.max(num.ftrs)
+  template_id <- which.max(num.ftrs)
+  template <- extracted_features[[template_id]]$sample_id[1]
   message(paste("the template is sample", template))
 
-  candi <- tibble::as_tibble(extracted_features[[template]]) |> dplyr::select(c(mz, rt))
+  candi <- tibble::as_tibble(extracted_features[[template_id]]) |> dplyr::select(c(mz, rt))
   template_features <- dplyr::bind_cols(candi, sample_id = rep(template, nrow(candi)))
   return(tibble::as_tibble(template_features))
 }
