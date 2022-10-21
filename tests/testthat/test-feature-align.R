@@ -19,6 +19,7 @@ patrick::with_parameters_test_that(
 
     aligned_actual <- feature.align(
       features = corrected_features,
+      sample_names = files,
       min_occurrence = min_occurrence,
       mz_tol_relative = mz_tol_relative,
       rt_tol_relative = rt_tol_relative,

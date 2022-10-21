@@ -318,7 +318,7 @@ hybrid <- function(
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
-      number_of_samples,
+      sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
   )
@@ -392,7 +392,7 @@ hybrid <- function(
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
-      number_of_samples,
+      sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
   )
