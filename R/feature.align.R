@@ -182,13 +182,13 @@ create_aligned_feature_table <- function(all_table,
 #' data(extracted)
 #' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
 feature.align <- function(features,
-                          sample_names,
                           min_occurrence = 2,
                           mz_tol_relative = NA,
                           rt_tol_relative = NA,
                           mz_max_diff = 1e-4,
                           mz_tol_absolute = 0.01,
-                          do.plot = TRUE) {
+                          do.plot = TRUE,
+                          sample_names = NA) {
     if (do.plot) {
         par(mfrow = c(3, 2))
         draw_plot(label = "Feature alignment", cex = 2)
@@ -198,12 +198,13 @@ feature.align <- function(features,
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
         res <- compute_clusters(
-            sample_names,
             features,
             mz_tol_relative,
             mz_tol_absolute,
             mz_max_diff,
-            rt_tol_relative
+            rt_tol_relative,
+            do.plot,
+            sample_names
         )
 
         all_table <- dplyr::bind_rows(res$feature_tables)
