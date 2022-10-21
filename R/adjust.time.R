@@ -29,12 +29,7 @@ compute_template_adjusted_rt <- function(combined, sel, j) {
 
   # now the first column is the template retention time.
   # the second column is the to-be-adjusted retention time
-
-  # cat(c("sample", j, "using", nrow(all_features), ", "))
-  # if (j %% 3 == 0) {
-  #   cat("\n")
-  # }
-
+  
   all_features <- all_features[order(all_features[, 2]), ]
   return(all_features)
 }
