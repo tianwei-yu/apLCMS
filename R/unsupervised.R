@@ -58,6 +58,7 @@ sort_samples_by_acquisition_number <- function (filenames) {
 }
 
 align_features <- function(sample_names, ...) {
+  # if this will be used in Galaxy wrapper, needs to be fixed (pass also sample_names)
   aligned <- feature.align(...)
 
   list(
