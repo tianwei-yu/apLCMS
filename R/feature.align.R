@@ -181,7 +181,7 @@ create_aligned_feature_table <- function(all_table,
 #' @export
 #' @examples
 #' data(extracted)
-#' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
+#' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE, sample_names = c("s1", "s2", "s3"))
 feature.align <- function(features,
                           min_occurrence = 2,
                           mz_tol_relative = NA,
