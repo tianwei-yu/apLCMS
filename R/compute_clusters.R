@@ -12,7 +12,7 @@
 #' @param mz_max_diff float Maximum difference between featuure mz values to belong to the same cluster.
 #' @param rt_tol_relative float Relative retention time tolerance to use for grouping features.
 #' @param do.plot bool Plot graphics or not.
-#' @param sample_names list Given list of sample names.
+#' @param sample_names list List of sample names.
 #' @return Returns a list with following items:
 #' \itemize{
 #'   \item feature_tables - list - Feature tables with added columns [sample_id, cluster].
