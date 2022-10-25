@@ -1,10 +1,10 @@
 #' @description
 #' Computes unique groups
-#' @param min.count.run filter parameter. add info here
+#' @param min.count.run filter parameter. 
 #' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
 #'  by m/z to be considered a peak.
 #' @param profile The matrix containing m/z, retention time, intensity, and EIC label as columns.
-#' @return unique.grp. add info here
+#' @return unique.grp. 
 compute_uniq_grp <- function(profile, min.count.run, min.pres = 0.6) {
   grps <- profile  
   ttt <- table(grps)
@@ -37,14 +37,14 @@ predict_smoothed_rt <- function(min.run = 5, times) {
 }
 
 #' @description
-#' Add descrption
+#' 
 #' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
 #'  by m/z to be considered a peak.
-#' @param timeline. 'add info here'
-#' @param this.times. 'add info here'
+#' @param timeline. 
+#' @param this.times. 
 #' @param times. Retention times vector.
-#' @return to.keep. 'add info here'
+#' @return to.keep. 
 label_val_keep <- function(min.run, timeline, min.pres, this.times, times) {
     this.timeline <- timeline
     this.timeline[this.times] <- 1
@@ -72,13 +72,12 @@ label_val_keep <- function(min.run, timeline, min.pres, this.times, times) {
     }
     return(to.keep)
 }
-#' Continuity index
-#'
+#' @description
+#' Continuity index. 
 #' This is an internal function. It uses continuity index (or "run filter") to select putative peaks from EIC.
-#'
 #' @param newprof The matrix containing m/z, retention time, intensity, and EIC label as columns.
 #' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
-#'  by m/z to be considered a peak.
+#' by m/z to be considered a peak.
 #' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @return A list is returned.
 #' \itemize{
@@ -111,11 +110,9 @@ cont.index <- function(newprof,
 
   # computes unique groups
   uniq.grp <- compute_uniq_grp(newprof$grps, min.count.run)
-
-  # rearrange profile newprof
-  newprof <- newprof[newprof$grps %in% uniq.grp, ] # dplyr filter
-  newprof <- newprof[order(newprof$grps, newprof$mz), ] # dplyr arrange_at
-
+  
+  newprof <- dplyr::filter(newprof, grps %in% uniq.grp) |> {\(newprof) {dplyr::arrange(newprof, grps, mz)}}()
+  
   # computes break points
   breaks <- compute_breaks_3(newprof$grps)
 
