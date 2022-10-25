@@ -75,5 +75,13 @@ To use a docker development environment you need **Docker** installed on your ma
 - A good starting point would be fetching the test data as described above, running `devtools::test()` and waiting until all tests pass to ensure the environment is set correctly.
 
 
-## Reference
-Yu, T., Park, Y., Johnson, J. M. & Jones, D. P. apLCMS—adaptive processing of high-resolution LC/MS data. Bioinformatics 25, 1930–1936 (2009). DOI: [10.1093/bioinformatics/btp291](https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btp291)
+## References
+Yu, T., Park, Y., Johnson, J. M. & Jones, D. P. apLCMS—adaptive processing of high-resolution LC/MS data. Bioinformatics 25, 1930–1936 (2009). DOI: [10.1093/bioinformatics/btp291](https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btp291).
+
+Yu, T., Park, Y., Li, S. & Jones, D. P. Hybrid Feature Detection and Information Accumulation Using High-Resolution LC–MS Metabolomics Data. J. Proteome Res. 12, 1419–1427 (2013). DOI: [10.1021/pr301053d](https://pubs.acs.org/doi/10.1021/pr301053d).
+
+Yu, T. & Jones, D. P. Improving peak detection in high-resolution LC/MS metabolomics data using preexisting knowledge and machine learning approach. Bioinformatics 30, 2941–2948 (2014). DOI: [10.1093/bioinformatics/btu430](https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btu430).
+
+Yu, T. & Peng, H. Quantification and deconvolution of asymmetric LC-MS peaks using the bi-Gaussian mixture model and statistical model selection. BMC Bioinformatics 11, 559 (2010). DOI: [10.1186/1471-2105-11-559](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-559).
+
+Liu, Q. et al. Addressing the batch effect issue for LC/MS metabolomics data in data preprocessing. Sci. Rep. 10, 13856 (2020). DOI: [10.1038/s41598-020-70850-0](https://doi.org/10.1038/s41598-020-70850-0).
