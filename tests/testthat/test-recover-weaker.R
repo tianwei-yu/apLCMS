@@ -28,7 +28,7 @@ patrick::with_parameters_test_that(
     recovered <- lapply(seq_along(ms_files), function(i) {
       recover.weaker(
         filename = ms_files[[i]],
-        sample_name = as.character(i),
+        sample_name = files[i],
         extracted_features = extracted[[i]],
         adjusted_features = adjusted[[i]],
         metadata_table = aligned$metadata,
@@ -65,7 +65,7 @@ patrick::with_parameters_test_that(
       xx <- file.path(testdata, "recovered", "recovered-corrected", paste0(x, ".parquet"))
       arrow::read_parquet(xx) |> dplyr::arrange_at(keys)
     })
-
+    
 
     # compare files
     for (i in seq_along(files)) {

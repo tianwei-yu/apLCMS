@@ -105,7 +105,8 @@ semi.sup <- function(
     match.tol.ppm=NA,
     new.feature.min.count=2,
     recover.min.count=3,
-    intensity.weighted=FALSE)
+    intensity.weighted=FALSE,
+    sample_names = NA)
 {
     setwd(folder)
     files<-files[order(files)]
@@ -243,7 +244,8 @@ semi.sup <- function(
               mz_tol_relative = align.mz.tol,
               rt_tol_relative = align.rt.tol,
               mz_max_diff = 10 * mz.tol,
-              mz_tol_absolute = max.align.mz.diff
+              mz_tol_absolute = max.align.mz.diff,
+              sample_names = sample_names
             )
         )
         
@@ -456,7 +458,8 @@ semi.sup <- function(
               mz_tol_relative = align.mz.tol,
               rt_tol_relative = align.rt.tol,
               mz_max_diff = 10 * mz.tol,
-              mz_tol_absolute = max.align.mz.diff
+              mz_tol_absolute = max.align.mz.diff,
+              sample_names = sample_names
             )
         )
         
