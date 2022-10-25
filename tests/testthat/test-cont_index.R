@@ -5,21 +5,21 @@ patrick::with_parameters_test_that(
 
     testdata <- file.path("..", "testdata")
     input_path <- file.path(testdata, "input", filename)
-    input_data <- arrow::read_parquet(input_path) 
-    tab_prt <- as.matrix(input_data) 
-    actual <- cont.index(tab_prt, min.pres, min.run)
+    input_data <- as.matrix(arrow::read_parquet(input_path) ) 
+    
+    actual <- cont.index(input_data, min.pres, min.run)
 
-    tab_prt <- tibble::tibble(
+    actual <- tibble::tibble(
       mz = actual$new.rec[, 1],
       rt = actual$new.rec[, 2],
       intensity = actual$new.rec[, 3],
       group_number = actual$new.rec[, 4]
       )
 
-    expected_path <- file.path(testdata, "input", "output_cont.parquet")
+    expected_path <- file.path(testdata, "filtered", "output_cont.parquet")
     expected <- arrow::read_parquet(expected_path) 
   
-    expect_equal(tab_prt, expected)
+    expect_equal(actual, expected)
   },
   patrick::cases(
     input_cont = list(
