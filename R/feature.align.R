@@ -114,6 +114,7 @@ create_rows <- function(features,
 }
 
 
+#' @export
 create_aligned_feature_table <- function(all_table,
                                          min_occurrence,
                                          sample_names,

@@ -70,6 +70,7 @@ fill_missing_values <- function(orig.feature, this.feature) {
   return(this.feature)
 }
 
+#' @export
 compute_template <- function(extracted_features) {
   num.ftrs <- sapply(extracted_features, nrow)
   template_id <- which.max(num.ftrs)
@@ -81,6 +82,7 @@ compute_template <- function(extracted_features) {
   return(tibble::as_tibble(template_features))
 }
 
+#' @export
 correct_time <- function(this.feature, template_features, mz_tol_relative, rt_tol_relative) {
     orig.features <- this.feature
     template <- unique(template_features$sample_id)[1]

@@ -135,6 +135,7 @@ augment_with_known_features <- function(
   return(aligned)
 }
 
+#' @export
 augment_known_table <- function(
   aligned,
   known_table,
