@@ -114,8 +114,19 @@ create_rows <- function(features,
 }
 
 
+#' Align peaks from spectra into a feature table.
+#'
+#' @param features_table A list object. Each component is a matrix which is the output from compute_clusters().
+#' @param min_occurrence  A feature has to show up in at least this number of profiles to be included in the final result.
+#' @param sample_names list List of sample names.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
+#'  program to search for the tolerance level based on the data. This value is expressed as the
+#'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which
+#'  allows the program to search for the tolerance level based on the data.
+#'
 #' @export
-create_aligned_feature_table <- function(all_table,
+create_aligned_feature_table <- function(features_table,
                                          min_occurrence,
                                          sample_names,
                                          rt_tol_relative,
@@ -129,14 +140,14 @@ create_aligned_feature_table <- function(all_table,
     aligned_features <- create_empty_tibble(number_of_samples, metadata_colnames, intensity_colnames, rt_colnames)
     
     # table with number of values per group
-    groups_cardinality <- table(all_table$cluster)
+    groups_cardinality <- table(features_table$cluster)
     # count those with minimal occurrence
     sel.labels <- as.numeric(names(groups_cardinality)[groups_cardinality >= min_occurrence])
 
     # retention time alignment
     for (i in seq_along(sel.labels)) {
         rows <- create_rows(
-            all_table,
+            features_table,
             i,
             sel.labels,
             mz_tol_relative,
@@ -152,79 +163,4 @@ create_aligned_feature_table <- function(all_table,
         }
     }
     return(aligned_features)
-}
-
-#' Align peaks from spectra into a feature table.
-#'
-#' Identifies which of the peaks from the profiles correspond to the same feature.
-#'
-#' @param features A list object. Each component is a matrix which is the output from proc.to.feature().
-#' @param min_occurrence  A feature has to show up in at least this number of profiles to be included in the final result.
-#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the
-#'  program to search for the tolerance level based on the data. This value is expressed as the
-#'  percentage of the m/z value. This value, multiplied by the m/z value, becomes the cutoff level.
-#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which
-#'  allows the program to search for the tolerance level based on the data.
-#' @param mz_max_diff Argument passed to find.tol(). Consider only m/z diffs smaller than this value.
-#'  This is only used when the mz_tol_relative is NA.
-#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable
-#'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly
-#'  influences feature matching in higher m/z range.
-#' @param do.plot Indicates whether plot should be drawn.
-#' @param sample_names list List of sample names.
-#' @return Returns a list object with the following objects in it:
-#' \itemize{
-#'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
-#'   \item pk.times - A matrix, with columns of m/z, median elution time, and elution times in each spectrum.
-#'   \item mz.tol - The m/z tolerance used in the alignment.
-#'   \item rt.tol - The elution time tolerance in the alignment.
-#' }
-#' @export
-#' @examples
-#' data(extracted)
-#' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE, sample_names = c("s1", "s2", "s3"))
-feature.align <- function(features,
-                          min_occurrence = 2,
-                          mz_tol_relative = NA,
-                          rt_tol_relative = NA,
-                          mz_max_diff = 1e-4,
-                          mz_tol_absolute = 0.01,
-                          do.plot = TRUE,
-                          sample_names = NA) {
-    if (do.plot) {
-        par(mfrow = c(3, 2))
-        draw_plot(label = "Feature alignment", cex = 2)
-        draw_plot()
-    }
-    
-    number_of_samples <- length(features)
-    if (number_of_samples > 1) {
-        res <- compute_clusters(
-            features,
-            mz_tol_relative,
-            mz_tol_absolute,
-            mz_max_diff,
-            rt_tol_relative,
-            do.plot,
-            sample_names
-        )
-
-        all_table <- dplyr::bind_rows(res$feature_tables)
-
-        aligned_features <- create_aligned_feature_table(
-            all_table,
-            min_occurrence,
-            sample_names,
-            res$rt_tol_relative,
-            res$mz_tol_relative
-        )
-        
-        aligned_features$mz_tol_relative <- res$mz_tol_relative
-        aligned_features$rt_tol_relative <- res$rt_tol_relative
-
-        return(aligned_features)
-    } else {
-        message("There is but one experiment.  What are you trying to align?")
-        return(0)
-    }
 }

@@ -441,15 +441,34 @@ two.step.hybrid <- function(filenames,
   )
 
   message("* aligning features")
-  aligned <- align_features(
-    sample_names = paste0("batch_", batches_idx),
-    features = corrected,
-    min_occurrence = ceiling(min.batch.prop * length(batches_idx)),
-    mz_tol_relative = batch.align.mz.tol,
-    rt_tol_relative = batch.align.rt.tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max.align.mz.diff,
-    rt_colname = "rt"
+  sample_names = paste0("batch_", batches_idx)
+  
+  res <- compute_clusters(
+      corrected,
+      batch.align.mz.tol,
+      batch.align.rt.tol,
+      10 * mz_tol,
+      max.align.mz.diff,
+      FALSE,
+      sample_names
+  )
+  
+  aligned_features <- create_aligned_feature_table(
+      dplyr::bind_rows(res$feature_tables),
+      ceiling(min.batch.prop * length(batches_idx)),
+      sample_names,
+      res$rt_tol_relative,
+      res$mz_tol_relative
+  )
+  
+  aligned_features$mz_tol_relative <- res$mz_tol_relative
+  aligned_features$rt_tol_relative <- res$rt_tol_relative
+  
+  aligned <- list(
+      mz_tolerance = as.numeric(aligned_features$mz_tol_relative),
+      rt_tolerance = as.numeric(aligned_features$rt_tol_relative),
+      rt_crosstab = as_feature_crosstab(sample_names, aligned_features$metadata, aligned_features$rt),
+      int_crosstab = as_feature_crosstab(sample_names, aligned_features$metadata, aligned_features$intensity)
   )
 
   aligned_wide <- as_wide_aligned_table(aligned)

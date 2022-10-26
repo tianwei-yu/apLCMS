@@ -16,17 +16,27 @@ patrick::with_parameters_test_that(
     corrected_features <- lapply(corrected_files, function(x) {
       arrow::read_parquet(x)
     })
-
-    aligned_actual <- feature.align(
-      features = corrected_features,
-      min_occurrence = min_occurrence,
-      mz_tol_relative = mz_tol_relative,
-      rt_tol_relative = rt_tol_relative,
-      mz_max_diff = 10 * mz_tol,
-      mz_tol_absolute = mz_tol_absolute,
-      do.plot = do.plot,
-      sample_names = files
+    
+    res <- compute_clusters(
+        corrected_features,
+        mz_tol_relative,
+        mz_tol_absolute,
+        10 * mz_tol,
+        rt_tol_relative,
+        do.plot,
+        files
     )
+    
+    aligned_actual <- create_aligned_feature_table(
+        dplyr::bind_rows(res$feature_tables),
+        min_occurrence,
+        files,
+        res$rt_tol_relative,
+        res$mz_tol_relative
+    )
+    
+    aligned_actual$mz_tol_relative <- res$mz_tol_relative
+    aligned_actual$rt_tol_relative <- res$rt_tol_relative
 
     aligned_expected <- load_aligned_features(
       file.path(testdata, "aligned", "metadata_table.parquet"),

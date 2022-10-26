@@ -57,17 +57,6 @@ sort_samples_by_acquisition_number <- function (filenames) {
   sort(unlist(filenames))
 }
 
-align_features <- function(sample_names, ...) {
-  # if this will be used in Galaxy wrapper, needs to be fixed (pass also sample_names)
-  aligned <- feature.align(...)
-
-  list(
-    mz_tolerance = as.numeric(aligned$mz_tol_relative),
-    rt_tolerance = as.numeric(aligned$rt_tol_relative),
-    rt_crosstab = as_feature_crosstab(sample_names, aligned$metadata, aligned$rt),
-    int_crosstab = as_feature_crosstab(sample_names, aligned$metadata, aligned$intensity)
-  )
-}
 
 recover_weaker_signals <- function(
   cluster,
