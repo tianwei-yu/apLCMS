@@ -37,7 +37,7 @@ predict_smoothed_rt <- function(min.run = 5, times) {
 }
 
 #' @description
-#' 
+#' This function labels the indices of values kept to perform further calculations
 #' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
 #'  by m/z to be considered a peak.
@@ -45,15 +45,13 @@ predict_smoothed_rt <- function(min.run = 5, times) {
 #' @param this.times. 
 #' @param times. Retention times vector.
 #' @return to.keep. 
-label_val_keep <- function(min.run, timeline, min.pres, this.times, times) {
+label_val_to_keep <- function(min.run, timeline, min.pres, this.times, times) {
     this.timeline <- timeline
     this.timeline[this.times] <- 1
     to.keep <- this.times * 0
     
-    # Computes predicted smoothed-rt
-    this.smooth <- predict_smoothed_rt(min.run, this.timeline)
-
     # perform filtering based on the kernel regression estimate
+    this.smooth <- predict_smoothed_rt(min.run, this.timeline)
     if (max(this.smooth) >= min.pres) {
       measured.points <- good.points <- timeline
       measured.points[this.times] <- 1
@@ -68,7 +66,7 @@ label_val_keep <- function(min.run, timeline, min.pres, this.times, times) {
       }
 
       measured.points <- measured.points * good.points
-      to.keep[which(this.times %in% which(measured.points == 1))] <- 1
+      to.keep[which(this.times %in% which(measured.points == 1))] <- 1     
     }
     return(to.keep)
 }
@@ -99,21 +97,21 @@ cont.index <- function(newprof,
   labels <- newprof$rt
   times <- unique(labels)
   times <- times[order(times)]  
-  #time.points <- length(times)
  
   for (i in 1:length(times)) labels[which(newprof$rt == times[i])] <- i #now labels is the index of time points
   newprof$rt <- labels  
-  
-  # set lower bounds of elution time
+
+  # calculates the minimun number of rt points ot be considered a peak
   min.count.run <- min.run * length(times) / (max(times) - min(times))
   min.run <- round(min.count.run)
 
-  # computes unique groups
+  # computes unique groups 
   uniq.grp <- compute_uniq_grp(newprof$grps, min.count.run)
   
-  newprof <- dplyr::filter(newprof, grps %in% uniq.grp) |> {\(newprof) {dplyr::arrange(newprof, grps, mz)}}()
+  # ordered by mz and grps data that are inside unigrps
+  newprof <- dplyr::filter(newprof, grps %in% uniq.grp) |> dplyr::arrange(grps, mz)
   
-  # computes break points
+  # computes break points i.e. indices of mass differences greater than min_mz_tol.
   breaks <- compute_breaks_3(newprof$grps)
 
   # init counters for loop
@@ -122,12 +120,11 @@ cont.index <- function(newprof,
   curr.label <- 1
   height.rec <- mz.pres.rec <- time.range.rec <- rep(0, length(breaks))
   timeline <- rep(0, length(times))
-
   for (m in 2:length(breaks))
   {
     this.prof <- dplyr::slice(newprof, (breaks[m - 1] + 1):breaks[m]) |> dplyr::arrange_at("rt")
 
-    to.keep <- label_val_keep(
+    to.keep <- label_val_to_keep(
       min.run,
       timeline,
       min.pres,
@@ -156,9 +153,9 @@ cont.index <- function(newprof,
 
   results <- new("list")
   results$new.rec <- new.rec
-  results$height.rec <- height.rec[1:(curr.label - 1)]
-  results$time.range.rec <- time.range.rec[1:(curr.label - 1)]
-  results$mz.pres.rec <- mz.pres.rec[1:(curr.label - 1)]
+  # results$height.rec <- height.rec[1:(curr.label - 1)]
+  # results$time.range.rec <- time.range.rec[1:(curr.label - 1)]
+  # results$mz.pres.rec <- mz.pres.rec[1:(curr.label - 1)]
 
   return(results)
 }
