@@ -91,7 +91,8 @@ match_peaks <- function(aligned,
   return(pairing)
 }
 
-#' Add newly detected features to a known features table.
+#' Add entries from the known features table to the aligned table.
+#' 
 #' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
 #' @param known_table A table of known/previously detected peaks.
 #' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
@@ -100,10 +101,10 @@ match_peaks <- function(aligned,
 #'  value, becomes the cutoff level.
 #' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
 #'  the tolerance level based on the data.
-#' @return Known table with novel features.
+#' @return Aligned table with known features.
 #' @import dplyr
 #' @export
-augment_with_known_features <- function(
+enrich_table_by_known_features <- function(
   aligned,
   known_table,
   match_tol_ppm,
@@ -135,6 +136,19 @@ augment_with_known_features <- function(
   return(aligned)
 }
 
+#' Add newly detected aligned features to a known features table.
+#' 
+#' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
+#' @param known_table A table of known/previously detected peaks.
+#' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
+#'  value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#'  the tolerance level based on the data.
+#' @param new_feature_min_count The number of profiles a new feature must be present for it to be added to the database.
+#' @return Known table with novel features.
+#' 
 #' @export
 augment_known_table <- function(
   aligned,
@@ -337,7 +351,7 @@ hybrid <- function(
   )
 
   message("**** augmenting with known peaks ****")
-  merged <- augment_with_known_features(
+  merged <- enrich_table_by_known_features(
     aligned = aligned,
     known_table = known_table,
     match_tol_ppm = match_tol_ppm,
