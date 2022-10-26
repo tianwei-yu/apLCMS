@@ -18,26 +18,38 @@ patrick::with_parameters_test_that(
       cluster <- parallel::makeCluster(cluster)
       on.exit(parallel::stopCluster(cluster))
     }
-
-    actual <- extract_features(
-      cluster = cluster,
-      filenames,
-      min_presence = min_presence,
-      min_elution_length = min_elution_length,
-      mz_tol = mz_tol,
-      baseline_correct = 0,
-      baseline_correct_noise_percentile = 0.05,
-      intensity_weighted = intensity_weighted,
-      min_bandwidth = NA,
-      max_bandwidth = NA,
-      sd_cut = sd_cut,
-      sigma_ratio_lim = sigma_ratio_lim,
-      shape_model = "bi-Gaussian",
-      peak_estim_method = "moment",
-      component_eliminate = 0.01,
-      moment_power = 1,
-      BIC_factor = 2.0
-    )
+    
+    register_functions_to_cluster(cluster)
+    
+    profiles <- snow::parLapply(cluster, filenames, function(filename) {
+        proc.cdf(
+            filename = filename,
+            min_presence = min_presence,
+            min_elution_length = min_elution_length,
+            mz_tol = mz_tol,
+            baseline_correct = 0,
+            baseline_correct_noise_percentile = 0.05,
+            intensity_weighted = intensity_weighted,
+            do.plot = FALSE,
+            cache = FALSE
+        )
+    })
+    
+    actual <- snow::parLapply(cluster, profiles, function(profile) {
+        prof.to.features(
+            profile = profile,
+            min.bw = NA,
+            max.bw = NA,
+            sd.cut = sd_cut,
+            sigma.ratio.lim = sigma_ratio_lim,
+            shape.model = "bi-Gaussian",
+            estim.method = "moment",
+            component.eliminate = 0.01,
+            power = 1,
+            BIC.factor = 2.0,
+            do.plot = FALSE
+        )
+    })
 
     keys <- c("mz", "rt", "sd1", "sd2")
 
