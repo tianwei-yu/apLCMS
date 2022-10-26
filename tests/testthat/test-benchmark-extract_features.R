@@ -38,7 +38,7 @@ patrick::with_parameters_test_that(
                 )
             })
             
-            extract_feature <- snow::parLapply(cluster, profiles, function(profile) {
+            actual <- snow::parLapply(cluster, profiles, function(profile) {
                 prof.to.features(
                     profile = profile,
                     min.bw = NA,
