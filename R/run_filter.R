@@ -134,9 +134,9 @@ run_filter <- function(newprof,
     }
   }
 
-  new_rec <- new_rec[1:(rec_pointer - 1), ]
+  new_rec <- dplyr::slice(new_rec, 1:(rec_pointer - 1)) 
   new_rec[, 2] <- times[new_rec[, 2]]
-
+  
   results <- new("list")
   results$new_rec <- new_rec
 
