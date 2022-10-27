@@ -101,7 +101,7 @@ cont.index <- function(newprof,
   for (i in 1:length(times)) labels[which(newprof$rt == times[i])] <- i #now labels is the index of time points
   newprof$rt <- labels  
 
-  # calculates the minimun number of rt points ot be considered a peak
+  # calculates the minimun number of rt points to be considered a peak
   min.count.run <- min.run * length(times) / (max(times) - min(times))
   min.run <- round(min.count.run)
 
@@ -111,7 +111,7 @@ cont.index <- function(newprof,
   # ordered by mz and grps data that are inside unigrps
   newprof <- dplyr::filter(newprof, grps %in% uniq.grp) |> dplyr::arrange(grps, mz)
   
-  # computes break points i.e. indices of mass differences greater than min_mz_tol.
+  # computes break points i.e. indices of mass differences greater than min_mz_tol
   breaks <- compute_breaks_3(newprof$grps)
 
   # init counters for loop
@@ -132,18 +132,12 @@ cont.index <- function(newprof,
       times
     )
     
-    # operation over filtered indices 
+    # operation over selected indices 
     if (sum(to.keep) > 0) {
       this.sel <- which(to.keep == 1)
       this.new <- dplyr::slice(this.prof, this.sel)
       r.new <- nrow(this.new) 
-
-      height.rec[curr.label] <- max(this.new$intensi)
-      time.range.rec[curr.label] <- times[max(this.new$rt)] - times[min(this.new$rt)]
-      mz.pres.rec[curr.label] <- length(this.sel) / (max(this.new$rt) - min(this.new$rt) + 1)
       new.rec[rec.pointer:(rec.pointer + r.new - 1), ] <- this.new
-
-      curr.label <- curr.label + 1
       rec.pointer <- rec.pointer + r.new
     }
   }
@@ -153,9 +147,6 @@ cont.index <- function(newprof,
 
   results <- new("list")
   results$new.rec <- new.rec
-  # results$height.rec <- height.rec[1:(curr.label - 1)]
-  # results$time.range.rec <- time.range.rec[1:(curr.label - 1)]
-  # results$mz.pres.rec <- mz.pres.rec[1:(curr.label - 1)]
 
   return(results)
 }
