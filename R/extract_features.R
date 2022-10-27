@@ -64,7 +64,7 @@ extract_features <- function(
     'msExtrema',
     'find_local_maxima',
     'combine.seq.3',
-    'cont.index',
+    'run_filter',
     'interpol.area',
     'load_file',
     'load_data',
