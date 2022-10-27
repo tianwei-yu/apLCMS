@@ -7,13 +7,13 @@ patrick::with_parameters_test_that(
     input_path <- file.path(testdata, "input", filename)
 
     input_data <- as.matrix(arrow::read_parquet(input_path) ) 
-    actual <- cont.index(input_data, min.pres, min.run)
+    actual <- cont_index(input_data, min_pres, min_run)
 
     actual <- tibble::tibble(
-      mz = actual$new.rec[, 1],
-      rt = actual$new.rec[, 2],
-      intensity = actual$new.rec[, 3],
-      group_number = actual$new.rec[, 4]
+      mz = actual$new_rec[, 1],
+      rt = actual$new_rec[, 2],
+      intensity = actual$new_rec[, 3],
+      group_number = actual$new_rec[, 4]
       )
 
     expected_path <- file.path(testdata, "filtered", "cont_index", paste0(.test_name, "_cont_index.parquet"))
@@ -25,8 +25,8 @@ patrick::with_parameters_test_that(
   patrick::cases(
     mbr_test0 = list(
       filename = c("mbr_test0.parquet"),
-      min.pres = 0.5,
-      min.run = 12,
+      min_pres = 0.5,
+      min_run = 12,
       ci_skip = FALSE
     )
   )
