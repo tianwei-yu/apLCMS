@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added tests for `feature.align.R` ([#40](https://github.com/RECETOX/recetox-aplcms/pull/40)), and `adjust.time.R` ([#39](https://github.com/RECETOX/recetox-aplcms/pull/40))
 - added CI to repository's GitHub Actions [#45](https://github.com/RECETOX/recetox-aplcms/pull/45),[#49](https://github.com/RECETOX/recetox-aplcms/pull/49)
 - added additional test cases for hybrid [#133](https://github.com/RECETOX/recetox-aplcms/pull/133)
+- `merge_features_and_known_table` wrapper for augmentation of aligned features and known table [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 ### Changed
 - refactored `feature.align.R` [#63](https://github.com/RECETOX/recetox-aplcms/pull/63)[#88](https://github.com/RECETOX/recetox-aplcms/pull/88)[#102](https://github.com/RECETOX/recetox-aplcms/pull/102)
 - refactored `adjust.time.R` [#64](https://github.com/RECETOX/recetox-aplcms/pull/64)[#102](https://github.com/RECETOX/recetox-aplcms/pull/102)
@@ -18,7 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - refactored `find.turn.point.R` [#91](https://github.com/RECETOX/recetox-aplcms/pull/91)
 - refactored `proc.cdf.R` and `adaptive.bin.R` [#137](https://github.com/RECETOX/recetox-aplcms/pull/137)
 - use proper sample IDs inside feature tables [#153](https://github.com/RECETOX/recetox-aplcms/pull/153)
+- exported functions in NAMESPACE [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 ### Removed
+- `extract_features` and `feature.align` [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 
 ## [0.9.4] - 2022-05-10
 
