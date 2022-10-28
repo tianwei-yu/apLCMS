@@ -114,6 +114,7 @@ wide_to_long_feature_table <- function(wide_table, sample_names) {
     return(long_features)
 }
 
+#' @export
 load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_file) {
     metadata <- arrow::read_parquet(metadata_file)
     intensities <- arrow::read_parquet(intensities_file)
