@@ -91,6 +91,49 @@ match_peaks <- function(aligned,
   return(pairing)
 }
 
+
+#' A wrapper function to join knowledge from aligned features and known table.
+#' 
+#' @param features A list object with three tibble tables: metadata, intensity, and rt.
+#' @param known_table A table of known/previously detected peaks.
+#' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
+#'  value, becomes the cutoff level.
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#'  the tolerance level based on the data.
+#' @param from_features_to_known Determines direction of joining; if TRUE, aligned features are joined to known table, vice verse if it is FALSE.
+#' @param new_feature_min_count The number of profiles a new feature must be present for it to be added to the database.
+#' @return Enriched aligned table or known features.
+#' @import dplyr
+#' @export
+merge_features_and_known_table <- function(
+  features,
+  known_table,
+  match_tol_ppm,
+  mz_tol_relative,
+  rt_tol_relative,
+  from_features_to_known_table = TRUE,
+  new_feature_min_count = NA) {
+    if (from_features_to_known_table) {
+        return(augment_known_table(features,
+                                   known_table,
+                                   match_tol_ppm,
+                                   mz_tol_relative,
+                                   rt_tol_relative,
+                                   new_feature_min_count)
+               )
+    } else {
+        return(enrich_table_by_known_features(features,
+                                              known_table,
+                                              match_tol_ppm,
+                                              mz_tol_relative,
+                                              rt_tol_relative)
+               )
+    }
+}
+
+
 #' Add entries from the known features table to the aligned table.
 #' 
 #' @param aligned A list object with three tibble tables: metadata, intensity, and rt.
@@ -103,7 +146,6 @@ match_peaks <- function(aligned,
 #'  the tolerance level based on the data.
 #' @return Aligned table with known features.
 #' @import dplyr
-#' @export
 enrich_table_by_known_features <- function(
   aligned,
   known_table,
@@ -148,8 +190,6 @@ enrich_table_by_known_features <- function(
 #'  the tolerance level based on the data.
 #' @param new_feature_min_count The number of profiles a new feature must be present for it to be added to the database.
 #' @return Known table with novel features.
-#' 
-#' @export
 augment_known_table <- function(
   aligned,
   known_table,
@@ -351,12 +391,13 @@ hybrid <- function(
   )
 
   message("**** augmenting with known peaks ****")
-  merged <- enrich_table_by_known_features(
-    aligned = aligned,
-    known_table = known_table,
-    match_tol_ppm = match_tol_ppm,
-    mz_tol_relative = adjusted_clusters$mz_tol_relative,
-    rt_tol_relative = adjusted_clusters$rt_tol_relative
+  merged <- merge_features_and_known_table(
+      features = aligned,
+      known_table = known_table,
+      match_tol_ppm = match_tol_ppm,
+      mz_tol_relative = adjusted_clusters$mz_tol_relative,
+      rt_tol_relative = adjusted_clusters$rt_tol_relative,
+      from_features_to_known_table = FALSE
   )
 
   message("**** weaker signal recovery ****")
@@ -425,12 +466,13 @@ hybrid <- function(
   )
 
   message("**** augmenting known table ****")
-  augmented <- augment_known_table(
-    aligned = recovered_aligned,
+  augmented <- merge_features_and_known_table(
+    features = recovered_aligned,
     known_table = known_table,
     match_tol_ppm = match_tol_ppm,
     mz_tol_relative = adjusted_clusters$mz_tol_relative,
     rt_tol_relative = adjusted_clusters$rt_tol_relative,
+    from_features_to_known_table = TRUE,
     new_feature_min_count = new_feature_min_count
   )
 
