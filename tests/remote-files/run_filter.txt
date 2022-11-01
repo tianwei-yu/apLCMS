@@ -1,1 +1,2 @@
 https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/filtered/run_filter/mbr_test0_run_filter.parquet
+https://gitlab.ics.muni.cz/umsa/umsa-files/-/raw/master/testdata/recetox-aplcms/input/mbr_test0.parquet
