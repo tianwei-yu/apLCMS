@@ -1,5 +1,5 @@
 patrick::with_parameters_test_that(
-  "test run_filter.R",
+  "test run_filter",
   {
     if(ci_skip == TRUE) skip_on_ci()
 
