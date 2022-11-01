@@ -16,13 +16,14 @@ add_row <- function(df, data, i, column_names) {
 }
 
 
-create_output <- function(sample_grouped, number_of_samples) {
+create_output <- function(sample_grouped, sample_names) {
+    number_of_samples <- length(sample_names)
     intensity_row <- rep(0, number_of_samples)
     rt_row <- rep(0, number_of_samples)
     sample_presence <- rep(0, number_of_samples)
     
     for (i in seq_along(intensity_row)) {
-        filtered <- filter(sample_grouped, sample_id == i)
+        filtered <- filter(sample_grouped, sample_id == sample_names[i])
         if (nrow(filtered) != 0) {
             sample_presence[i] <- 1
             intensity_row[i] <- sum(filtered$area)
@@ -68,23 +69,23 @@ filter_based_on_density <- function(sample, turns, index, i) {
 }
 
 
-select_rt <- function(sample, rt_tol_relative, min_occurrence, number_of_samples) {
+select_rt <- function(sample, rt_tol_relative, min_occurrence, sample_names) {
     turns <- find_optima(sample$rt, bandwidth = rt_tol_relative / 1.414)
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 2, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
-            return(create_output(sample_grouped, number_of_samples))
+            return(create_output(sample_grouped, sample_names))
         }
     }
 }
 
 
-select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples) {
+select_mz <- function(sample, mz_tol_relative, rt_tol_relative, min_occurrence, sample_names) {
     turns <- find_optima(sample$mz, bandwidth = mz_tol_relative * median(sample$mz))
     for (i in seq_along(turns$peaks)) {
         sample_grouped <- filter_based_on_density(sample, turns, 1, i)
         if (validate_contents(sample_grouped, min_occurrence)) {
-            return(select_rt(sample_grouped, rt_tol_relative, min_occurrence, number_of_samples))
+            return(select_rt(sample_grouped, rt_tol_relative, min_occurrence, sample_names))
         }
     }
 }
@@ -96,18 +97,18 @@ create_rows <- function(features,
                         mz_tol_relative,
                         rt_tol_relative,
                         min_occurrence,
-                        number_of_samples) {
+                        sample_names) {
     if (i %% 100 == 0) {
         gc()
     } # call Garbage Collection for performance improvement?
-
+    
     sample <- dplyr::filter(features, cluster == sel.labels[i])
     if (nrow(sample) > 1) {
         if (validate_contents(sample, min_occurrence)) {
-            return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, number_of_samples))
+            return(select_mz(sample, mz_tol_relative, rt_tol_relative, min_occurrence, sample_names))
         }
     } else if (min_occurrence == 1) {
-        return(create_output(sample_grouped, number_of_samples))
+        return(create_output(sample_grouped, sample_names))
     }
     return(NULL)
 }
@@ -115,13 +116,14 @@ create_rows <- function(features,
 
 create_aligned_feature_table <- function(all_table,
                                          min_occurrence,
-                                         number_of_samples,
+                                         sample_names,
                                          rt_tol_relative,
                                          mz_tol_relative) {
     
-    metadata_colnames <- c("id", "mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "npeaks", paste0("sample_", 1:number_of_samples))
-    intensity_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_intensity"))
-    rt_colnames <- c("id", paste0("sample_", 1:number_of_samples, "_rt"))
+    number_of_samples <- length(sample_names)
+    metadata_colnames <- c("id", "mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "npeaks", sample_names)
+    intensity_colnames <- c("id", paste0(sample_names, "_intensity"))
+    rt_colnames <- c("id", paste0(sample_names, "_rt"))
     
     aligned_features <- create_empty_tibble(number_of_samples, metadata_colnames, intensity_colnames, rt_colnames)
     
@@ -139,7 +141,7 @@ create_aligned_feature_table <- function(all_table,
             mz_tol_relative,
             rt_tol_relative,
             min_occurrence,
-            number_of_samples
+            sample_names
         )
         
         if (!is.null(rows)) {
@@ -168,6 +170,7 @@ create_aligned_feature_table <- function(all_table,
 #'  when the m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly
 #'  influences feature matching in higher m/z range.
 #' @param do.plot Indicates whether plot should be drawn.
+#' @param sample_names list List of sample names.
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
@@ -178,21 +181,21 @@ create_aligned_feature_table <- function(all_table,
 #' @export
 #' @examples
 #' data(extracted)
-#' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE)
+#' feature.align(extracted, mz_max_diff = 10 * 1e-05, do.plot = FALSE, sample_names = c("s1", "s2", "s3"))
 feature.align <- function(features,
                           min_occurrence = 2,
                           mz_tol_relative = NA,
                           rt_tol_relative = NA,
                           mz_max_diff = 1e-4,
                           mz_tol_absolute = 0.01,
-                          do.plot = TRUE) {
+                          do.plot = TRUE,
+                          sample_names = NA) {
     if (do.plot) {
         par(mfrow = c(3, 2))
         draw_plot(label = "Feature alignment", cex = 2)
         draw_plot()
     }
-
-
+    
     number_of_samples <- length(features)
     if (number_of_samples > 1) {
         res <- compute_clusters(
@@ -200,7 +203,9 @@ feature.align <- function(features,
             mz_tol_relative,
             mz_tol_absolute,
             mz_max_diff,
-            rt_tol_relative
+            rt_tol_relative,
+            do.plot,
+            sample_names
         )
 
         all_table <- dplyr::bind_rows(res$feature_tables)
@@ -208,7 +213,7 @@ feature.align <- function(features,
         aligned_features <- create_aligned_feature_table(
             all_table,
             min_occurrence,
-            number_of_samples,
+            sample_names,
             res$rt_tol_relative,
             res$mz_tol_relative
         )

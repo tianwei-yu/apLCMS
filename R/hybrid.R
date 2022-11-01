@@ -290,7 +290,8 @@ hybrid <- function(
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = align_rt_tol,
+    sample_names = sample_names
   )
 
   message("**** computing template ****")
@@ -318,7 +319,7 @@ hybrid <- function(
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
-      number_of_samples,
+      sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
   )
@@ -392,7 +393,7 @@ hybrid <- function(
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
-      number_of_samples,
+      sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
   )

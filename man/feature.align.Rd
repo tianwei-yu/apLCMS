@@ -11,7 +11,8 @@ feature.align(
   rt_tol_relative = NA,
   mz_max_diff = 1e-04,
   mz_tol_absolute = 0.01,
-  do.plot = TRUE
+  do.plot = TRUE,
+  sample_names = NA
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ when the m/z range is wide. This parameter limits the tolerance in absolute term
 influences feature matching in higher m/z range.}
 
 \item{do.plot}{Indicates whether plot should be drawn.}
+
+\item{sample_names}{Given list of sample names.}
 }
 \value{
 Returns a list object with the following objects in it:
