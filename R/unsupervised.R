@@ -58,6 +58,7 @@ sort_samples_by_acquisition_number <- function (filenames) {
 }
 
 align_features <- function(sample_names, ...) {
+  # if this will be used in Galaxy wrapper, needs to be fixed (pass also sample_names)
   aligned <- feature.align(...)
 
   list(
@@ -242,7 +243,8 @@ unsupervised <- function(
     mz_tol_relative = align_mz_tol,
     mz_tol_absolute = max_align_mz_diff,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = align_rt_tol,
+    sample_names = sample_names
   )
 
   message("**** computing template ****")
@@ -270,7 +272,7 @@ unsupervised <- function(
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
       min_exp,
-      number_of_samples,
+      sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
   )
@@ -314,7 +316,7 @@ unsupervised <- function(
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(recovered_clusters$feature_tables),
       min_exp,
-      number_of_samples,
+      sample_names,
       recovered_clusters$rt_tol_relative,
       recovered_clusters$mz_tol_relative
   )

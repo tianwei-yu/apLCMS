@@ -12,6 +12,7 @@
 #' @param mz_max_diff float Maximum difference between featuure mz values to belong to the same cluster.
 #' @param rt_tol_relative float Relative retention time tolerance to use for grouping features.
 #' @param do.plot bool Plot graphics or not.
+#' @param sample_names list List of sample names.
 #' @return Returns a list with following items:
 #' \itemize{
 #'   \item feature_tables - list - Feature tables with added columns [sample_id, cluster].
@@ -23,10 +24,11 @@ compute_clusters <- function(feature_tables,
                              mz_tol_absolute,
                              mz_max_diff,
                              rt_tol_relative,
-                             do.plot = FALSE) {
+                             do.plot = FALSE,
+                             sample_names = NA) {
   number_of_samples <- length(feature_tables)
-  all <- concatenate_feature_tables(feature_tables)
-
+  all <- concatenate_feature_tables(feature_tables, sample_names)
+  
   if (is.na(mz_tol_relative)) {
     mz_tol_relative <- find.tol(
       all$mz,

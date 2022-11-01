@@ -669,7 +669,6 @@ recover.weaker <- function(filename,
                            bandwidth = .5,
                            recover.min.count = 3,
                            intensity.weighted = FALSE) {
-
   # load raw data
   data_table <- load_file(filename) |> dplyr::arrange_at("mz")
   times <- sort(unique(data_table$rt))
@@ -778,7 +777,7 @@ recover.weaker <- function(filename,
           mz = this.rec$mz[this.sel],
           rt = this.rec$rt[this.sel] + this.time.adjust,
           area = this.rec$intensities[this.sel],
-          sample_id = grep(sample_name, colnames(metadata_table)) - 8 # offset for other columns `mz`, `rt` etc
+          sample_id = sample_name
         )
       }
     }

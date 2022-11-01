@@ -13,7 +13,8 @@ patrick::with_parameters_test_that(
       mz_tol_relative = NA,
       rt_tol_relative = NA,
       mz_max_diff = mz_max_diff,
-      mz_tol_absolute = mz_tol_absolute
+      mz_tol_absolute = mz_tol_absolute,
+      sample_names = files
     )
 
     expected <- lapply(files, function(x) {
