@@ -4,7 +4,7 @@ patrick::with_parameters_test_that(
     if(ci_skip == TRUE) skip_on_ci()
 
     testdata <- file.path("..", "testdata")
-    input_path <- file.path(testdata, "input", filename)
+    input_path <- file.path(testdata, "filtered", "run_filter", filename)
 
     input_data <- as.matrix(arrow::read_parquet(input_path) ) 
     actual <- run_filter(input_data, min_pres, min_run)
