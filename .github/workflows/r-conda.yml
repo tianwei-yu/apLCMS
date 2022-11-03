@@ -54,6 +54,8 @@ jobs:
         run: wget -P tests/testdata/recovered/recovered-corrected -i tests/remote-files/recovered-corrected.txt
       - name: Fetch filtered test data
         run: wget -P tests/testdata/filtered -i tests/remote-files/filtered.txt
+      - name: Fetch run_filter test data
+        run: wget -P tests/testdata/filtered/run_filter -i tests/remote-files/run_filter.txt
       - name: Fetch features test data
         run: wget -P tests/testdata/features -i tests/remote-files/features.txt
       - name: Fetch clusters test data

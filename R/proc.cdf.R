@@ -94,10 +94,10 @@ proc.cdf <- function(filename,
   run.sel <- raw.prof$height.rec[which(raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min_presence & raw.prof$height.rec[, 3] > baseline_correct), 1]
 
   newprof <- newprof[newprof[, 4] %in% run.sel, ]
-  new.prof <- cont.index(
+  new.prof <- run_filter(
     newprof,
-    min.pres = min_presence,
-    min.run = min_elution_length
+    min_pres = min_presence,
+    min_run = min_elution_length
   )
 
   if (do.plot) {
@@ -112,10 +112,10 @@ proc.cdf <- function(filename,
   }
 
   new_rec_tibble <- tibble::tibble(
-    mz = new.prof$new.rec[, 1],
-    rt = new.prof$new.rec[, 2],
-    intensity = new.prof$new.rec[, 3],
-    group_number = new.prof$new.rec[, 4]
+    mz = new.prof$new_rec[, 1],
+    rt = new.prof$new_rec[, 2],
+    intensity = new.prof$new_rec[, 3],
+    group_number = new.prof$new_rec[, 4]
   )
 
   return(new_rec_tibble)
