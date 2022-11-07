@@ -1,3 +1,7 @@
+#' @import dplyr tidyr tibble stringr arrow
+NULL
+#> NULL
+
 register_functions_to_cluster <- function(cluster) {
     snow::clusterExport(cluster, list(
         'proc.cdf',
@@ -41,11 +45,6 @@ register_functions_to_cluster <- function(cluster) {
     ))
     snow::clusterEvalQ(cluster, library("dplyr"))
 }
-
-
-#' @import dplyr tidyr tibble stringr arrow
-NULL
-#> NULL
 
 #' Concatenate multiple feature lists and add the sample id (origin of feature) as additional column.
 #' 

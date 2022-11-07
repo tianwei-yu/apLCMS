@@ -1,4 +1,4 @@
-#' @import snow doParallel foreach
+#' @import snow doParallel foreach dplyr
 NULL
 #> NULL
 

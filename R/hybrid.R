@@ -1,4 +1,4 @@
-#' @import parallel doParallel
+#' @import parallel doParallel snow
 NULL
 #> NULL
 
@@ -105,7 +105,6 @@ match_peaks <- function(aligned,
 #' @param from_features_to_known Determines direction of joining; if TRUE, aligned features are joined to known table, vice verse if it is FALSE.
 #' @param new_feature_min_count The number of profiles a new feature must be present for it to be added to the database.
 #' @return Enriched aligned table or known features.
-#' @import dplyr
 #' @export
 merge_features_and_known_table <- function(
   features,
