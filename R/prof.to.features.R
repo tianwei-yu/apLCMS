@@ -839,31 +839,39 @@ prof.to.features <- function(profile,
                              power = 1,
                              component.eliminate = 0.01,
                              BIC.factor = 2) {
-  validate_inputs(shape.model, estim.method)
+  
+  ### Checking and defining variables to be used in the calculation
+  validate_inputs(shape.model, estim.method) # check if coorect model and method are provided
 
-  profile <- preprocess_profile(profile)
+  profile <- preprocess_profile(profile) # convert matrix to dataframe and rename columns
 
-  bws <- preprocess_bandwidth(min.bw, max.bw, profile)
+  bws <- preprocess_bandwidth(min.bw, max.bw, profile) # make sure that min and max are defined, also check that min < max
   min.bw <- bws[["min.bw"]]
   max.bw <- bws[["max.bw"]]
 
   # base.curve <- compute_base_curve(profile[, "rt"])
   base.curve <- sort(unique(profile[, "rt"]))
   base.curve <- cbind(base.curve, base.curve * 0)
-  all_rts <- compute_delta_rt(base.curve[, 1])
-  aver_diff <- mean(diff(base.curve))
+  all_rts <- compute_delta_rt(base.curve[, 1]) # computes deltas, all_delta_rt better name?. 
+  aver_diff <- mean(diff(base.curve))  # all_rts and diff(base.curve) are different
 
   keys <- c("mz", "rt", "sd1", "sd2", "area")
   peak_parameters <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
 
   feature_groups <- split(profile, profile$group_number)
+
+  # loop over each group
   for (i in seq_along(feature_groups))
   {
+    # init variables
     feature_group <- feature_groups[[i]]
     feature_group <- feature_group[order(feature_group[, "rt"]), ]
 
     num_features <- nrow(feature_group)
+    ## why num_features between 2 and 10?
+    # Defines the dataframe containing median_mz, median_rt, sd1, sd2, and area
     if (dplyr::between(num_features, 2, 10)) {
+      # linear interpolation of  missing intensities and calculate the area for a single EIC
       eic_area <- interpol.area(feature_group[, "rt"], feature_group[, "intensity"], base.curve[, "base.curve"], all_rts)
       rt_peak_shape <- c(median(feature_group[, "mz"]), median(feature_group[, "rt"]), sd(feature_group[, "rt"]), sd(feature_group[, "rt"]), eic_area)
       peak_parameters <- rbind(peak_parameters, rt_peak_shape)
@@ -873,7 +881,9 @@ prof.to.features <- function(profile,
       rt_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
       peak_parameters <- rbind(peak_parameters, rt_peak_shape)
     }
+    ## application of Bi_gaussian mixture model and EM algorithm 
     if (num_features > 10) {
+      # find bandwidth for these particular range
       rt_range <- range(feature_group[, "rt"])
       bw <- min(max(bandwidth * (max(rt_range) - min(rt_range)), min.bw), max.bw)
       bw <- seq(bw, 2 * bw, length.out = 3)
@@ -883,8 +893,10 @@ prof.to.features <- function(profile,
 
       rt_profile <- compute_chromatographic_profile(feature_group, base.curve)
       if (shape.model == "Gaussian") {
+        # calculation of parameters of a bi_gaussian 
         rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff)
       } else {
+        ## apply EM algorithm to calculate parameters
         rt_peak_shape <- bigauss.mix(rt_profile, sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
       }
 
