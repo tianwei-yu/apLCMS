@@ -1,4 +1,5 @@
-#' @import snow doParallel foreach dplyr
+#' @import snow doParallel foreach 
+#' @importFrom dplyr bind_rows
 NULL
 #> NULL
 
@@ -249,7 +250,7 @@ semi.sup <- function(
                 )
                 
                 aligned <- create_aligned_feature_table(
-                    dplyr::bind_rows(res$feature_tables),
+                    bind_rows(res$feature_tables),
                     min.exp,
                     sample_names,
                     res$rt_tol_relative,
@@ -475,7 +476,7 @@ semi.sup <- function(
                 )
                 
                 aligned.recov <- create_aligned_feature_table(
-                    dplyr::bind_rows(res$feature_tables),
+                    bind_rows(res$feature_tables),
                     min.exp,
                     sample_names,
                     res$rt_tol_relative,
