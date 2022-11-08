@@ -99,7 +99,7 @@ run_filter <- function(newprof,
   min_run <- round(min_count_run)
 
   # computes unique groups 
-  uniq_grp <- compute_uniq_grp(newprof$grps, min_count_run)
+  uniq_grp <- compute_uniq_grp(newprof$grps, min_count_run, min_pres)
   
   # ordered by mz and grps data that are inside unigrps
   newprof <- dplyr::filter(newprof, grps %in% uniq_grp) |> dplyr::arrange(grps, mz)
