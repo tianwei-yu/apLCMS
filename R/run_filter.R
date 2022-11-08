@@ -5,6 +5,7 @@
 #'  by m/z to be considered a peak.
 #' @param profile The matrix containing m/z, retention time, intensity, and EIC label as columns.
 #' @return unique_grp. 
+#' @export
 compute_uniq_grp <- function(profile, min_count_run, min_pres = 0.6) {
   grps <- profile  
   ttt <- table(grps)
@@ -18,6 +19,7 @@ compute_uniq_grp <- function(profile, min_count_run, min_pres = 0.6) {
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param times. Retention times vector.
 #' @return predicted rt.
+#' @export
 #' @examples
 #' predict_smoothed_rt(min_run = min_run, times)
 predict_smoothed_rt <- function(min_run = 5, times) {
@@ -45,6 +47,7 @@ predict_smoothed_rt <- function(min_run = 5, times) {
 #' @param this_times. 
 #' @param times. Retention times vector.
 #' @return to_keep. 
+#' @export
 label_val_to_keep <- function(min_run, timeline, min_pres, this_times, times) {
     this_timeline <- timeline
     this_timeline[this_times] <- 1
