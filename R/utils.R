@@ -2,6 +2,50 @@
 NULL
 #> NULL
 
+register_functions_to_cluster <- function(cluster) {
+    snow::clusterExport(cluster, list(
+        'proc.cdf',
+        'prof.to.features',
+        'load.lcms',
+        'adaptive.bin',
+        'find.turn.point',
+        'msExtrema',
+        'find_local_maxima',
+        'combine.seq.3',
+        'run_filter',
+        'interpol.area',
+        'load_file',
+        'load_data',
+        'plot_raw_profile_histogram',
+        'compute_mass_values',
+        'compute_densities',
+        'compute_breaks',
+        'compute_breaks_3',
+        'compute_boundaries',
+        'increment_counter',
+        'rm.ridge',
+        'compute_delta_rt',
+        'bigauss.mix',
+        'bigauss.esti',
+        'rev_cum_sum',
+        'compute_bounds',
+        'validate_inputs',
+        'preprocess_bandwidth',
+        'preprocess_profile',
+        'compute_gaussian_peak_shape',
+        'compute_chromatographic_profile',
+        'compute_dx',
+        'compute_initiation_params',
+        'compute_e_step',
+        'compute_start_bound',
+        'compute_end_bound',
+        'compute_bounds',
+        'compute_scale',
+        'span'
+    ))
+    snow::clusterEvalQ(cluster, library("dplyr"))
+}
+
 #' Concatenate multiple feature lists and add the sample id (origin of feature) as additional column.
 #' 
 #' @param features list List of tibbles containing extracted feature tables.
@@ -69,6 +113,7 @@ wide_to_long_feature_table <- function(wide_table, sample_names) {
     return(long_features)
 }
 
+#' @export
 load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_file) {
     metadata <- arrow::read_parquet(metadata_file)
     intensities <- arrow::read_parquet(intensities_file)

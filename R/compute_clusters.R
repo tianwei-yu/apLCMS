@@ -19,6 +19,7 @@
 #'   \item rt_tol_relative - float - Newly determined relative rt tolerance.
 #'   \item mz_tol_relative - float - Newly determined relative mz tolerance.
 #'}
+#' @export
 compute_clusters <- function(feature_tables,
                              mz_tol_relative,
                              mz_tol_absolute,

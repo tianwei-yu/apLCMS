@@ -54,10 +54,10 @@ load_data <- function(filename,
 #' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of 
 #'  the m/z value. This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is 
 #'  the machine's nominal accuracy level. Divide the ppm value by 1e6. For FTMS, 1e-5 is recommended.
-#' @param baseline.correct After grouping the observations, the highest intensity in each group is found. If 
+#' @param baseline_correct After grouping the observations, the highest intensity in each group is found. If 
 #'  the highest is lower than this value, the entire group will be deleted. The default value is NA, in which 
 #'  case the program uses the 75th percentile of the height of the noise groups.
-#' @param baseline.correct.noise.percentile The perenctile of signal strength of those EIC that don't pass the 
+#' @param baseline_correct_noise_percentile The percentile of signal strength of those EIC that don't pass the 
 #'  run filter, to be used as the baseline threshold of signal strength.
 #' @param do.plot Indicates whether plot should be drawn.
 #' @param intensity.weighted Whether to use intensity to weight mass density estimation.

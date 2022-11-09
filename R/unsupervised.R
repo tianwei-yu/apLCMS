@@ -57,17 +57,6 @@ sort_samples_by_acquisition_number <- function (filenames) {
   sort(unlist(filenames))
 }
 
-align_features <- function(sample_names, ...) {
-  # if this will be used in Galaxy wrapper, needs to be fixed (pass also sample_names)
-  aligned <- feature.align(...)
-
-  list(
-    mz_tolerance = as.numeric(aligned$mz_tol_relative),
-    rt_tolerance = as.numeric(aligned$rt_tol_relative),
-    rt_crosstab = as_feature_crosstab(sample_names, aligned$metadata, aligned$rt),
-    int_crosstab = as_feature_crosstab(sample_names, aligned$metadata, aligned$intensity)
-  )
-}
 
 recover_weaker_signals <- function(
   cluster,
@@ -211,31 +200,42 @@ unsupervised <- function(
 
   # NOTE: side effect (doParallel has no functionality to clean up)
   doParallel::registerDoParallel(cluster)
+  register_functions_to_cluster(cluster)
 
   check_files(filenames)
   sample_names <- get_sample_name(filenames)
   number_of_samples <- length(sample_names)
 
   message("**** feature extraction ****")
-  extracted <- extract_features(
-    cluster = cluster,
-    filenames = filenames,
-    min_presence = min_pres,
-    min_elution_length = min_run,
-    mz_tol = mz_tol,
-    baseline_correct = baseline_correct,
-    baseline_correct_noise_percentile = baseline_correct_noise_percentile,
-    intensity_weighted = intensity_weighted,
-    min_bandwidth = min_bandwidth,
-    max_bandwidth = max_bandwidth,
-    sd_cut = sd_cut,
-    sigma_ratio_lim = sigma_ratio_lim,
-    shape_model = shape_model,
-    peak_estim_method = peak_estim_method,
-    component_eliminate = component_eliminate,
-    moment_power = moment_power,
-    BIC_factor = BIC_factor
-  )
+  profiles <- snow::parLapply(cluster, filenames, function(filename) {
+      proc.cdf(
+          filename = filename,
+          min_presence = min_pres,
+          min_elution_length = min_run,
+          mz_tol = mz_tol,
+          baseline_correct = baseline_correct,
+          baseline_correct_noise_percentile = baseline_correct_noise_percentile,
+          intensity_weighted = intensity_weighted,
+          do.plot = FALSE,
+          cache = FALSE
+      )
+  })
+  
+  extracted <- snow::parLapply(cluster, profiles, function(profile) {
+      prof.to.features(
+          profile = profile,
+          min.bw = min_bandwidth,
+          max.bw = max_bandwidth,
+          sd.cut = sd_cut,
+          sigma.ratio.lim = sigma_ratio_lim,
+          shape.model = shape_model,
+          estim.method = peak_estim_method,
+          component.eliminate = component_eliminate,
+          power = moment_power,
+          BIC.factor = BIC_factor,
+          do.plot = FALSE
+      )
+  })
 
   message("**** computing clusters ****")
   extracted_clusters <- compute_clusters(
