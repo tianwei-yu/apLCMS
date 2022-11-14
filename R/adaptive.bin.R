@@ -47,17 +47,17 @@ increment_counter <- function(pointers, that.n){
 #' This is an internal function. It creates EICs using adaptive binning procedure
 #' 
 #' @param features A tibble with columns of m/z, retention time, intensity.
-#' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
+#' @param min_elution_length Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
 #'  considered a peak.
-#' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
+#' @param min_presence Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
 #'  by m/z to be considered a peak.
-#' @param tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
+#' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
 #'  This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is the machine's nominal accuracy 
 #'  level. Divide the ppm value by 1e6. For FTMS, 1e-5 is recommended.
-#' @param baseline.correct After grouping the observations, the highest intensity in each group is found. If the highest 
+#' @param baseline_correct After grouping the observations, the highest intensity in each group is found. If the highest 
 #'  is lower than this value, the entire group will be deleted. The default value is NA, in which case the program uses the 
 #'  75th percentile of the height of the noise groups.
-#' @param weighted Whether to weight the local density by signal intensities.
+#' @param intensity_weighted Whether to weight the local density by signal intensities.
 #' @return A list is returned.
 #' \itemize{
 #'   \item height.rec - The records of the height of each EIC.
@@ -71,7 +71,7 @@ increment_counter <- function(pointers, that.n){
 #' }
 #' @export
 #' @examples
-#' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
+#' adaptive.bin(features, min_elution_length = min_elution_length, min_presence = min_presence, mz_tol = mz_tol, baseline_correct = baseline_correct, intensity_weighted = intensity_weighted)
 adaptive.bin <- function(features,
                          min_elution_length,
                          min_presence,
