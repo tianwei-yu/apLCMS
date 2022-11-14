@@ -28,6 +28,14 @@ recover.weaker(
 \arguments{
 \item{filename}{the cdf file name from which weaker signal is to be recovered.}
 
+\item{sample_name}{Name of the sample used for identification.}
+
+\item{metadata_table}{Table containing metadata.}
+
+\item{intensity_table}{Table containing intensities.}
+
+\item{rt_table}{Table containing retention times.}
+
 \item{align.mz.tol}{the m/z tolerance used in the alignment.}
 
 \item{align.rt.tol}{the elution time tolerance in the alignment.}
@@ -58,12 +66,6 @@ time axis helps determine the bandwidth in the kernel smoother used for peak ide
 \item{recover.min.count}{minimum number of raw data points to support a recovery.}
 
 \item{intensity.weighted}{Whether to use intensity to weight mass density estimation.}
-
-\item{loc}{the location of the filename in the vector of filenames.}
-
-\item{aligned.ftrs}{matrix, with columns of m/z values, elution times, signal strengths in each spectrum.}
-
-\item{pk.times}{matrix, with columns of m/z, median elution time, and elution times in each spectrum.}
 }
 \value{
 Returns a list object with the following objects in it:

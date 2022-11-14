@@ -38,9 +38,9 @@ run filter, to be used as the baseline threshold of signal strength.}
 
 \item{do.plot}{Indicates whether plot should be drawn.}
 
-\item{cache}{Whether to use cache}
+\item{intensity_weighted}{Whether to use intensity to weight mass density estimation.}
 
-\item{intensity.weighted}{Whether to use intensity to weight mass density estimation.}
+\item{cache}{Whether to use cache}
 }
 \value{
 A matrix with four columns: m/z value, retention time, intensity, and group number.
@@ -49,5 +49,5 @@ A matrix with four columns: m/z value, retention time, intensity, and group numb
 This function applies the run filter to remove noise. Data points are grouped into EICs in this step.
 }
 \examples{
-proc.cdf(input_path, min_pres, min_run, tol, intensity.weighted = intensity_weighted)
+proc.cdf(input_path, min_pres, min_run, tol, intensity_weighted = intensity_weighted)
 }

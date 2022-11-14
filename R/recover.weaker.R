@@ -620,9 +620,10 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' The signal could be too low to pass the run filter. Thus after obtaining the aligned feature table, this function re-analyzes each spectrum to
 #' try and fill in the holes in the aligned feature table.
 #' @param filename the cdf file name from which weaker signal is to be recovered.
-#' @param loc the location of the filename in the vector of filenames.
-#' @param aligned.ftrs matrix, with columns of m/z values, elution times, signal strengths in each spectrum.
-#' @param pk.times matrix, with columns of m/z, median elution time, and elution times in each spectrum.
+#' @param sample_name Name of the sample used for identification.
+#' @param metadata_table Table containing metadata.
+#' @param intensity_table Table containing intensities.
+#' @param rt_table Table containing retention times.
 #' @param align.mz.tol the m/z tolerance used in the alignment.
 #' @param align.rt.tol the elution time tolerance in the alignment.
 #' @param extracted_features The matrix which is the output from proc.to.feature().

@@ -118,6 +118,8 @@ locations of the feature in all the spectra will be used.}
 \item{recover.min.count}{The minimum time point count for a series of point in the EIC for it to be considered a true feature.}
 
 \item{intensity.weighted}{Whether to use intensity to weight mass density estimation.}
+
+\item{sample_names}{Names of the samples used for identification.}
 }
 \value{
 A list is returned.

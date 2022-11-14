@@ -18,6 +18,8 @@ find.tol.time(
 )
 }
 \arguments{
+\item{features}{A tibble containing features.}
+
 \item{number_of_samples}{The number of spectra in this analysis.}
 
 \item{mz_tol_relative}{m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value.
@@ -38,12 +40,6 @@ This parameter limits the tolerance in absolute terms. It mostly influences feat
 \item{max.num.segments}{the maximum number of segments.}
 
 \item{do.plot}{Indicates whether plot should be drawn.}
-
-\item{mz}{mz values of all peaks in all profiles in the study.}
-
-\item{rt}{retention time of all peaks in all profiles in the study.}
-
-\item{sample_id}{label of all peaks in all profiles in the study.}
 }
 \value{
 A matrix with six columns. Every row corresponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength,

@@ -28,9 +28,9 @@ value, becomes the cutoff level.}
 \item{rt_tol_relative}{The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
 the tolerance level based on the data.}
 
-\item{new_feature_min_count}{The number of profiles a new feature must be present for it to be added to the database.}
+\item{from_features_to_known_table}{Determines direction of joining; if TRUE, aligned features are joined to known table, vice verse if it is FALSE.}
 
-\item{from_features_to_known}{Determines direction of joining; if TRUE, aligned features are joined to known table, vice verse if it is FALSE.}
+\item{new_feature_min_count}{The number of profiles a new feature must be present for it to be added to the database.}
 }
 \value{
 Enriched aligned table or known features.

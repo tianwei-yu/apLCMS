@@ -134,9 +134,7 @@ compute_rt_tol_relative <- function(breaks,
 #'
 #' This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
 #'
-#' @param mz mz values of all peaks in all profiles in the study.
-#' @param rt retention time of all peaks in all profiles in the study.
-#' @param sample_id label of all peaks in all profiles in the study.
+#' @param features A tibble containing features.
 #' @param number_of_samples The number of spectra in this analysis.
 #' @param mz_tol_relative m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value.
 #'  This value, multiplied by the m/z value, becomes the cutoff level.

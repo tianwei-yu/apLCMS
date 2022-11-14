@@ -59,6 +59,7 @@ NULL
 #' @param new.feature.min.count The number of profiles a new feature must be present for it to be added to the database.
 #' @param recover.min.count The minimum time point count for a series of point in the EIC for it to be considered a true feature.
 #' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @param sample_names Names of the samples used for identification.
 #' @return A list is returned.
 #' \itemize{
 #'   \item features - A list object, each component of which being the peak table from a single spectrum.
