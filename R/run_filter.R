@@ -1,4 +1,3 @@
-#' @description
 #' Computes unique groups
 #' @param min_count_run filter parameter. 
 #' @param min_pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
@@ -14,7 +13,6 @@ compute_uniq_grp <- function(profile, min_count_run, min_pres = 0.6) {
   return(unique_grp)
 }
 
-#' @description
 #' Computes the smoothed retention times by using The Nadaraya-Watson kernel regression estimate function.
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param times. Retention times vector.
@@ -38,7 +36,6 @@ predict_smoothed_rt <- function(min_run = 5, times) {
   return(smooth)
 }
 
-#' @description
 #' This function labels the indices of values kept to perform further calculations
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param min_pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
@@ -72,8 +69,9 @@ label_val_to_keep <- function(min_run, timeline, min_pres, this_times, times) {
     }
     return(to_keep)
 }
-#' @description
+
 #' Continuity index. 
+#' @description
 #' Internal function that removes noise in the retention time dimension. It uses continuity index (or "run filter") to select putative peaks from EIC. 
 #' @param newprof The matrix containing m/z, retention time, intensity, and EIC label as columns.
 #' @param min_pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped
