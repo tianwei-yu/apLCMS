@@ -164,8 +164,6 @@ recover_weaker_signals <- function(
 #' @param intensity_weighted Whether to use intensity to weight mass density estimation.
 #' @param cluster The number of CPU cores to be used
 #' @export
-#' @examples
-#' unsupervised(test_files, cluster = num_workers)
 unsupervised <- function(
   filenames,
   min_exp = 2,

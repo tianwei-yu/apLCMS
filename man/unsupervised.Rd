@@ -106,6 +106,3 @@ the spectra will be used.}
 \description{
 features extraction in unsupervised mode.
 }
-\examples{
-unsupervised(test_files, cluster = num_workers)
-}
