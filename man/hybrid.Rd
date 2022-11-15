@@ -110,6 +110,3 @@ in which case 0.5 times the retention time tolerance in the aligned object will 
 \description{
 features extraction in hybrid mode.
 }
-\examples{
-hybrid(test_files, known_table, cluster = num_workers)
-}
