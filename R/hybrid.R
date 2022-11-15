@@ -273,8 +273,6 @@ augment_known_table <- function(
 #' @param intensity_weighted Whether to use intensity to weight mass density estimation.
 #' @param cluster The number of CPU cores to be used
 #' @export
-#' @examples
-#' hybrid(test_files, known_table, cluster = num_workers)
 hybrid <- function(
   filenames,
   known_table,
