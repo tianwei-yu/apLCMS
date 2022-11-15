@@ -58,6 +58,3 @@ Each LC/MS profile is first processed by the function proc.cdf() to remove noise
 value, retention time, intensity, and group number is output from proc.cdf(). This matrix is then fed to the function
 prof.to.features() to generate a feature list. Every detected feature is summarized into a single row in the output matrix from this function.
 }
-\examples{
-prof.to.features(extracted_features, sd.cut = sd_cut, sigma.ratio.lim = sigma_ratio_lim, do.plot = FALSE)
-}

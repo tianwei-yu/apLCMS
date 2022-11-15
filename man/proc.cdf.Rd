@@ -48,6 +48,3 @@ A matrix with four columns: m/z value, retention time, intensity, and group numb
 \description{
 This function applies the run filter to remove noise. Data points are grouped into EICs in this step.
 }
-\examples{
-proc.cdf(input_path, min_pres, min_run, tol, intensity_weighted = intensity_weighted)
-}

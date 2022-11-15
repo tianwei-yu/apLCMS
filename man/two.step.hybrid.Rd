@@ -147,6 +147,3 @@ A list is returned.
 \description{
 A two-stage hybrid feature detection and alignment procedure, for data generated in multiple batches.
 }
-\examples{
-two.step.hybrid(test_names, metadata, tempdir, known.table = known_table, cluster = num_workers)
-}

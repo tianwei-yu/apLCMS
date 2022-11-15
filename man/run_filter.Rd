@@ -20,6 +20,3 @@ A list is returned. new_rec - The matrix containing m/z, retention time, intensi
 \description{
 Internal function that removes noise in the retention time dimension. It uses continuity index (or "run filter") to select putative peaks from EIC.
 }
-\examples{
-run_filter(newprof, min_pres = min_pres, min_run = min_run)
-}

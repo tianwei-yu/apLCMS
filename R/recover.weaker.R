@@ -650,8 +650,6 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #'   \item rt.tol - The elution time tolerance in the aligned object.
 #' }
 #' @export
-#' @examples
-#' recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.rt.tol, this.f1, this.f2)
 recover.weaker <- function(filename,
                            sample_name,
                            metadata_table,

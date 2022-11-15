@@ -70,8 +70,6 @@ increment_counter <- function(pointers, that.n){
 #'   \item min.count.run - The minimum number of elution time points for a series of signals grouped by m/z to be considered a peak.
 #' }
 #' @export
-#' @examples
-#' adaptive.bin(features, min_elution_length = min_elution_length, min_presence = min_presence, mz_tol = mz_tol, baseline_correct = baseline_correct, intensity_weighted = intensity_weighted)
 adaptive.bin <- function(features,
                          min_elution_length,
                          min_presence,

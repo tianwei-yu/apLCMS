@@ -142,6 +142,3 @@ The semi-supervised procedure utilizes a database of known metabolites and previ
 identify features in a new dataset. It is recommended ONLY for experienced users. The user may need to construct 
 the known feature database.
 }
-\examples{
-semi.sup(files_batch, work_dir, sd.cut = sd.cut, sigma.ratio.lim = sigma.ratio.lim, moment.power = moment.power, min.exp = ceiling(min.within.batch.prop.detect * length(files_batch)))
-}

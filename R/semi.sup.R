@@ -75,8 +75,6 @@ NULL
 #'   \item ftrs.known.table.pairing - The paring information between the feature table of the current dataset and the known feature table.
 #' }
 #' @export
-#' @examples
-#' semi.sup(files_batch, work_dir, sd.cut = sd.cut, sigma.ratio.lim = sigma.ratio.lim, moment.power = moment.power, min.exp = ceiling(min.within.batch.prop.detect * length(files_batch)))
 semi.sup <- function(
     files,
     folder,

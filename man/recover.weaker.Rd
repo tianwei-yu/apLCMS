@@ -81,6 +81,3 @@ Given the aligned feature table, some features are identified in a subgroup of s
 The signal could be too low to pass the run filter. Thus after obtaining the aligned feature table, this function re-analyzes each spectrum to
 try and fill in the holes in the aligned feature table.
 }
-\examples{
-recover.weaker(filename, loc, aligned.ftrs, pk.times, align.mz.tol, align.rt.tol, this.f1, this.f2)
-}

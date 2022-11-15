@@ -48,6 +48,3 @@ A list is returned.
 \description{
 This is an internal function. It creates EICs using adaptive binning procedure
 }
-\examples{
-adaptive.bin(features, min_elution_length = min_elution_length, min_presence = min_presence, mz_tol = mz_tol, baseline_correct = baseline_correct, intensity_weighted = intensity_weighted)
-}

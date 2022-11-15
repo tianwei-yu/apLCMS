@@ -20,6 +20,3 @@ returns
 \description{
 This is a internal function.
 }
-\examples{
-combine.seq.3(table)
-}

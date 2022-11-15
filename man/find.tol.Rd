@@ -32,6 +32,3 @@ The tolerance level is returned.
 \description{
 The function finds the tolerance level in m/z from a given vector of observed m/z values.
 }
-\examples{
-find.tol(mz, mz_max_diff = mz_max_diff, do.plot = FALSE)
-}

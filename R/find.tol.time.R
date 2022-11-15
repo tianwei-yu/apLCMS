@@ -149,9 +149,6 @@ compute_rt_tol_relative <- function(breaks,
 #' @param do.plot Indicates whether plot should be drawn.
 #' @return A matrix with six columns. Every row corresponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength,
 #'  spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered
-#'  by the elution time.
-#' @examples
-#' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
 find.tol.time <- function(features,
                           number_of_samples,
                           mz_tol_relative = 2e-5,

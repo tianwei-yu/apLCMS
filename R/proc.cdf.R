@@ -64,8 +64,6 @@ load_data <- function(filename,
 #' @param cache Whether to use cache
 #' @return A matrix with four columns: m/z value, retention time, intensity, and group number.
 #' @export
-#' @examples
-#' proc.cdf(input_path, min_pres, min_run, tol, intensity_weighted = intensity_weighted)
 proc.cdf <- function(filename,
                      min_presence = 0.5,
                      min_elution_length = 12,
