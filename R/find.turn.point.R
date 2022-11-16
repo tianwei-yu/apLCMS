@@ -49,8 +49,6 @@ msExtrema <- function(y) {
 #'   \item vlys - The valley positions
 #' }
 #' @export
-#' @examples
-#' find.turn.point(y)
 find.turn.point <- function(y) {
     y <- y[!is.na(y)] # filter NA values
 

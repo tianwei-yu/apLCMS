@@ -322,8 +322,6 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #'   \item final.ftrs - Feature table. This is the end product of the function.
 #' }
 #' @export
-#' @examples
-#' two.step.hybrid(test_names, metadata, tempdir, known.table = known_table, cluster = num_workers)
 two.step.hybrid <- function(filenames,
                             metadata,
                             work_dir,

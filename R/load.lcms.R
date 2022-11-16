@@ -16,8 +16,6 @@ NULL
 #'   \item times - The vector of unique time points.
 #' }
 #' @export
-#' @examples
-#' load.lcms(filename)
 load.lcms <- function(filename) {
   mz_conn <- mzR::openMSfile(filename = filename)
   b <- mzR::header(mz_conn)$retentionTime

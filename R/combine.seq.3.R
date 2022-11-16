@@ -10,8 +10,6 @@
 #'   \item intensi - signal strength
 #' }
 #' @export
-#' @examples
-#' combine.seq.3(table)
 combine.seq.3 <- function(features) {
     l <- nrow(features)
     breaks <- compute_breaks_3(features$rt)

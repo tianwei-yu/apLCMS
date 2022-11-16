@@ -102,7 +102,7 @@ match_peaks <- function(aligned,
 #'  value, becomes the cutoff level.
 #' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
 #'  the tolerance level based on the data.
-#' @param from_features_to_known Determines direction of joining; if TRUE, aligned features are joined to known table, vice verse if it is FALSE.
+#' @param from_features_to_known_table Determines direction of joining; if TRUE, aligned features are joined to known table, vice verse if it is FALSE.
 #' @param new_feature_min_count The number of profiles a new feature must be present for it to be added to the database.
 #' @return Enriched aligned table or known features.
 #' @export
@@ -273,8 +273,6 @@ augment_known_table <- function(
 #' @param intensity_weighted Whether to use intensity to weight mass density estimation.
 #' @param cluster The number of CPU cores to be used
 #' @export
-#' @examples
-#' hybrid(test_files, known_table, cluster = num_workers)
 hybrid <- function(
   filenames,
   known_table,

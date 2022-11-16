@@ -14,8 +14,6 @@ NULL
 #' @param do.plot Indicates whether plot should be drawn.
 #' @return The tolerance level is returned.
 #' @export
-#' @examples
-#' find.tol(mz, mz_max_diff = mz_max_diff, do.plot = FALSE)
 find.tol <- function(mz,
                      mz_max_diff = 1e-4,
                      aver.bin.size = 4000,

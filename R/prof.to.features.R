@@ -825,8 +825,6 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
 #' @return A matrix is returned. The columns are: m/z value, retention time, spread (standard deviation of the estimated normal
 #'  curve), and estimated total signal strength (total area of the estimated normal curve).
 #' @export
-#' @examples
-#' prof.to.features(extracted_features, sd.cut = sd_cut, sigma.ratio.lim = sigma_ratio_lim, do.plot = FALSE)
 prof.to.features <- function(profile,
                              bandwidth = 0.5,
                              min.bw = NA,

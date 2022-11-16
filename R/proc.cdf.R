@@ -60,12 +60,10 @@ load_data <- function(filename,
 #' @param baseline_correct_noise_percentile The percentile of signal strength of those EIC that don't pass the 
 #'  run filter, to be used as the baseline threshold of signal strength.
 #' @param do.plot Indicates whether plot should be drawn.
-#' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @param intensity_weighted Whether to use intensity to weight mass density estimation.
 #' @param cache Whether to use cache
 #' @return A matrix with four columns: m/z value, retention time, intensity, and group number.
 #' @export
-#' @examples
-#' proc.cdf(input_path, min_pres, min_run, tol, intensity.weighted = intensity_weighted)
 proc.cdf <- function(filename,
                      min_presence = 0.5,
                      min_elution_length = 12,

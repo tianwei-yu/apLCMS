@@ -9,11 +9,7 @@
 #' @return A vector of intensity value is returned.
 #' @importFrom dplyr between
 #' @export
-#' @examples
-#' rm.ridge(rt, intensi, bw)
-rm.ridge <-
-function(x,y2, bw)
-{
+rm.ridge <- function(x,y2, bw) {
     sel<-which(y2<quantile(y2, 0.75))
     max.x.sel<-max(x[sel])
     min.x.sel<-min(x[sel])

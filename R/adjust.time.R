@@ -129,9 +129,6 @@ correct_time <- function(this.feature, template_features, mz_tol_relative, rt_to
 #'  being processed. The only difference this output object has with the input object is that the retention time
 #'  column in each of the matrices is changed to new adjusted values.
 #' @export
-#' @examples
-#' data(extracted)
-#' adjust.time(extracted, 10e-06, 5, do.plot = FALSE)
 adjust.time <- function(extracted_features,
                         mz_tol_relative,
                         rt_tol_relative,
