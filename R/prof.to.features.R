@@ -1,10 +1,10 @@
 #' @description
-#' Validate that provided inputs match expected, exit execution otherwise.
-#' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
-#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
-#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
+#' Validate input model and method parameters, exit execution otherwise.
+#' @param shape.model The mathematical model of the peak shape. There are two choices - "bi-Gaussian" and "Gaussian".
+#'  bi-Gaussian is better for asymmetric peaks. The default is "bi-Gaussian".
+#' @param estim.method The estimation method for the bi-Gaussian model. Two possible values: moment and EM.
 #' @export
-validate_inputs <- function(shape.model, estim.method) {
+validate_model_method_input <- function(shape.model, estim.method) {
   if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
     stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
   }
@@ -46,7 +46,7 @@ preprocess_bandwidth <- function(min.bw, max.bw, profile) {
 }
 
 #' @description
-#' Convert input matrix to a dataframe with column names (see source code for the names).
+#' Convert matrix to dataframe and rename columns.
 #' @param profile Profile table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item float - mass-to-charge ratio of feature
@@ -65,7 +65,6 @@ preprocess_bandwidth <- function(min.bw, max.bw, profile) {
 preprocess_profile <- function(profile) {
   keys <- c("mz", "rt", "intensity", "group_number")
   colnames(profile) <- keys
-
   return(data.frame(profile))
 }
 
@@ -97,10 +96,13 @@ compute_gaussian_peak_shape <- function(rt_profile, power, bw, component.elimina
 }
 
 #' @description
-#' This function solves the value of a using the x, t, a from the previous step, 
+#' This function solves peak summit using the x, t, peak summit from the previous step, 
 #' and sigma.1, and sigma.2 (original authors' comment).
-#' @param
-#' TODO
+#' @param x A vector of numerical values (intensities).
+#' @param t A vector of numerical values (rt).
+#' @param a A vector of peak summits.
+#' @param sigma.1 left standard deviation of the gaussian curve
+#' @param sigma.2 right standard deviation of the gaussian curve
 #' @export
 solve.a <- function(x, t, a, sigma.1, sigma.2) {
   # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
@@ -111,8 +113,9 @@ solve.a <- function(x, t, a, sigma.1, sigma.2) {
 #' @description
 #' This function prepares the parameters required for latter computation.
 #' u, v, and sum of x (original authors' comment).
-#' @param
-#' TODO
+#' @param x A vector of numerical values (intensities).
+#' @param t A vector of numerical values (rt).
+#' @param a A vector of peak summits.
 #' @export
 prep.uv <- function(x, t, a) {
   # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
@@ -127,10 +130,15 @@ prep.uv <- function(x, t, a) {
 }
 
 #' @description
-#' This function takes the value intensity level x, retention time t and assumed breaking point a, 
-#' calculates the square estimated of sigma.1 and sigma.2 (original authors' comment).
-#' @param
-#' TODO
+#' Calculates the square estimated of left and right standard deviations.
+#' @param x A vector of numerical values (intensities).
+#' @param t A vector of numerical values (rt).
+#' @param a A vector of peak summits.
+#' @return A vector of:
+#' \itemize{
+#'   \item standard deviation at the left side of the gaussian curve
+#'   \item standard deviation at the right side of the gaussian curve
+#' }
 #' @export
 solve.sigma <- function(x, t, a) {
   # This function is a part of bigauss.esti.EM and is not covered by any of test-cases
@@ -144,12 +152,23 @@ solve.sigma <- function(x, t, a) {
 }
 
 #' @description
-#' Function takes into x and t, and then computes the value of sigma.1, sigma.2 and a using iterative method. the returned values include estimated sigmas,
-#' a and a boolean variable on whether the termination criteria is satisfied upon the end of the program (original authors' comment).
-#' @param
-#' TODO
+#' Computes bi-gaussian parameters using an iterative method. 
+#' @param t A vector of numerical values (rt).
+#' @param x A vector of numerical values (intensities).
+#' @param max.iter Maximum number of iterations.
+#' @param epsilon Threshold for continuing the iteration
+#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
+#' and the right-standard deviation of the bi-Gaussian function.
+#' @return A vector with length 4. The items are as follows going from first to last:
+#' \itemize{
+#'   \item mean of gaussian curve
+#'   \item standard deviation at the left side of the gaussian curve
+#'   \item standard deviation at the right side of the gaussian curve
+#'   \item estimated total signal strength (total area of the estimated normal curve)
+#' }
 #' @export
-bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, truth = NA, sigma.ratio.lim = c(0.3, 1)) {
+bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.3, 1)) {
   # This function is not covered by any test case
   sel <- which(x > 1e-10)
   if (length(sel) == 0) {
@@ -165,7 +184,7 @@ bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.
   ## a smaller than epsilon will terminate the iteration.
   ## epsilon <- min(diff(sort(t)))/2
 
-  ## using the median value of t as the initial value of a.
+  ## using the median value of t as the initial value of a (peak summit)
   a.old <- t[which(x == max(x))[1]]
   a.new <- a.old
   change <- 10 * epsilon
@@ -203,7 +222,11 @@ rev_cum_sum <- function(x) {
   return(rev(cumsum(x)))
 }
 
-#' TODO: Document
+#' @description
+#' Computes initial bound of set of values.
+#' @param x Cumulative intensity values.
+#' @param left_sigma_ratio_lim. Left-standard deviation of the bi-Gaussian function.
+#' @return Returns end bound.
 #' @export
 compute_start_bound <- function(x, left_sigma_ratio_lim) {
   start_bound <- 1
@@ -216,7 +239,11 @@ compute_start_bound <- function(x, left_sigma_ratio_lim) {
   return (start_bound)
 }
 
-#' TODO: Document
+#' @description
+#' Computes final bound of set of values.
+#' @param x Cumulative intensity values.
+#' @param rigth_sigma_ratio_lim. Right-standard deviation of the bi-Gaussian function.
+#' @return Returns end bound.
 #' @export
 compute_end_bound <- function(x, right_sigma_ratio_lim) {
   len_x <- length(x)
@@ -230,10 +257,10 @@ compute_end_bound <- function(x, right_sigma_ratio_lim) {
 }
 
 #' @description
-#' TODO
+#' Computes initial and final bounds of set of values.
 #' @param x Cumulative intensity values.
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation.
-#'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
+#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
+#' and the right-standard deviation of the bi-Gaussian function.
 #' @return Returns a list with bounds with following items:
 #' \itemize{
 #'   \item start - start bound
@@ -247,7 +274,8 @@ compute_bounds <- function(x, sigma.ratio.lim) {
 }
 
 #' @description
-#' Compute difference between neighbouring elements of a vector and optionally apply a mask such that the maximum difference is no higher than 4-fold minimum difference.
+#' Compute difference between neighbouring elements of a vector and optionally apply a 
+#' mask such that the maximum difference is no higher than 4-fold minimum difference.
 #' @param x - float - a vector of numerical values.
 #' @param apply_mask - boolean - whether to apply threshold mask to the output vector.
 #' @return Returns vector of numeric differences between neighbouring values.
@@ -272,7 +300,7 @@ compute_dx <- function(x, apply_mask=TRUE) {
 }
 
 #' @description
-#' Find base.curve RTs that lay within RT range of the whole feature table and append the intensities to these RTs.
+#' Find base.curve RTs that lay within RT range of the whole feature table and append intensities to these RTs.
 #' @param profile Profile table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item mz - float - mass-to-charge ratio of feature
@@ -285,19 +313,17 @@ compute_dx <- function(x, apply_mask=TRUE) {
 #' @export
 compute_chromatographic_profile <- function(profile, base.curve) {
   rt_range <- range(profile[, "rt"])
-  rt_profile <- base.curve[between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
+  rt_profile <- base.curve[dplyr::between(base.curve[, "base.curve"], min(rt_range), max(rt_range)), ]
   rt_profile[rt_profile[, "base.curve"] %in% profile[, "rt"], 2] <- profile[, "intensity"]
   colnames(rt_profile)[2] <- "intensity"
-
   return (rt_profile)
 }
 
 #' @description
-#' TODO
-#' Estimate total signal strength (total area of the estimated normal curve).
+#' Estimates total signal strength (total area of the estimated normal curve).
 #' @param y - float - a vector of intensities.
 #' @param d - float - a vector of \emph{y} values in a gaussian curve.
-#' @param scale - float - a vector of scaled intensity values.
+#' @return scale - float - a vector of scaled intensity values.
 #' @export
 compute_scale <- function(y, d) {
   dy_ratio <- d^2 * log(y / d)
@@ -389,7 +415,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
 
     d1 <- dnorm(x[sel1], sd = s1, mean = m)
     d2 <- dnorm(x[sel2], sd = s2, mean = m)
-    d <- c(d1 * s1, d2 * s2) # notice this "density" doesnt integrate to 1. Rather it integrates to (s1+s2)/2
+    d <- c(d1 * s1, d2 * s2) # notice this "density" does not integrate to 1. Rather it integrates to (s1+s2)/2
     y <- y.0
 
     scale <- compute_scale(y, d)
@@ -410,11 +436,16 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
 }
 
 #' @description
-#' TODO
+#' Calculation three initial bi-gaussian parameters (sd1, sd2, and scaling factor)
 #' @param rt_profile A matrix with two columns: "base.curve" (rt) and "intensity".
 #' @param vlys A vector of sorted RT-valley values at which the kernel estimate was computed.
 #' @param dx Difference between neighbouring RT values with step 2.
 #' @param pks A vector of sorted RT-peak values at which the kernel estimate was computed.
+#' @return A list. The items are as follows going from first to last:
+#' \itemize{
+#'   \item standard deviation at the left side of the gaussian curve
+#'   \item standard deviation at the right side of the gaussian curve
+#'   \item estimated total signal strength (total area of the estimated normal curve)
 #' @export
 compute_initiation_params <- function(rt_profile, vlys, dx, pks) {
   m <- s1 <- s2 <- delta <- pks
@@ -426,7 +457,8 @@ compute_initiation_params <- function(rt_profile, vlys, dx, pks) {
     sel.2 <- which(rt_profile[, "base.curve"] >= m[i] & rt_profile[, "base.curve"] < min(vlys[vlys > m[i]]))
     s2[i] <- sqrt(sum((rt_profile[sel.2, "base.curve"] - m[i])^2 * rt_profile[sel.2, "intensity"] * dx[sel.2]) / sum(rt_profile[sel.2, "intensity"] * dx[sel.2]))
 
-    delta[i] <- (sum(rt_profile[sel.1, "intensity"] * dx[sel.1]) + sum(rt_profile[sel.2, "intensity"] * dx[sel.2])) / ((sum(dnorm(rt_profile[sel.1, "base.curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(rt_profile[sel.2, "base.curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
+    delta[i] <- (sum(rt_profile[sel.1, "intensity"] * dx[sel.1]) + sum(rt_profile[sel.2, "intensity"] * dx[sel.2])) / 
+    ((sum(dnorm(rt_profile[sel.1, "base.curve"], mean = m[i], sd = s1[i])) * s1[i] / 2) + (sum(dnorm(rt_profile[sel.2, "base.curve"], mean = m[i], sd = s2[i])) * s2[i] / 2))
   }
   return (list(s1 = s1,
     s2 = s2,
@@ -434,7 +466,7 @@ compute_initiation_params <- function(rt_profile, vlys, dx, pks) {
 }
 
 #' @description
-#' TODO
+#' Computes the expectation step of the EM method.
 #' @param m A vector of sorted RT-peak values at which the kernel estimate was computed.
 #' @param rt_profile A matrix with two columns: "base.curve" (rt) and "intensity".
 #' @param delta Parameter computed by the initiation step.
@@ -461,7 +493,8 @@ compute_e_step <- function(m, rt_profile, delta, s1, s2) {
 }
 
 #' @description
-#' TODO
+#' Estimates the optimal bi-gaussian parameters using the EM method. It accepts two internal computation of parameters for "moment"
+#' and "EM" model input options.
 #' @param rt_profile Dataframe that stores RTs and intensities of features.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
@@ -488,9 +521,7 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
   last.num.pks <- Inf
 
   rt_profile_unfiltered <- rt_profile
-  rt_profile <- data.frame(rt_profile) |>
-    filter(intensity > 1e-5) |>
-    arrange(base.curve)
+  rt_profile <- data.frame(rt_profile) |> dplyr::filter(intensity > 1e-5) |> dplyr::arrange(base.curve)
 
   for (bw.n in length(all.bw):1)
   {
@@ -617,7 +648,7 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
 }
 
 #' @description
-#' Reevaluate parameters of rtomatographic gaussian curves.
+#' Reevaluate parameters of chromatographic gaussian curves.
 #' @param that.curve Dataframe that stores RTs and intensities of features.
 #' @param pks A vector of sorted RT-peak values at which the kernel estimate was computed.
 #' @param vlys A vector of sorted RT-valley values at which the kernel estimate was computed.
@@ -626,6 +657,12 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
 #' @param max.iter Maximum number of iterations when reevaluating gaussian curves.
 #' @param aver_diff Average retention time difference across RTs of all features.
 #' @importFrom dplyr between
+#' @return A list. The items are as follows going from first to last:
+#' \itemize{
+#'   \item miu - float - mean value of the gaussian curve
+#'   \item sigma - float - standard deviation of the gaussian curve
+#'   \item scale - float - estimated total signal strength (total area of the estimated normal curve)
+#'}
 #' @export
 normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff) {
   x <- that.curve[, 1]
@@ -758,6 +795,7 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
 }
 
 #' @description
+#' Estimates parameters of a gaussian curve.
 #' @param x Vector of RTs that lay in the same RT cluster.
 #' @param y Intensities that belong to x.
 #' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
@@ -834,12 +872,10 @@ normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eli
 }
 
 #' Generate feature table from noise-removed LC/MS profile.
-#'
 #' @description
 #' Each LC/MS profile is first processed by the function proc.cdf() to remove noise and reduce data size. A matrix containing m/z
 #' value, retention time, intensity, and group number is output from proc.cdf(). This matrix is then fed to the function
 #' prof.to.features() to generate a feature list. Every detected feature is summarized into a single row in the output matrix from this function.
-#'
 #' @param profile The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
 #' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps
 #'  determine the bandwidth in the kernel smoother used for peak identification.
@@ -876,30 +912,32 @@ prof.to.features <- function(profile,
                              BIC.factor = 2) {
   
   ### Checking and defining variables to be used in the calculation
-  validate_inputs(shape.model, estim.method) # check if correct model and available method are provided
+  validate_model_method_input(shape.model, estim.method) # check if correct model and available method are provided
 
   profile <- preprocess_profile(profile) # convert matrix to dataframe and rename columns
-
+  
   bws <- preprocess_bandwidth(min.bw, max.bw, profile) # make sure that min and max are defined, also check that min < max
   min.bw <- bws[["min.bw"]]
   max.bw <- bws[["max.bw"]]
   
   # base.curve <- compute_base_curve(profile[, "rt"])
-  base.curve <- sort(unique(profile[, "rt"]))
+  # base.curve <- sort(unique(profile$rt))
+  base.curve <- sort(unique(profile$rt))
   base.curve <- cbind(base.curve, base.curve * 0)
+  
   all_diff_mean_rts <- compute_delta_rt(base.curve[, 1]) # computes diff of mean values from consecutive values 
   aver_diff <- mean(diff(base.curve))  
 
   keys <- c("mz", "rt", "sd1", "sd2", "area")
   peak_parameters <- matrix(0, nrow = 0, ncol = length(keys), dimnames = list(NULL, keys))
-
-  feature_groups <- split(profile, profile$group_number)
   
+  feature_groups <- split(profile, profile$group_number)
+
   # loop over each group
   for (i in seq_along(feature_groups))
   {
     # init variables
-    feature_group <- feature_groups[[i]] |> arrange_at("rt") #feature_group <- feature_group[order(feature_group[, "rt"]), ]
+    feature_group <- feature_groups[[i]] |> dplyr::arrange_at("rt") #feature_group <- feature_group[order(feature_group[, "rt"]), ]
 
     num_features <- nrow(feature_group)
     ## The estimation procedure for a single peak
@@ -915,7 +953,7 @@ prof.to.features <- function(profile,
       rt_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
       peak_parameters <- rbind(peak_parameters, rt_peak_shape)
     }
-    ## application of Bi_gaussian mixture model and EM algorithm 
+    ## application of model and method selected 
     if (num_features > 10) {
       # find bandwidth for these particular range
       rt_range <- range(feature_group[, "rt"])
@@ -928,7 +966,6 @@ prof.to.features <- function(profile,
 
       rt_profile <- compute_chromatographic_profile(feature_group, base.curve)
       if (shape.model == "Gaussian") {
-        # calculation of parameters of a bi_gaussian 
         rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) ## compute gaussian parameters, use normix.bic() whic use ksmoother
       } else {
         ## apply EM algorithm to calculate parameters
