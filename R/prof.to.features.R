@@ -964,7 +964,7 @@ prof.to.features <- function(profile,
 
       rt_profile <- compute_chromatographic_profile(feature_group, base.curve)
       if (shape.model == "Gaussian") {
-        rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) ## compute gaussian parameters, use normix.bic() whic use ksmoother
+        rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) ## compute gaussian parameters, use normix.bic() which use ksmoother
       } else {
         ## apply EM algorithm to calculate parameters
         rt_peak_shape <- bigauss.mix(rt_profile, sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
