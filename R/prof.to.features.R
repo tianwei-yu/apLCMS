@@ -86,7 +86,7 @@ preprocess_profile <- function(profile) {
 #'}
 #' @export
 compute_gaussian_peak_shape <- function(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) {
-  rt_peak_shape <- normix.bic(rt_profile[, "base.curve"], rt_profile[, 2], power = power, bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
+  rt_peak_shape <- normix.bic(rt_profile[, "base.curve"], rt_profile[, 2], bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
   if (nrow(rt_peak_shape) == 1) {
     rt_peak_shape <- c(rt_peak_shape[1, 1:2], rt_peak_shape[1, 2], rt_peak_shape[1, 3])
   } else {
@@ -157,7 +157,6 @@ solve.sigma <- function(x, t, a) {
 #' @param x A vector of numerical values (intensities).
 #' @param max.iter Maximum number of iterations.
 #' @param epsilon Threshold for continuing the iteration
-#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
 #' and the right-standard deviation of the bi-Gaussian function.
 #' @return A vector with length 4. The items are as follows going from first to last:
@@ -168,7 +167,7 @@ solve.sigma <- function(x, t, a) {
 #'   \item estimated total signal strength (total area of the estimated normal curve)
 #' }
 #' @export
-bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.3, 1)) {
+bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, do.plot = FALSE, sigma.ratio.lim = c(0.3, 1)) {
   # This function is not covered by any test case
   sel <- which(x > 1e-10)
   if (length(sel) == 0) {
@@ -591,7 +590,7 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
           if (estim.method == "moment") {
             this.fit <- bigauss.esti(rt_profile[, "base.curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
           } else {
-            this.fit <- bigauss.esti.EM(rt_profile[, "base.curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+            this.fit <- bigauss.esti.EM(rt_profile[, "base.curve"], this.y, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
           }
           m[i] <- this.fit[1]
           s1[i] <- this.fit[2]
@@ -798,14 +797,13 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
 #' Estimates parameters of a gaussian curve.
 #' @param x Vector of RTs that lay in the same RT cluster.
 #' @param y Intensities that belong to x.
-#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param bw Bandwidth vector to use in the kernel smoother.
 #' @param eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
 #' @param max.iter Maximum number of iterations when executing the E step.
 #' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #' @param aver_diff Average retention time difference across RTs of all features.
 #' @export
-normix.bic <- function(x, y, power = 2, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2, aver_diff) {
+normix.bic <- function(x, y, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2, aver_diff) {
   all.bw <- bw[order(bw)]
   sel <- y > 1e-5
   x <- x[sel]
