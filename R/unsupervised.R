@@ -175,6 +175,7 @@ unsupervised <- function(
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
   peak_estim_method = "moment",
+  bandwidth = 0.5,
   min_bandwidth = NA,
   max_bandwidth = NA,
   sd_cut = c(0.01, 500),
@@ -208,8 +209,8 @@ unsupervised <- function(
   profiles <- snow::parLapply(cluster, filenames, function(filename) {
       proc.cdf(
           filename = filename,
-          min_presence = min_pres,
-          min_elution_length = min_run,
+          min_pres = min_pres,
+          min_run = min_run,
           mz_tol = mz_tol,
           baseline_correct = baseline_correct,
           baseline_correct_noise_percentile = baseline_correct_noise_percentile,
@@ -222,15 +223,16 @@ unsupervised <- function(
   extracted <- snow::parLapply(cluster, profiles, function(profile) {
       prof.to.features(
           profile = profile,
-          min.bw = min_bandwidth,
-          max.bw = max_bandwidth,
-          sd.cut = sd_cut,
-          sigma.ratio.lim = sigma_ratio_lim,
-          shape.model = shape_model,
-          estim.method = peak_estim_method,
-          component.eliminate = component_eliminate,
-          power = moment_power,
-          BIC.factor = BIC_factor,
+          bandwidth = bandwidth,
+          min_bandwidth = min_bandwidth,
+          max_bandwidth = max_bandwidth,
+          sd_cut = sd_cut,
+          sigma_ratio_lim = sigma_ratio_lim,
+          shape_model = shape_model,
+          peak_estim_method = peak_estim_method,
+          component_eliminate = component_eliminate,
+          moment_power = moment_power,
+          BIC_factor = BIC_factor,
           do.plot = FALSE
       )
   })
