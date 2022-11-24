@@ -62,16 +62,6 @@ concatenate_feature_tables <- function(features, sample_names) {
     return(merged)
 }
 
-pivot_feature_values <- function(feature_table, variable) {
-    extended_variable <- paste0("sample_", variable)
-    values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
-    values <- tidyr::pivot_wider(values, names_from = sample, values_from = !!sym(extended_variable))
-    variable_colnames <- colnames(values)[3:ncol(values)]
-    variable_colnames <- paste0(variable_colnames, "_", variable)
-    colnames(values)[3:ncol(values)] <- variable_colnames
-    return(values)
-}
-
 #' @export
 load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_file) {
     metadata <- arrow::read_parquet(metadata_file)

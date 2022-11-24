@@ -2,6 +2,16 @@
 NULL
 #> NULL
 
+pivot_feature_values <- function(feature_table, variable) {
+  extended_variable <- paste0("sample_", variable)
+  values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
+  values <- tidyr::pivot_wider(values, names_from = sample, values_from = !!sym(extended_variable))
+  variable_colnames <- colnames(values)[3:ncol(values)]
+  variable_colnames <- paste0(variable_colnames, "_", variable)
+  colnames(values)[3:ncol(values)] <- variable_colnames
+  return(values)
+}
+
 long_to_wide_feature_table <- function(feature_table) {
   sample_rts <- pivot_feature_values(feature_table, "rt")
   sample_intensities <- pivot_feature_values(feature_table, "intensity")
