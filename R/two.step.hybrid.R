@@ -2,6 +2,11 @@
 NULL
 #> NULL
 
+extract_pattern_colnames <- function(dataframe, pattern) {
+  dataframe <- dplyr::select(dataframe, contains(pattern))
+  return(colnames(dataframe))
+}
+
 as_wide_aligned_table <- function(aligned) {
   mz_scale_table <- aligned$rt_crosstab[, c("mz", "rt", "mz_min", "mz_max")]
   aligned <- as_feature_sample_table(

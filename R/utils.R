@@ -62,13 +62,6 @@ concatenate_feature_tables <- function(features, sample_names) {
     return(merged)
 }
 
-#' @export
-extract_pattern_colnames <- function(dataframe, pattern) {
-    dataframe <- dplyr::select(dataframe, contains(pattern))
-    return(colnames(dataframe))
-}
-
-
 pivot_feature_values <- function(feature_table, variable) {
     extended_variable <- paste0("sample_", variable)
     values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
