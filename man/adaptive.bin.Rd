@@ -6,8 +6,8 @@
 \usage{
 adaptive.bin(
   features,
-  min_elution_length,
-  min_presence,
+  min_run,
+  min_pres,
   mz_tol,
   baseline_correct,
   intensity_weighted = FALSE
@@ -16,10 +16,10 @@ adaptive.bin(
 \arguments{
 \item{features}{A tibble with columns of m/z, retention time, intensity.}
 
-\item{min_elution_length}{Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
+\item{min_run}{Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
 considered a peak.}
 
-\item{min_presence}{Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
+\item{min_pres}{Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
 by m/z to be considered a peak.}
 
 \item{mz_tol}{m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
@@ -41,7 +41,7 @@ A list is returned.
   \item intensi - The vector of intensity values after binning.
   \item grps - The EIC rt, i.e. which EIC each observed data point belongs to.
   \item times - All the unique retention time values, ordered.
-  \item tol - The m/z tolerance level.
+  \item mz_tol - The m/z tolerance level.
   \item min.count.run - The minimum number of elution time points for a series of signals grouped by m/z to be considered a peak.
 }
 }

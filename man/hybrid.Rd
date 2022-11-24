@@ -7,7 +7,7 @@
 hybrid(
   filenames,
   known_table,
-  min_exp = 2,
+  min_occurrence = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
@@ -16,15 +16,16 @@ hybrid(
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
   peak_estim_method = "moment",
+  bandwidth = 0.5,
   min_bandwidth = NA,
   max_bandwidth = NA,
   sd_cut = c(0.01, 500),
   sigma_ratio_lim = c(0.01, 100),
   component_eliminate = 0.01,
   moment_power = 1,
-  align_mz_tol = NA,
-  align_rt_tol = NA,
-  max_align_mz_diff = 0.01,
+  mz_tol_relative = NA,
+  rt_tol_relative = NA,
+  mz_tol_absolute = 0.01,
   match_tol_ppm = NA,
   new_feature_min_count = 2,
   recover_mz_range = NA,
@@ -40,7 +41,7 @@ hybrid(
 
 \item{known_table}{Table of known chemicals.}
 
-\item{min_exp}{A feature has to show up in at least this number of profiles to be included in the final result.}
+\item{min_occurrence}{A feature has to show up in at least this number of profiles to be included in the final result.}
 
 \item{min_pres}{This is a parameter of the run filter, to be passed to the function proc.cdf().}
 
@@ -79,14 +80,14 @@ proportion of intensities less than this value, the component will be ignored.}
 
 \item{moment_power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
 
-\item{align_mz_tol}{The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+\item{mz_tol_relative}{The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
 tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
 value, becomes the cutoff level.}
 
-\item{align_rt_tol}{The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+\item{rt_tol_relative}{The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
 the tolerance level based on the data.}
 
-\item{max_align_mz_diff}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. 
+\item{mz_tol_absolute}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. 
 This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.}
 
 \item{match_tol_ppm}{The ppm tolerance to match identified features to known metabolites/features.}

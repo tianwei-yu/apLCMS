@@ -10,19 +10,19 @@ recover.weaker(
   metadata_table,
   intensity_table,
   rt_table,
-  align.mz.tol,
-  align.rt.tol,
+  mz_tol_relative,
+  rt_tol_relative,
   extracted_features,
   adjusted_features,
   recover_mz_range = NA,
   recover_rt_range = NA,
-  use.observed.range = TRUE,
-  orig.tol = 1e-05,
-  min.bw = NA,
-  max.bw = NA,
+  use_observed_range = TRUE,
+  mz_tol = 1e-05,
+  min_bandwidth = NA,
+  max_bandwidth = NA,
   bandwidth = 0.5,
-  recover.min.count = 3,
-  intensity.weighted = FALSE
+  recover_min_count = 3,
+  intensity_weighted = FALSE
 )
 }
 \arguments{
@@ -36,9 +36,9 @@ recover.weaker(
 
 \item{rt_table}{Table containing retention times.}
 
-\item{align.mz.tol}{the m/z tolerance used in the alignment.}
+\item{mz_tol_relative}{the m/z tolerance used in the alignment.}
 
-\item{align.rt.tol}{the elution time tolerance in the alignment.}
+\item{rt_tol_relative}{the elution time tolerance in the alignment.}
 
 \item{extracted_features}{The matrix which is the output from proc.to.feature().}
 
@@ -51,21 +51,21 @@ The default value is NA, in which case 1.5 times the m/z tolerance in the aligne
 \item{recover_rt_range}{The retention time around the feature retention time to search for observations.
 The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.}
 
-\item{use.observed.range}{If the value is TRUE, the actual range of the observed locations
+\item{use_observed_range}{If the value is TRUE, the actual range of the observed locations
 of the feature in all the spectra will be used.}
 
-\item{orig.tol}{The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.}
+\item{mz_tol}{The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.}
 
-\item{min.bw}{The minimum bandwidth to use in the kernel smoother.}
+\item{min_bandwidth}{The minimum bandwidth to use in the kernel smoother.}
 
-\item{max.bw}{The maximum bandwidth to use in the kernel smoother.}
+\item{max_bandwidth}{The maximum bandwidth to use in the kernel smoother.}
 
 \item{bandwidth}{A value between zero and one. Multiplying this value to the length of the signal along the
 time axis helps determine the bandwidth in the kernel smoother used for peak identification.}
 
-\item{recover.min.count}{minimum number of raw data points to support a recovery.}
+\item{recover_min_count}{minimum number of raw data points to support a recovery.}
 
-\item{intensity.weighted}{Whether to use intensity to weight mass density estimation.}
+\item{intensity_weighted}{Whether to use intensity to weight mass density estimation.}
 }
 \value{
 Returns a list object with the following objects in it:

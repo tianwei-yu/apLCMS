@@ -7,16 +7,16 @@
 prof.to.features(
   profile,
   bandwidth = 0.5,
-  min.bw = NA,
-  max.bw = NA,
-  sd.cut = c(0.01, 500),
-  sigma.ratio.lim = c(0.01, 100),
-  shape.model = "bi-Gaussian",
-  estim.method = "moment",
-  do.plot = TRUE,
-  power = 1,
-  component.eliminate = 0.01,
-  BIC.factor = 2
+  min_bandwidth = NA,
+  max_bandwidth = NA,
+  sd_cut = c(0.01, 500),
+  sigma_ratio_lim = c(0.01, 100),
+  shape_model = "bi-Gaussian",
+  peak_estim_method = "moment",
+  moment_power = 1,
+  component_eliminate = 0.01,
+  BIC_factor = 2,
+  do.plot = TRUE
 )
 }
 \arguments{
@@ -25,29 +25,29 @@ prof.to.features(
 \item{bandwidth}{A value between zero and one. Multiplying this value to the length of the signal along the time axis helps
 determine the bandwidth in the kernel smoother used for peak identification.}
 
-\item{min.bw}{The minimum bandwidth to use in the kernel smoother.}
+\item{min_bandwidth}{The minimum bandwidth to use in the kernel smoother.}
 
-\item{max.bw}{The maximum bandwidth to use in the kernel smoother.}
+\item{max_bandwidth}{The maximum bandwidth to use in the kernel smoother.}
 
-\item{sd.cut}{A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.}
+\item{sd_cut}{A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.}
 
-\item{sigma.ratio.lim}{A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+\item{sigma_ratio_lim}{A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 and the right-standard deviation of the bi-Gaussian function used to fit the data.}
 
-\item{shape.model}{The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
+\item{shape_model}{The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
 When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".}
 
-\item{estim.method}{The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.}
+\item{peak_estim_method}{The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.}
 
-\item{do.plot}{Whether to generate diagnostic plots.}
+\item{moment_power}{The parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
 
-\item{power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.}
-
-\item{component.eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
+\item{component_eliminate}{In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
 proportion of intensities less than this value, the component will be ignored.}
 
-\item{BIC.factor}{the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+\item{BIC_factor}{the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 models with more peaks are penalized more.}
+
+\item{do.plot}{Whether to generate diagnostic plots.}
 }
 \value{
 A matrix is returned. The columns are: m/z value, retention time, spread (standard deviation of the estimated normal
