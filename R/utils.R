@@ -68,16 +68,6 @@ extract_pattern_colnames <- function(dataframe, pattern) {
     return(colnames(dataframe))
 }
 
-as_wide_aligned_table <- function(aligned) {
-    mz_scale_table <- aligned$rt_crosstab[, c("mz", "rt", "mz_min", "mz_max")]
-    aligned <- as_feature_sample_table(
-        rt_crosstab = aligned$rt_crosstab,
-        int_crosstab = aligned$int_crosstab
-    )
-    aligned <- long_to_wide_feature_table(aligned)
-    aligned <- dplyr::inner_join(aligned, mz_scale_table, by = c("mz", "rt"))
-    return(aligned)
-}
 
 pivot_feature_values <- function(feature_table, variable) {
     extended_variable <- paste0("sample_", variable)
