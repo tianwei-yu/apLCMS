@@ -2,6 +2,16 @@
 NULL
 #> NULL
 
+#' @importFrom dplyr select inner_join
+as_feature_crosstab <- function(sample_names, metadata, data) {
+  metadata_cols <- c('id', 'mz', 'rt', 'mzmin', 'mzmax')
+  data <- select(metadata, metadata_cols) |>
+    inner_join(data, on='id')
+  colnames(data) <- c(metadata_cols, sample_names)
+  
+  return(data)
+}
+
 recover_weaker_signals <- function(
   cluster,
   filenames,

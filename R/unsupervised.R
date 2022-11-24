@@ -2,16 +2,6 @@
 NULL
 #> NULL
 
-#' @importFrom dplyr select inner_join
-as_feature_crosstab <- function(sample_names, metadata, data) {
-  metadata_cols <- c('id', 'mz', 'rt', 'mzmin', 'mzmax')
-  data <- select(metadata, metadata_cols) |>
-    inner_join(data, on='id')
-  colnames(data) <- c(metadata_cols, sample_names)
-
-  return(data)
-}
-
 as_feature_sample_table <- function(metadata, rt_crosstab, int_crosstab) {
   feature_names <- as.character(rt_crosstab$id)
   sample_names <- colnames(metadata)[-c(1:8)]
