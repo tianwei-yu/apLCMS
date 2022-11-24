@@ -231,7 +231,7 @@ augment_known_table <- function(
 #' 
 #' @param filenames The CDF file names.
 #' @param known_table Table of known chemicals.
-#' @param min_exp A feature has to show up in at least this number of profiles to be included in the final result.
+#' @param min_occurrence A feature has to show up in at least this number of profiles to be included in the final result.
 #' @param min_pres This is a parameter of the run filter, to be passed to the function proc.cdf().
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be considered a peak.
 #' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
@@ -255,12 +255,12 @@ augment_known_table <- function(
 #' @param component_eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a 
 #'  proportion of intensities less than this value, the component will be ignored.
 #' @param moment_power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param align_mz_tol The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search for the 
 #'  tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, multiplied by the m/z 
 #'  value, becomes the cutoff level.
-#' @param align_rt_tol The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program to search for 
 #'  the tolerance level based on the data.
-#' @param max_align_mz_diff As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. 
+#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the m/z range is wide. 
 #'  This parameter limits the tolerance in absolute terms. It mostly influences feature matching in higher m/z range.
 #' @param match_tol_ppm The ppm tolerance to match identified features to known metabolites/features.
 #' @param new_feature_min_count The number of profiles a new feature must be present for it to be added to the database.
@@ -276,7 +276,7 @@ augment_known_table <- function(
 hybrid <- function(
   filenames,
   known_table,
-  min_exp = 2,
+  min_occurrence = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
@@ -285,15 +285,16 @@ hybrid <- function(
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
   peak_estim_method = "moment",
+  bandwidth = 0.5,
   min_bandwidth = NA,
   max_bandwidth = NA,
   sd_cut = c(0.01, 500),
   sigma_ratio_lim = c(0.01, 100),
   component_eliminate = 0.01,
   moment_power = 1,
-  align_mz_tol = NA,
-  align_rt_tol = NA,
-  max_align_mz_diff = 0.01,
+  mz_tol_relative = NA,
+  rt_tol_relative = NA,
+  mz_tol_absolute = 0.01,
   match_tol_ppm = NA,
   new_feature_min_count = 2,
   recover_mz_range = NA,
@@ -320,8 +321,8 @@ hybrid <- function(
   profiles <- snow::parLapply(cluster, filenames, function(filename) {
       proc.cdf(
           filename = filename,
-          min_presence = min_pres,
-          min_elution_length = min_run,
+          min_pres = min_pres,
+          min_run = min_run,
           mz_tol = mz_tol,
           baseline_correct = baseline_correct,
           baseline_correct_noise_percentile = baseline_correct_noise_percentile,
@@ -334,15 +335,16 @@ hybrid <- function(
   extracted <- snow::parLapply(cluster, profiles, function(profile) {
       prof.to.features(
           profile = profile,
-          min.bw = min_bandwidth,
-          max.bw = max_bandwidth,
-          sd.cut = sd_cut,
-          sigma.ratio.lim = sigma_ratio_lim,
-          shape.model = shape_model,
-          estim.method = peak_estim_method,
-          component.eliminate = component_eliminate,
-          power = moment_power,
-          BIC.factor = BIC_factor,
+          bandwidth = bandwidth,
+          min_bandwidth = min_bandwidth,
+          max_bandwidth = max_bandwidth,
+          sd_cut = sd_cut,
+          sigma_ratio_lim = sigma_ratio_lim,
+          shape_model = shape_model,
+          peak_estim_method = peak_estim_method,
+          component_eliminate = component_eliminate,
+          moment_power = moment_power,
+          BIC_factor = BIC_factor,
           do.plot = FALSE
       )
   })
@@ -350,10 +352,10 @@ hybrid <- function(
  message("**** computing clusters ****")
   extracted_clusters <- compute_clusters(
     feature_tables = extracted,
-    mz_tol_relative = align_mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    mz_tol_relative = mz_tol_relative,
+    mz_tol_absolute = mz_tol_absolute,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol,
+    rt_tol_relative = rt_tol_relative,
     sample_names = sample_names
   )
 
@@ -375,13 +377,13 @@ hybrid <- function(
     mz_tol_relative = extracted_clusters$mz_tol_relative,
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative
   )
 
   message("**** feature alignment ****")
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
-      min_exp,
+      min_occurrence,
       sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
@@ -407,17 +409,17 @@ hybrid <- function(
       metadata_table = merged$metadata,
       rt_table = merged$rt,
       intensity_table = merged$intensity,
-      orig.tol = mz_tol,
-      align.mz.tol = extracted_clusters$mz_tol_relative,
-      align.rt.tol = extracted_clusters$rt_tol_relative,
+      mz_tol = mz_tol,
+      mz_tol_relative = extracted_clusters$mz_tol_relative,
+      rt_tol_relative = extracted_clusters$rt_tol_relative,
       recover_mz_range = recover_mz_range,
       recover_rt_range = recover_rt_range,
-      use.observed.range = use_observed_range,
-      bandwidth = 0.5,
-      min.bw = min_bandwidth,
-      max.bw = max_bandwidth,
-      recover.min.count = recover_min_count,
-      intensity.weighted = intensity_weighted
+      use_observed_range = use_observed_range,
+      bandwidth = bandwidth,
+      min_bandwidth = min_bandwidth,
+      max_bandwidth = max_bandwidth,
+      recover_min_count = recover_min_count,
+      intensity_weighted = intensity_weighted
     )
   })
 
@@ -426,10 +428,10 @@ hybrid <- function(
   message("**** third time computing clusters ****")
   recovered_clusters <- compute_clusters(
     feature_tables = recovered_adjusted,
-    mz_tol_relative = align_mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    mz_tol_relative = mz_tol_relative,
+    mz_tol_absolute = mz_tol_absolute,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative
   )
 
   message("**** computing template ****")
@@ -450,13 +452,13 @@ hybrid <- function(
     mz_tol_relative = recovered_clusters$mz_tol_relative,
     mz_tol_absolute = recovered_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative
   )
 
   message("**** second feature alignment ****")
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
-      min_exp,
+      min_occurrence,
       sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
