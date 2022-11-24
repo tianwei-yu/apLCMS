@@ -129,7 +129,7 @@ recover_weaker_signals <- function(
 #' @param baseline_correct After grouping the observations, the highest intensity in each group is found. 
 #'  If the highest is lower than this value, the entire group will be deleted. The default value is NA, in 
 #'  which case the program uses the 75th percentile of the height of the noise groups.
-#' @param baseline_correct_noise_percentile The perenctile of signal strength of those EIC that don't pass the 
+#' @param baseline_correct_noise_percentile The percentile of signal strength of those EIC that don't pass the 
 #'  run filter, to be used as the baseline threshold of signal strength.
 #' @param shape_model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and 
 #'  "Gaussian". When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
@@ -146,12 +146,12 @@ recover_weaker_signals <- function(
 #'  for a proportion of intensities less than this value, the component will be ignored.
 #' @param moment_power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture 
 #'  model in an EIC.
-#' @param align_mz_tol The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
 #'  for the tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, 
 #'  multiplied by the m/z value, becomes the cutoff level.
-#' @param align_rt_tol The retention time tolerance level for peak alignment. The default is NA, which allows the program 
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program 
 #'  to search for the tolerance level based on the data.
-#' @param max_align_mz_diff As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
+#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
 #'  m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
 #'  in higher m/z range.
 #' @param recover_mz_range The m/z around the feature m/z to search for observations. The default value is NA, in which 
@@ -182,9 +182,9 @@ unsupervised <- function(
   sigma_ratio_lim = c(0.01, 100),
   component_eliminate = 0.01,
   moment_power = 1,
-  align_mz_tol = NA,
-  align_rt_tol = NA,
-  max_align_mz_diff = 0.01,
+  mz_tol_relative = NA,
+  rt_tol_relative = NA,
+  mz_tol_absolute = 0.01,
   recover_mz_range = NA,
   recover_rt_range = NA,
   use_observed_range = TRUE,
@@ -220,7 +220,7 @@ unsupervised <- function(
       )
   })
   
-  extracted <- snow::parLapply(cluster, profiles, function(profile) {
+  feature_tables <- snow::parLapply(cluster, profiles, function(profile) {
       prof.to.features(
           profile = profile,
           bandwidth = bandwidth,
@@ -239,11 +239,11 @@ unsupervised <- function(
 
   message("**** computing clusters ****")
   extracted_clusters <- compute_clusters(
-    feature_tables = extracted,
-    mz_tol_relative = align_mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    feature_tables = feature_tables,
+    mz_tol_relative = mz_tol_relative,
+    mz_tol_absolute = mz_tol_absolute,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol,
+    rt_tol_relative = rt_tol_relative,
     sample_names = sample_names
   )
 
@@ -265,7 +265,7 @@ unsupervised <- function(
     mz_tol_relative = extracted_clusters$mz_tol_relative,
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative
   )
 
   message("**** feature alignment ****")
@@ -282,7 +282,7 @@ unsupervised <- function(
     recover.weaker(
       filename = filenames[[i]],
       sample_name = as.character(i),
-      extracted_features = extracted[[i]],
+      extracted_features = feature_tables[[i]],
       adjusted_features = corrected[[i]],
       metadata_table = aligned$metadata,
       rt_table = aligned$rt,
@@ -309,7 +309,7 @@ unsupervised <- function(
     mz_tol_relative = adjusted_clusters$mz_tol_relative,
     mz_tol_absolute = adjusted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative
   )
 
   message("**** feature alignment ****")
