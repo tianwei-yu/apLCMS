@@ -119,14 +119,6 @@ load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_
     return(result)
 }
 
-create_feature_sample_table <- function(features) {
-    table <- as_feature_sample_table(
-        rt_crosstab = features$rt,
-        int_crosstab = features$intensity
-    )
-    return(table)
-}
-
 #' @export
 span <- function(x) {
     diff(range(x, na.rm = TRUE))
