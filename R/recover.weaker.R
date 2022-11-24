@@ -470,8 +470,8 @@ compute_peaks_and_valleys <- function(dens) {
 #' @param delta_rt vector Differences between consecutive retention time values (diff(times)).
 #' @param aver_diff float Average retention time difference.
 #' @param bandwidth float Bandwidth to use in smoothing.
-#' @param min.bw float Minimum bandwidth to use.
-#' @param max.bw float Maximum bandwidth to use.
+#' @param min_bandwidth float Minimum bandwidth to use.
+#' @param max_bandwidth float Maximum bandwidth to use.
 #' @return tibble Tibble with `mz`, `rt` and `intensities` columns.
 compute_rectangle <- function(data_table,
                               aligned_feature_mz,
@@ -486,8 +486,8 @@ compute_rectangle <- function(data_table,
                               delta_rt,
                               aver_diff,
                               bandwidth,
-                              min.bw,
-                              max.bw) {
+                              min_bandwidth,
+                              max_bandwidth) {
   bounds <- get_mzrange_bound_indices(
     aligned_feature_mz,
     data_table$mz,
@@ -557,7 +557,7 @@ compute_rectangle <- function(data_table,
           that.prof,
           c("rt", "intensities")
         ) |> dplyr::arrange_at("rt")
-        bw <- min(max(bandwidth * (span(rt_intensities$rt)), min.bw), max.bw)
+        bw <- min(max(bandwidth * (span(rt_intensities$rt)), min_bandwidth), max_bandwidth)
 
         all <- compute_pks_vlys_rt(
           rt_intensities,
@@ -624,8 +624,8 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' @param metadata_table Table containing metadata.
 #' @param intensity_table Table containing intensities.
 #' @param rt_table Table containing retention times.
-#' @param align.mz.tol the m/z tolerance used in the alignment.
-#' @param align.rt.tol the elution time tolerance in the alignment.
+#' @param mz_tol_relative the m/z tolerance used in the alignment.
+#' @param rt_tol_relative the elution time tolerance in the alignment.
 #' @param extracted_features The matrix which is the output from proc.to.feature().
 #' @param adjusted_features The matrix which is the output from proc.to.feature().
 #' The retention time in this object have been adjusted by the function adjust.time().
@@ -633,15 +633,15 @@ refine_selection <- function(target_rt, rectangle, aligned_mz, rt_tol, mz_tol) {
 #' The default value is NA, in which case 1.5 times the m/z tolerance in the aligned object will be used.
 #' @param recover_rt_range The retention time around the feature retention time to search for observations.
 #' The default value is NA, in which case 0.5 times the retention time tolerance in the aligned object will be used.
-#' @param use.observed.range If the value is TRUE, the actual range of the observed locations
+#' @param use_observed_range If the value is TRUE, the actual range of the observed locations
 #' of the feature in all the spectra will be used.
-#' @param orig.tol The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.
-#' @param min.bw The minimum bandwidth to use in the kernel smoother.
-#' @param max.bw The maximum bandwidth to use in the kernel smoother.
+#' @param mz_tol The mz.tol parameter provided to the proc.cdf() function. This helps retrieve the intermediate file.
+#' @param min_bandwidth The minimum bandwidth to use in the kernel smoother.
+#' @param max_bandwidth The maximum bandwidth to use in the kernel smoother.
 #' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the
 #' time axis helps determine the bandwidth in the kernel smoother used for peak identification.
-#' @param recover.min.count minimum number of raw data points to support a recovery.
-#' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @param recover_min_count minimum number of raw data points to support a recovery.
+#' @param intensity_weighted Whether to use intensity to weight mass density estimation.
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
 #'   \item aligned.ftrs - A matrix, with columns of m/z values, elution times, and signal strengths in each spectrum.
@@ -655,29 +655,29 @@ recover.weaker <- function(filename,
                            metadata_table,
                            intensity_table,
                            rt_table,
-                           align.mz.tol,
-                           align.rt.tol,
+                           mz_tol_relative,
+                           rt_tol_relative,
                            extracted_features,
                            adjusted_features,
                            recover_mz_range = NA,
                            recover_rt_range = NA,
-                           use.observed.range = TRUE,
-                           orig.tol = 1e-5,
-                           min.bw = NA,
-                           max.bw = NA,
+                           use_observed_range = TRUE,
+                           mz_tol = 1e-5,
+                           min_bandwidth = NA,
+                           max_bandwidth = NA,
                            bandwidth = .5,
-                           recover.min.count = 3,
-                           intensity.weighted = FALSE) {
+                           recover_min_count = 3,
+                           intensity_weighted = FALSE) {
   # load raw data
   data_table <- load_file(filename) |> dplyr::arrange_at("mz")
   times <- sort(unique(data_table$rt))
 
   # Initialize parameters with default values
-  if (is.na(recover_mz_range)) recover_mz_range <- 1.5 * align.mz.tol
-  if (is.na(recover_rt_range)) recover_rt_range <- align.rt.tol / 2
-  if (is.na(min.bw)) min.bw <- span(times) / 60
-  if (is.na(max.bw)) max.bw <- span(times) / 15
-  if (min.bw >= max.bw) min.bw <- max.bw / 4
+  if (is.na(recover_mz_range)) recover_mz_range <- 1.5 * mz_tol_relative
+  if (is.na(recover_rt_range)) recover_rt_range <- rt_tol_relative / 2
+  if (is.na(min_bandwidth)) min_bandwidth <- span(times) / 60
+  if (is.na(max_bandwidth)) max_bandwidth <- span(times) / 15
+  if (min_bandwidth >= max_bandwidth) min_bandwidth <- max_bandwidth / 4
 
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
@@ -686,7 +686,7 @@ recover.weaker <- function(filename,
 
   custom.mz.tol <- recover_mz_range * metadata_table$mz
   custom.rt.tol <- get_custom_rt_tol(
-    use.observed.range,
+    use_observed_range,
     rt_table,
     recover_rt_range,
     metadata_table
@@ -709,7 +709,7 @@ recover.weaker <- function(filename,
   # target_times <- predict(sp, aligned.ftrs[, "rt"])$y
 
 
-  breaks <- predict_mz_break_indices(data_table, orig.tol)
+  breaks <- predict_mz_break_indices(data_table, mz_tol)
 
   max_mz <- max(data_table$mz)
 
@@ -731,17 +731,17 @@ recover.weaker <- function(filename,
         metadata_table$mz[i],
         breaks,
         custom.mz.tol[i],
-        orig.tol,
-        intensity.weighted,
-        recover.min.count,
+        mz_tol,
+        intensity_weighted,
+        recover_min_count,
         target_times[i],
         custom.rt.tol[i] * 2,
         times,
         vec_delta_rt,
         aver.diff,
         bandwidth,
-        min.bw,
-        max.bw
+        min_bandwidth,
+        max_bandwidth
       )
 
       this.sel <- get_rt_region_indices(

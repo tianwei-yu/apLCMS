@@ -119,7 +119,7 @@ recover_weaker_signals <- function(
 #' features extraction in unsupervised mode.
 #' 
 #' @param filenames The CDF file names.
-#' @param min_exp A feature has to show up in at least this number of profiles to be included in the final result.
+#' @param min_occurrence A feature has to show up in at least this number of profiles to be included in the final result.
 #' @param min_pres This is a parameter of the run filter, to be passed to the function proc.cdf().
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z 
 #'  to be considered a peak.
@@ -166,7 +166,7 @@ recover_weaker_signals <- function(
 #' @export
 unsupervised <- function(
   filenames,
-  min_exp = 2,
+  min_occurrence = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
@@ -271,7 +271,7 @@ unsupervised <- function(
   message("**** feature alignment ****")
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
-      min_exp,
+      min_occurrence,
       sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
@@ -287,17 +287,17 @@ unsupervised <- function(
       metadata_table = aligned$metadata,
       rt_table = aligned$rt,
       intensity_table = aligned$intensity,
-      orig.tol = mz_tol,
-      align.mz.tol = aligned$mz_tol_relative,
-      align.rt.tol = aligned$rt_tol_relative,
+      mz_tol = mz_tol,
+      mz_tol_relative = aligned$mz_tol_relative,
+      rt_tol_relative = aligned$rt_tol_relative,
       recover_mz_range = recover_mz_range,
       recover_rt_range = recover_rt_range,
-      use.observed.range = use_observed_range,
-      bandwidth = 0.5,
-      min.bw = min_bandwidth,
-      max.bw = max_bandwidth,
-      recover.min.count = recover_min_count,
-      intensity.weighted = intensity_weighted
+      use_observed_range = use_observed_range,
+      bandwidth = bandwidth,
+      min_bandwidth = min_bandwidth,
+      max_bandwidth = max_bandwidth,
+      recover_min_count = recover_min_count,
+      intensity_weighted = intensity_weighted
     )
   })
 
@@ -315,7 +315,7 @@ unsupervised <- function(
   message("**** feature alignment ****")
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(recovered_clusters$feature_tables),
-      min_exp,
+      min_occurrence,
       sample_names,
       recovered_clusters$rt_tol_relative,
       recovered_clusters$mz_tol_relative
