@@ -2,6 +2,62 @@
 NULL
 #> NULL
 
+recover_weaker_signals <- function(
+  cluster,
+  filenames,
+  extracted_features,
+  corrected_features,
+  aligned_rt_crosstab,
+  aligned_int_crosstab,
+  original_mz_tolerance,
+  aligned_mz_tolerance,
+  aligned_rt_tolerance,
+  recover_mz_range,
+  recover_rt_range,
+  use_observed_range,
+  min_bandwidth,
+  max_bandwidth,
+  recover_min_count
+) {
+  snow::clusterExport(cluster, c('recover.weaker'))
+  snow::clusterEvalQ(cluster, library("splines"))
+  
+  recovered <- lapply(seq_along(filenames), function(i) {
+    recover.weaker(
+      sample_name = get_sample_name(filenames[i]),
+      filename = filenames[[i]],
+      extracted_features = as_tibble(extracted_features[[i]]),
+      adjusted_features = as_tibble(corrected_features[[i]]),
+      pk.times = aligned_rt_crosstab,
+      aligned.ftrs = aligned_int_crosstab,
+      orig.tol = original_mz_tolerance,
+      align.mz.tol = aligned_mz_tolerance,
+      align.rt.tol = aligned_rt_tolerance,
+      recover_mz_range = recover_mz_range,
+      recover_rt_range = recover_rt_range,
+      use.observed.range = use_observed_range,
+      bandwidth = 0.5,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      recover.min.count = recover_min_count
+    )
+  })
+  
+  feature_table <- aligned_rt_crosstab[, 1:4]
+  rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
+  int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
+  
+  feature_names <- rownames(feature_table)
+  sample_names <- colnames(aligned_rt_crosstab[, -(1:4)])
+  
+  list(
+    extracted_features = lapply(recovered, function(x) x$this.f1),
+    corrected_features = lapply(recovered, function(x) x$this.f2),
+    rt_crosstab = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
+    int_crosstab = as_feature_crosstab(feature_names, sample_names, int_crosstab)
+  )
+}
+
 pivot_feature_values <- function(feature_table, variable) {
   extended_variable <- paste0("sample_", variable)
   values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
