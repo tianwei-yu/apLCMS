@@ -2,6 +2,30 @@
 NULL
 #> NULL
 
+long_to_wide_feature_table <- function(feature_table) {
+  sample_rts <- pivot_feature_values(feature_table, "rt")
+  sample_intensities <- pivot_feature_values(feature_table, "intensity")
+  feature_table <- dplyr::select(feature_table, mz, rt) %>%
+    dplyr::distinct(mz, rt) %>%
+    dplyr::inner_join(sample_rts, by = c("mz", "rt")) %>%
+    dplyr::inner_join(sample_intensities, by = c("mz", "rt"))
+}
+
+wide_to_long_feature_table <- function(wide_table, sample_names) {
+  wide_table <- tibble::rowid_to_column(wide_table, "feature")
+  
+  long_rt <- tidyr::gather(wide_table, sample, sample_rt, contains("_rt"), factor_key=FALSE) %>%
+    dplyr::select(-contains("_intensity")) %>%
+    mutate(sample = stringr::str_remove_all(sample, "_rt"))
+  long_int <- tidyr::gather(wide_table, sample, sample_intensity, contains("_intensity"), factor_key=FALSE) %>%
+    dplyr::select(-contains("_rt")) %>%
+    mutate(sample = stringr::str_remove_all(sample, "_intensity"))
+  
+  long_features <- dplyr::full_join(long_rt, long_int, by = c("feature", "mz", "rt", "mz_min", "mz_max", "sample"))
+  
+  return(long_features)
+}
+
 extract_pattern_colnames <- function(dataframe, pattern) {
   dataframe <- dplyr::select(dataframe, contains(pattern))
   return(colnames(dataframe))
