@@ -363,6 +363,8 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #' Two step hybrid feature detection.
 #' 
 #' A two-stage hybrid feature detection and alignment procedure, for data generated in multiple batches.
+#' NOTE: This function is OBSOLETE and should no longer be used,
+#' since it is no longer maintained and will soon be removed.
 #' 
 #' @param filenames file names
 #' @param metadata the batch label of each file.
