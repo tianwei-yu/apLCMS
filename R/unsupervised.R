@@ -2,16 +2,6 @@
 NULL
 #> NULL
 
-#' @importFrom dplyr select inner_join
-as_feature_crosstab <- function(sample_names, metadata, data) {
-  metadata_cols <- c('id', 'mz', 'rt', 'mzmin', 'mzmax')
-  data <- select(metadata, metadata_cols) |>
-    inner_join(data, on='id')
-  colnames(data) <- c(metadata_cols, sample_names)
-
-  return(data)
-}
-
 as_feature_sample_table <- function(metadata, rt_crosstab, int_crosstab) {
   feature_names <- as.character(rt_crosstab$id)
   sample_names <- colnames(metadata)[-c(1:8)]
@@ -48,70 +38,6 @@ check_files <- function(filenames) {
 
 get_sample_name <- function(filename) {
   tools::file_path_sans_ext(basename(filename))
-}
-
-#' @export
-sort_samples_by_acquisition_number <- function (filenames) {
-  # assumes that the filenames contain an acquisition number
-  # ideal solution would be to read the acquisition number directly from mzml
-  sort(unlist(filenames))
-}
-
-
-recover_weaker_signals <- function(
-  cluster,
-  filenames,
-  extracted_features,
-  corrected_features,
-  aligned_rt_crosstab,
-  aligned_int_crosstab,
-  original_mz_tolerance,
-  aligned_mz_tolerance,
-  aligned_rt_tolerance,
-  recover_mz_range,
-  recover_rt_range,
-  use_observed_range,
-  min_bandwidth,
-  max_bandwidth,
-  recover_min_count
-) {
-  snow::clusterExport(cluster, c('recover.weaker'))
-  snow::clusterEvalQ(cluster, library("splines"))
-
-  recovered <- lapply(seq_along(filenames), function(i) {
-    recover.weaker(
-      sample_name = get_sample_name(filenames[i]),
-      filename = filenames[[i]],
-      extracted_features = as_tibble(extracted_features[[i]]),
-      adjusted_features = as_tibble(corrected_features[[i]]),
-      pk.times = aligned_rt_crosstab,
-      aligned.ftrs = aligned_int_crosstab,
-      orig.tol = original_mz_tolerance,
-      align.mz.tol = aligned_mz_tolerance,
-      align.rt.tol = aligned_rt_tolerance,
-      recover_mz_range = recover_mz_range,
-      recover_rt_range = recover_rt_range,
-      use.observed.range = use_observed_range,
-      bandwidth = 0.5,
-      min.bw = min_bandwidth,
-      max.bw = max_bandwidth,
-      recover.min.count = recover_min_count
-    )
-  })
-
-  feature_table <- aligned_rt_crosstab[, 1:4]
-  rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
-  int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
-
-  feature_names <- rownames(feature_table)
-  sample_names <- colnames(aligned_rt_crosstab[, -(1:4)])
-
-  list(
-    extracted_features = lapply(recovered, function(x) x$this.f1),
-    corrected_features = lapply(recovered, function(x) x$this.f2),
-    rt_crosstab = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
-    int_crosstab = as_feature_crosstab(feature_names, sample_names, int_crosstab)
-  )
 }
 
 #' Runs features extraction in unsupervised mode.

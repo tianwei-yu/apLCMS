@@ -146,4 +146,6 @@ A list is returned.
 }
 \description{
 A two-stage hybrid feature detection and alignment procedure, for data generated in multiple batches.
+NOTE: This function is OBSOLETE and should no longer be used,
+since it is no longer maintained and will soon be removed.
 }

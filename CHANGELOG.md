@@ -23,9 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - use proper sample IDs inside feature tables [#153](https://github.com/RECETOX/recetox-aplcms/pull/153)
 - exported functions in NAMESPACE [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 - docstrings and documentation files for refactored functions [#160](https://github.com/RECETOX/recetox-aplcms/pull/160)
+- moved some utility functions to a more suitable locations [#164](https://github.com/RECETOX/recetox-aplcms/pull/160)
 ### Removed
 - `extract_features` and `feature.align` [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 - improper usage of `@examples` [#160](https://github.com/RECETOX/recetox-aplcms/pull/160)
+- several obsolete utility functions [#164](https://github.com/RECETOX/recetox-aplcms/pull/160)
 
 ## [0.9.4] - 2022-05-10
 
