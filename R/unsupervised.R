@@ -91,11 +91,11 @@ recover_weaker_signals <- function(
       align.rt.tol = aligned_rt_tolerance,
       recover_mz_range = recover_mz_range,
       recover_rt_range = recover_rt_range,
-      use.observed.range = use_observed_range,
+      use_observed_range = use_observed_range,
       bandwidth = 0.5,
-      min.bw = min_bandwidth,
-      max.bw = max_bandwidth,
-      recover.min.count = recover_min_count
+      min_bandwidth = min_bandwidth,
+      max_bandwidth = max_bandwidth,
+      recover_min_count = recover_min_count
     )
   })
 
