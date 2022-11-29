@@ -66,57 +66,6 @@ concatenate_feature_tables <- function(features, sample_names) {
 }
 
 #' @export
-extract_pattern_colnames <- function(dataframe, pattern) {
-    dataframe <- dplyr::select(dataframe, contains(pattern))
-    return(colnames(dataframe))
-}
-
-as_wide_aligned_table <- function(aligned) {
-    mz_scale_table <- aligned$rt_crosstab[, c("mz", "rt", "mz_min", "mz_max")]
-    aligned <- as_feature_sample_table(
-        rt_crosstab = aligned$rt_crosstab,
-        int_crosstab = aligned$int_crosstab
-    )
-    aligned <- long_to_wide_feature_table(aligned)
-    aligned <- dplyr::inner_join(aligned, mz_scale_table, by = c("mz", "rt"))
-    return(aligned)
-}
-
-pivot_feature_values <- function(feature_table, variable) {
-    extended_variable <- paste0("sample_", variable)
-    values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
-    values <- tidyr::pivot_wider(values, names_from = sample, values_from = !!sym(extended_variable))
-    variable_colnames <- colnames(values)[3:ncol(values)]
-    variable_colnames <- paste0(variable_colnames, "_", variable)
-    colnames(values)[3:ncol(values)] <- variable_colnames
-    return(values)
-}
-
-long_to_wide_feature_table <- function(feature_table) {
-    sample_rts <- pivot_feature_values(feature_table, "rt")
-    sample_intensities <- pivot_feature_values(feature_table, "intensity")
-    feature_table <- dplyr::select(feature_table, mz, rt) %>%
-        dplyr::distinct(mz, rt) %>%
-        dplyr::inner_join(sample_rts, by = c("mz", "rt")) %>%
-        dplyr::inner_join(sample_intensities, by = c("mz", "rt"))
-}
-
-wide_to_long_feature_table <- function(wide_table, sample_names) {
-    wide_table <- tibble::rowid_to_column(wide_table, "feature")
-    
-    long_rt <- tidyr::gather(wide_table, sample, sample_rt, contains("_rt"), factor_key=FALSE) %>%
-        dplyr::select(-contains("_intensity")) %>%
-        mutate(sample = stringr::str_remove_all(sample, "_rt"))
-    long_int <- tidyr::gather(wide_table, sample, sample_intensity, contains("_intensity"), factor_key=FALSE) %>%
-        dplyr::select(-contains("_rt")) %>%
-        mutate(sample = stringr::str_remove_all(sample, "_intensity"))
-    
-    long_features <- dplyr::full_join(long_rt, long_int, by = c("feature", "mz", "rt", "mz_min", "mz_max", "sample"))
-    
-    return(long_features)
-}
-
-#' @export
 load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_file) {
     metadata <- arrow::read_parquet(metadata_file)
     intensities <- arrow::read_parquet(intensities_file)
@@ -130,14 +79,6 @@ load_aligned_features <- function(metadata_file, intensities_file, rt_file, tol_
     result$mz_tol_relative <- tolerances$mz_tolerance
     result$rt_tol_relative <- tolerances$rt_tolerance
     return(result)
-}
-
-create_feature_sample_table <- function(features) {
-    table <- as_feature_sample_table(
-        rt_crosstab = features$rt,
-        int_crosstab = features$intensity
-    )
-    return(table)
 }
 
 #' @export
