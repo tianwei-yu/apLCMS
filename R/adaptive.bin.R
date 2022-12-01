@@ -15,10 +15,10 @@ compute_densities <- function(masses, mz_tol, intensity_weighted, intensities, b
 }
 
 #' @export
-compute_mass_values <- function(mz_tol, masses, intensi, intensity_weighted) {
+compute_mass_values <- function(mz_tol, masses, intensity_binned, intensity_weighted) {
   n <- 2^min(15, floor(log2(length(masses))) - 2)
 
-  all.mass.den <- compute_densities(masses, mz_tol, intensity_weighted, intensi, max, n)
+  all.mass.den <- compute_densities(masses, mz_tol, intensity_weighted, intensity_binned, max, n)
 
   all.mass.turns <- find.turn.point(all.mass.den$y)
   all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
@@ -26,8 +26,8 @@ compute_mass_values <- function(mz_tol, masses, intensi, intensity_weighted) {
 }
 
 #' @export
-compute_breaks <- function(mz_tol, masses, intensi, intensity_weighted) {
-  all.mass.vlys <- compute_mass_values(mz_tol, masses, intensi, intensity_weighted)
+compute_breaks <- function(mz_tol, masses, intensity_binned, intensity_weighted) {
+  all.mass.vlys <- compute_mass_values(mz_tol, masses, intensity_binned, intensity_weighted)
   breaks <- c(0, unique(round(approx(masses, 1:length(masses), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
   return(breaks)
 }
@@ -63,7 +63,7 @@ increment_counter <- function(pointers, that.n){
 #'   \item height.rec - The records of the height of each EIC.
 #'   \item masses - The vector of m/z values after binning.
 #'   \item rt - The vector of retention time after binning.
-#'   \item intensi - The vector of intensity values after binning.
+#'   \item intensities - The vector of intensity values after binning.
 #'   \item grps - The EIC rt, i.e. which EIC each observed data point belongs to.
 #'   \item times - All the unique retention time values, ordered.
 #'   \item mz_tol - The m/z tolerance level.

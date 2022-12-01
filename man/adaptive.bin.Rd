@@ -38,7 +38,7 @@ A list is returned.
   \item height.rec - The records of the height of each EIC.
   \item masses - The vector of m/z values after binning.
   \item rt - The vector of retention time after binning.
-  \item intensi - The vector of intensity values after binning.
+  \item intensities - The vector of intensity values after binning.
   \item grps - The EIC rt, i.e. which EIC each observed data point belongs to.
   \item times - All the unique retention time values, ordered.
   \item mz_tol - The m/z tolerance level.
