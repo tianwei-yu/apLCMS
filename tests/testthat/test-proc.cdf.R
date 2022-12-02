@@ -8,8 +8,8 @@ patrick::with_parameters_test_that(
 
     sut <- proc.cdf(
       input_path,
-      min_presence = min_presence,
-      min_elution_length = min_elution_length,
+      min_pres = min_pres,
+      min_run = min_run,
       mz_tol = mz_tol,
       intensity_weighted = intensity_weighted,
       cache = cache
@@ -27,8 +27,8 @@ patrick::with_parameters_test_that(
     mbr_test0 = list(
       filename = c("mbr_test0.mzml"),
       mz_tol = 1e-05,
-      min_presence = 0.5,
-      min_elution_length = 12,
+      min_pres = 0.5,
+      min_run = 12,
       intensity_weighted = FALSE,
       cache = FALSE,
       ci_skip = FALSE
@@ -36,8 +36,8 @@ patrick::with_parameters_test_that(
     RCX_06_shortened = list(
       filename = c("RCX_06_shortened.mzML"),
       mz_tol = 1e-06,
-      min_presence = 0.7,
-      min_elution_length = 4,
+      min_pres = 0.7,
+      min_run = 4,
       intensity_weighted = TRUE,
       cache = FALSE,
       ci_skip = FALSE
@@ -45,8 +45,8 @@ patrick::with_parameters_test_that(
     RCX_07_shortened = list(
       filename = c("RCX_07_shortened.mzML"),
       mz_tol = 1e-06,
-      min_presence = 0.7,
-      min_elution_length = 4,
+      min_pres = 0.7,
+      min_run = 4,
       intensity_weighted = TRUE,
       cache = FALSE,
       ci_skip = TRUE
@@ -54,8 +54,8 @@ patrick::with_parameters_test_that(
     RCX_08_shortened = list(
       filename = c("RCX_08_shortened.mzML"),
       mz_tol = 1e-06,
-      min_presence = 0.7,
-      min_elution_length = 4,
+      min_pres = 0.7,
+      min_run = 4,
       intensity_weighted = TRUE,
       cache = FALSE,
       ci_skip = TRUE

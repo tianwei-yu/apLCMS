@@ -6,23 +6,23 @@
 \usage{
 proc.cdf(
   filename,
-  min_presence = 0.5,
-  min_elution_length = 12,
+  min_pres = 0.5,
+  min_run = 12,
   mz_tol = 1e-05,
   baseline_correct = 0,
   baseline_correct_noise_percentile = 0.05,
-  do.plot = FALSE,
   intensity_weighted = FALSE,
+  do.plot = FALSE,
   cache = FALSE
 )
 }
 \arguments{
 \item{filename}{The CDF file name. If the file is not in the working directory, the path needs to be given.}
 
-\item{min_presence}{Run filter parameter. The minimum proportion of presence in the time period for a series of 
+\item{min_pres}{Run filter parameter. The minimum proportion of presence in the time period for a series of 
 signals grouped by m/z to be considered a peak.}
 
-\item{min_elution_length}{Run filter parameter. The minimum length of elution time for a series of signals grouped by 
+\item{min_run}{Run filter parameter. The minimum length of elution time for a series of signals grouped by 
 m/z to be considered a peak.}
 
 \item{mz_tol}{m/z tolerance level for the grouping of data points. This value is expressed as the fraction of 
@@ -36,9 +36,9 @@ case the program uses the 75th percentile of the height of the noise groups.}
 \item{baseline_correct_noise_percentile}{The percentile of signal strength of those EIC that don't pass the 
 run filter, to be used as the baseline threshold of signal strength.}
 
-\item{do.plot}{Indicates whether plot should be drawn.}
-
 \item{intensity_weighted}{Whether to use intensity to weight mass density estimation.}
+
+\item{do.plot}{Indicates whether plot should be drawn.}
 
 \item{cache}{Whether to use cache}
 }

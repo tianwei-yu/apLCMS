@@ -7,9 +7,9 @@ patrick::with_parameters_test_that(
 
     actual <- prof.to.features(
       profile = extracted_features,
-      sd.cut = sd_cut,
-      sigma.ratio.lim = sigma_ratio_lim,
-      shape.model = shape_model,
+      sd_cut = sd_cut,
+      sigma_ratio_lim = sigma_ratio_lim,
+      shape_model = shape_model,
       do.plot = do.plot
     )
 

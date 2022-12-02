@@ -15,8 +15,8 @@ patrick::with_parameters_test_that("basic hybrid test", {
   result <- hybrid(
     test_files,
     known_table,
-    align_mz_tol = NA,
-    align_rt_tol = NA,
+    mz_tol_relative = NA,
+    rt_tol_relative = NA,
     cluster = get_num_workers())
   actual <- result$recovered_feature_sample_table
   keys <- c("mz", "rt", "sample", "sample_rt", "sample_intensity")

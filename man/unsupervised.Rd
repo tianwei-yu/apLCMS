@@ -6,7 +6,7 @@
 \usage{
 unsupervised(
   filenames,
-  min_exp = 2,
+  min_occurrence = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
@@ -15,15 +15,16 @@ unsupervised(
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
   peak_estim_method = "moment",
+  bandwidth = 0.5,
   min_bandwidth = NA,
   max_bandwidth = NA,
   sd_cut = c(0.01, 500),
   sigma_ratio_lim = c(0.01, 100),
   component_eliminate = 0.01,
   moment_power = 1,
-  align_mz_tol = NA,
-  align_rt_tol = NA,
-  max_align_mz_diff = 0.01,
+  mz_tol_relative = NA,
+  rt_tol_relative = NA,
+  mz_tol_absolute = 0.01,
   recover_mz_range = NA,
   recover_rt_range = NA,
   use_observed_range = TRUE,
@@ -35,7 +36,7 @@ unsupervised(
 \arguments{
 \item{filenames}{The CDF file names.}
 
-\item{min_exp}{A feature has to show up in at least this number of profiles to be included in the final result.}
+\item{min_occurrence}{A feature has to show up in at least this number of profiles to be included in the final result.}
 
 \item{min_pres}{This is a parameter of the run filter, to be passed to the function proc.cdf().}
 
@@ -50,7 +51,7 @@ the machine's nominal accuracy level. Divide the ppm value by 1e6. For FTMS, 1e-
 If the highest is lower than this value, the entire group will be deleted. The default value is NA, in 
 which case the program uses the 75th percentile of the height of the noise groups.}
 
-\item{baseline_correct_noise_percentile}{The perenctile of signal strength of those EIC that don't pass the 
+\item{baseline_correct_noise_percentile}{The percentile of signal strength of those EIC that don't pass the 
 run filter, to be used as the baseline threshold of signal strength.}
 
 \item{shape_model}{The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and 
@@ -77,14 +78,14 @@ for a proportion of intensities less than this value, the component will be igno
 \item{moment_power}{The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture 
 model in an EIC.}
 
-\item{align_mz_tol}{The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
+\item{mz_tol_relative}{The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
 for the tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, 
 multiplied by the m/z value, becomes the cutoff level.}
 
-\item{align_rt_tol}{The retention time tolerance level for peak alignment. The default is NA, which allows the program 
+\item{rt_tol_relative}{The retention time tolerance level for peak alignment. The default is NA, which allows the program 
 to search for the tolerance level based on the data.}
 
-\item{max_align_mz_diff}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
+\item{mz_tol_absolute}{As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
 m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
 in higher m/z range.}
 

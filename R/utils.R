@@ -41,7 +41,10 @@ register_functions_to_cluster <- function(cluster) {
         'compute_end_bound',
         'compute_bounds',
         'compute_scale',
-        'span'
+        'span',
+        'compute_uniq_grp',
+        'predict_smoothed_rt',
+        'label_val_to_keep'
     ))
     snow::clusterEvalQ(cluster, library("dplyr"))
 }
