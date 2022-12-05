@@ -156,7 +156,7 @@ semi.sup <- function(
                 if(substr(processable,1,5)!="Error")
                 {
                     processable.2<-"goodgood"
-                    processable.2<-try(this.feature<-prof.to.features(this.prof, min.bw=min.bw, max.bw=max.bw, sd.cut=sd.cut, shape.model=shape.model, estim.method=peak.estim.method, do.plot=FALSE, component.eliminate=component.eliminate, power=moment.power, BIC.factor=BIC.factor))
+                    processable.2<-try(this.feature<-prof.to.features(profile, bandwidth = 0.5, min_bandwidth=min.bw, max_bandwidth=max.bw, sd_cut=sd.cut, sigma_ratio_lim = c(0.01, 100), shape_model=shape.model, peak_estim_method=peak.estim.method, do.plot=FALSE, component_eliminate=component.eliminate, moment_power=moment.power, BIC_factor=BIC.factor))
                     
                     if(substr(processable.2,1,5)=="Error")
                     {
