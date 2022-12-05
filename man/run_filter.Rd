@@ -4,7 +4,7 @@
 \alias{run_filter}
 \title{Continuity index.}
 \usage{
-run_filter(newprof, min_pres = 0.6, min_run = 5)
+run_filter(newprof, min_pres, min_run)
 }
 \arguments{
 \item{newprof}{The matrix containing m/z, retention time, intensity, and EIC label as columns.}

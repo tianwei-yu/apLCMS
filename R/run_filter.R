@@ -5,7 +5,7 @@
 #' @param profile The matrix containing m/z, retention time, intensity, and EIC label as columns.
 #' @return unique_grp. 
 #' @export
-compute_uniq_grp <- function(profile, min_count_run, min_pres = 0.6) {
+compute_uniq_grp <- function(profile, min_count_run, min_pres) {
   grps <- profile  
   ttt <- table(grps)
   ttt <- ttt[ttt >= max(min_count_run * min_pres, 2)]
@@ -18,7 +18,7 @@ compute_uniq_grp <- function(profile, min_count_run, min_pres = 0.6) {
 #' @param times. Retention times vector.
 #' @return predicted rt.
 #' @export
-predict_smoothed_rt <- function(min_run = 5, times) {
+predict_smoothed_rt <- function(min_run, times) {
   # ksmooth(x, y, kernel, bandwidth, range, n.points, x.points)
   smooth <- ksmooth(
     seq(-min_run + 1, length(times) + min_run), 
@@ -78,8 +78,8 @@ label_val_to_keep <- function(min_run, timeline, min_pres, this_times, times) {
 #' @return A list is returned. new_rec - The matrix containing m/z, retention time, intensity, and EIC label as columns after applying the run filter.
 #' @export
 run_filter <- function(newprof,
-                       min_pres = 0.6,
-                       min_run = 5) {
+                       min_pres,
+                       min_run) {
   
   newprof <- tibble::tibble(mz = newprof[,1], rt = newprof[,2], intensi = newprof[,3], grps = newprof[,4])
 
