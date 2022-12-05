@@ -151,14 +151,14 @@ compute_rt_tol_relative <- function(breaks,
 #'  spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered
 find.tol.time <- function(features,
                           number_of_samples,
-                          mz_tol_relative = 2e-5,
-                          rt_tol_relative = NA,
-                          aver.bin.size = 200,
-                          min.bins = 50,
-                          max.bins = 100,
-                          mz_tol_absolute = 0.01,
-                          max.num.segments = 10000,
-                          do.plot = TRUE) {
+                          mz_tol_relative,
+                          rt_tol_relative,
+                          aver.bin.size,
+                          min.bins,
+                          max.bins,
+                          mz_tol_absolute,
+                          max.num.segments,
+                          do.plot) {
     features <- dplyr::arrange_at(features, "mz")
 
     min_mz_tol <- compute_min_mz_tolerance(

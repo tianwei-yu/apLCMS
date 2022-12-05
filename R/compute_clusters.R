@@ -60,7 +60,11 @@ compute_clusters <- function(feature_tables,
     number_of_samples = number_of_samples,
     mz_tol_relative = mz_tol_relative,
     rt_tol_relative = rt_tol_relative,
+    aver.bin.size = 200,
+    min.bins = 50,
+    max.bins = 100,
     mz_tol_absolute = mz_tol_absolute,
+    max.num.segments = 10000,
     do.plot = do.plot
   )
 
