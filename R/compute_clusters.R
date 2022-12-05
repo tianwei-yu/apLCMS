@@ -25,7 +25,7 @@ compute_clusters <- function(feature_tables,
                              mz_tol_absolute,
                              mz_max_diff,
                              rt_tol_relative,
-                             do.plot = FALSE,
+                             do.plot,
                              sample_names = NA) {
   number_of_samples <- length(feature_tables)
   all <- concatenate_feature_tables(feature_tables, sample_names)

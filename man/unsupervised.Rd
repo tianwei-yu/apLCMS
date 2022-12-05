@@ -30,6 +30,7 @@ unsupervised(
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
+  do_plot = FALSE,
   cluster = 4
 )
 }

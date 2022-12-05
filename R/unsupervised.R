@@ -116,6 +116,7 @@ unsupervised <- function(
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
+  do_plot = FALSE,
   cluster = 4
 ) {
   if (!is(cluster, 'cluster')) {
@@ -141,7 +142,7 @@ unsupervised <- function(
           baseline_correct = baseline_correct,
           baseline_correct_noise_percentile = baseline_correct_noise_percentile,
           intensity_weighted = intensity_weighted,
-          do.plot = FALSE,
+          do.plot = do_plot,
           cache = FALSE
       )
   })
@@ -159,7 +160,7 @@ unsupervised <- function(
           component_eliminate = component_eliminate,
           moment_power = moment_power,
           BIC_factor = BIC_factor,
-          do.plot = FALSE
+          do.plot = do_plot
       )
   })
 
@@ -170,6 +171,7 @@ unsupervised <- function(
     mz_tol_absolute = mz_tol_absolute,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = rt_tol_relative,
+    do.plot = do_plot,
     sample_names = sample_names
   )
 
@@ -191,7 +193,8 @@ unsupervised <- function(
     mz_tol_relative = extracted_clusters$mz_tol_relative,
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = rt_tol_relative
+    rt_tol_relative = rt_tol_relative,
+    do.plot = do_plot
   )
 
   message("**** feature alignment ****")
@@ -235,7 +238,8 @@ unsupervised <- function(
     mz_tol_relative = adjusted_clusters$mz_tol_relative,
     mz_tol_absolute = adjusted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = rt_tol_relative
+    rt_tol_relative = rt_tol_relative,
+    do.plot = do_plot
   )
 
   message("**** feature alignment ****")
