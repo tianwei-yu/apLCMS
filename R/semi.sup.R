@@ -144,7 +144,7 @@ semi.sup <- function(
                 that.name<-paste(strsplit(tolower(files[j]),"\\.")[[1]][1],suf.prof,".profile",sep="_")
                 
                 processable<-"goodgood"
-                processable<-try(this.prof<-proc.cdf(files[j], min.pres=min.pres, min.run=min.run, tol=mz.tol, baseline.correct=baseline.correct, baseline.correct.noise.percentile=baseline.correct.noise.percentile, do.plot=FALSE, intensity.weighted=intensity.weighted))
+                processable<-try(this.prof<-proc.cdf(files[j], min_pres=min.pres, min_run=min.run, mz_tol=mz.tol, baseline_correct=baseline.correct, baseline_correct_noise_percentile=baseline.correct.noise.percentile, do.plot=FALSE, intensity_weighted=intensity.weighted, cache=FALSE))
                 if(substr(processable,1,5)=="Error")
                 {
                     file.copy(from=files[j], to="error_files")
