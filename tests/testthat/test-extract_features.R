@@ -38,6 +38,7 @@ patrick::with_parameters_test_that(
     actual <- snow::parLapply(cluster, profiles, function(profile) {
         prof.to.features(
             profile = profile,
+            bandwidth = 0.5,
             min_bandwidth = NA,
             max_bandwidth = NA,
             sd_cut = sd_cut,
