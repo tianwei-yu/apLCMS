@@ -75,7 +75,7 @@ adaptive.bin <- function(features,
                          min_pres,
                          mz_tol,
                          baseline_correct,
-                         intensity_weighted = FALSE) {
+                         intensity_weighted) {
   # order inputs after mz values
   features <- features |> dplyr::arrange_at("mz")
 
