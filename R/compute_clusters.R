@@ -34,6 +34,9 @@ compute_clusters <- function(feature_tables,
     mz_tol_relative <- find.tol(
       all$mz,
       mz_max_diff = mz_max_diff,
+      aver.bin.size = 4000,
+      min.bins = 50,
+      max.bins = 200,
       do.plot = do.plot
     )
     if (length(mz_tol_relative) == 0) {
