@@ -5,7 +5,7 @@
 #' @param a A matrix of distances.
 #' @param unacceptable A distance larger than which cannot be accepted as pairs.
 #' @return A matrix the same dimension as the input matrix, with matched position taking value 1, and all other positions taking value 0.
-find.match <- function(a, unacceptable=4) {
+find.match <- function(a, unacceptable) {
     find.min.pos<-function(d)
     {
         pos<-which(d==min(d))[1]
