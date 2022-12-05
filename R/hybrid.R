@@ -295,6 +295,7 @@ augment_known_table <- function(
 #' @param use_observed_range If the value is TRUE, the actual range of the observed locations of the feature in all the spectra will be used.
 #' @param recover_min_count Minimum number of raw data points to support a recovery.
 #' @param intensity_weighted Whether to use intensity to weight mass density estimation.
+#' @param do.plot Indicates whether plot should be drawn.
 #' @param cluster The number of CPU cores to be used
 #' @export
 hybrid <- function(

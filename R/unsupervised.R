@@ -88,6 +88,7 @@ get_sample_name <- function(filename) {
 #'  the spectra will be used.
 #' @param recover_min_count Minimum number of raw data points to support a recovery.
 #' @param intensity_weighted Whether to use intensity to weight mass density estimation.
+#' @param do.plot Indicates whether plot should be drawn.
 #' @param cluster The number of CPU cores to be used
 #' @export
 unsupervised <- function(
