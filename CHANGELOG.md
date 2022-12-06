@@ -24,11 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - exported functions in NAMESPACE [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 - docstrings and documentation files for refactored functions [#160](https://github.com/RECETOX/recetox-aplcms/pull/160)
 - refactored parameter names to keep them more harmonized [#167](https://github.com/RECETOX/recetox-aplcms/pull/167)
-- moved some utility functions to a more suitable locations [#164](https://github.com/RECETOX/recetox-aplcms/pull/160)
+- moved some utility functions to a more suitable locations [#164](https://github.com/RECETOX/recetox-aplcms/pull/164)
 ### Removed
 - `extract_features` and `feature.align` [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
 - improper usage of `@examples` [#160](https://github.com/RECETOX/recetox-aplcms/pull/160)
-- several obsolete utility functions [#164](https://github.com/RECETOX/recetox-aplcms/pull/160)
+- several obsolete utility functions [#164](https://github.com/RECETOX/recetox-aplcms/pull/164)
+- several outdated `.Rd` files [#168](https://github.com/RECETOX/recetox-aplcms/pull/168)
+- default argument values from low-level functions [#168](https://github.com/RECETOX/recetox-aplcms/pull/168)
 
 ## [0.9.4] - 2022-05-10
 
