@@ -11,7 +11,10 @@ patrick::with_parameters_test_that(
       min_pres = min_pres,
       min_run = min_run,
       mz_tol = mz_tol,
+      baseline_correct = 0.0,
+      baseline_correct_noise_percentile = 0.05,
       intensity_weighted = intensity_weighted,
+      do.plot = FALSE,
       cache = cache
     )
 

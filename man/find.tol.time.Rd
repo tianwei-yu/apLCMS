@@ -7,14 +7,14 @@
 find.tol.time(
   features,
   number_of_samples,
-  mz_tol_relative = 2e-05,
-  rt_tol_relative = NA,
-  aver.bin.size = 200,
-  min.bins = 50,
-  max.bins = 100,
-  mz_tol_absolute = 0.01,
-  max.num.segments = 10000,
-  do.plot = TRUE
+  mz_tol_relative,
+  rt_tol_relative,
+  aver.bin.size,
+  min.bins,
+  max.bins,
+  mz_tol_absolute,
+  max.num.segments,
+  do.plot
 )
 }
 \arguments{

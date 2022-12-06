@@ -826,17 +826,17 @@ normix.bic <- function(x, y, moment_power = 2, do.plot = FALSE, bw = c(15, 30, 6
 #'  curve), and estimated total signal strength (total area of the estimated normal curve).
 #' @export
 prof.to.features <- function(profile,
-                             bandwidth = 0.5,
-                             min_bandwidth = NA,
-                             max_bandwidth = NA,
-                             sd_cut = c(0.01, 500),
-                             sigma_ratio_lim = c(0.01, 100),
-                             shape_model = "bi-Gaussian",
-                             peak_estim_method = "moment",
-                             moment_power = 1,
-                             component_eliminate = 0.01,
-                             BIC_factor = 2,
-                             do.plot = TRUE) {
+                             bandwidth,
+                             min_bandwidth,
+                             max_bandwidth,
+                             sd_cut,
+                             sigma_ratio_lim,
+                             shape_model,
+                             peak_estim_method,
+                             moment_power,
+                             component_eliminate,
+                             BIC_factor,
+                             do.plot) {
   validate_inputs(shape_model, peak_estim_method)
 
   profile <- preprocess_profile(profile)

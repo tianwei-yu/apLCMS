@@ -10,7 +10,7 @@ compute_clusters(
   mz_tol_absolute,
   mz_max_diff,
   rt_tol_relative,
-  do.plot = FALSE,
+  do.plot,
   sample_names = NA
 )
 }

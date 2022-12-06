@@ -659,15 +659,15 @@ recover.weaker <- function(filename,
                            rt_tol_relative,
                            extracted_features,
                            adjusted_features,
-                           recover_mz_range = NA,
-                           recover_rt_range = NA,
-                           use_observed_range = TRUE,
-                           mz_tol = 1e-5,
-                           min_bandwidth = NA,
-                           max_bandwidth = NA,
-                           bandwidth = .5,
-                           recover_min_count = 3,
-                           intensity_weighted = FALSE) {
+                           recover_mz_range,
+                           recover_rt_range,
+                           use_observed_range,
+                           mz_tol,
+                           min_bandwidth,
+                           max_bandwidth,
+                           bandwidth,
+                           recover_min_count,
+                           intensity_weighted) {
   # load raw data
   data_table <- load_file(filename) |> dplyr::arrange_at("mz")
   times <- sort(unique(data_table$rt))

@@ -4,14 +4,7 @@
 \alias{find.tol}
 \title{An internal function that is not supposed to be directly accessed by the user. Find m/z tolerance level.}
 \usage{
-find.tol(
-  mz,
-  mz_max_diff = 1e-04,
-  aver.bin.size = 4000,
-  min.bins = 50,
-  max.bins = 200,
-  do.plot = TRUE
-)
+find.tol(mz, mz_max_diff, aver.bin.size, min.bins, max.bins, do.plot)
 }
 \arguments{
 \item{mz}{The vector of observed m/z values.}

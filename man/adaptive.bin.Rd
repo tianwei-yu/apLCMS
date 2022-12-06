@@ -10,7 +10,7 @@ adaptive.bin(
   min_pres,
   mz_tol,
   baseline_correct,
-  intensity_weighted = FALSE
+  intensity_weighted
 )
 }
 \arguments{

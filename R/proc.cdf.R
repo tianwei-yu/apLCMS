@@ -65,14 +65,14 @@ load_data <- function(filename,
 #' @return A matrix with four columns: m/z value, retention time, intensity, and group number.
 #' @export
 proc.cdf <- function(filename,
-                     min_pres = 0.5,
-                     min_run = 12,
-                     mz_tol = 1e-05,
-                     baseline_correct = 0.0,
-                     baseline_correct_noise_percentile = 0.05,
-                     intensity_weighted = FALSE,
-                     do.plot = FALSE,
-                     cache = FALSE) {
+                     min_pres,
+                     min_run,
+                     mz_tol,
+                     baseline_correct,
+                     baseline_correct_noise_percentile,
+                     intensity_weighted,
+                     do.plot,
+                     cache) {
   raw.prof <- load_data(
     filename,
     cache,
