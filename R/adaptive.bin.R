@@ -3,9 +3,9 @@ NULL
 #> NULL
 
 #' @export
-compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 512) {
-  bandwidth <- 0.5 * tol * bw_func(masses)
-  if (weighted) {
+compute_densities <- function(masses, mz_tol, intensity_weighted, intensities, bw_func, n = 512) {
+  bandwidth <- 0.5 * mz_tol * bw_func(masses)
+  if (intensity_weighted) {
     weights <- intensities / sum(intensities)
     all.mass.den <- density(masses, weights = weights, bw = bandwidth, n = n)
   } else {
@@ -15,10 +15,10 @@ compute_densities <- function(masses, tol, weighted, intensities, bw_func, n = 5
 }
 
 #' @export
-compute_mass_values <- function(tol, masses, intensi, weighted) {
+compute_mass_values <- function(mz_tol, masses, intensity_binned, intensity_weighted) {
   n <- 2^min(15, floor(log2(length(masses))) - 2)
 
-  all.mass.den <- compute_densities(masses, tol, weighted, intensi, max, n)
+  all.mass.den <- compute_densities(masses, mz_tol, intensity_weighted, intensity_binned, max, n)
 
   all.mass.turns <- find.turn.point(all.mass.den$y)
   all.mass.vlys <- all.mass.den$x[all.mass.turns$vlys]
@@ -26,8 +26,8 @@ compute_mass_values <- function(tol, masses, intensi, weighted) {
 }
 
 #' @export
-compute_breaks <- function(tol, masses, intensi, weighted) {
-  all.mass.vlys <- compute_mass_values(tol, masses, intensi, weighted)
+compute_breaks <- function(mz_tol, masses, intensity_binned, intensity_weighted) {
+  all.mass.vlys <- compute_mass_values(mz_tol, masses, intensity_binned, intensity_weighted)
   breaks <- c(0, unique(round(approx(masses, 1:length(masses), xout = all.mass.vlys, rule = 2, ties = "ordered")$y))[-1])
   return(breaks)
 }
@@ -47,37 +47,35 @@ increment_counter <- function(pointers, that.n){
 #' This is an internal function. It creates EICs using adaptive binning procedure
 #' 
 #' @param features A tibble with columns of m/z, retention time, intensity.
-#' @param min.run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
+#' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z to be 
 #'  considered a peak.
-#' @param min.pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
+#' @param min_pres Run filter parameter. The minimum proportion of presence in the time period for a series of signals grouped 
 #'  by m/z to be considered a peak.
-#' @param tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
+#' @param mz_tol m/z tolerance level for the grouping of data points. This value is expressed as the fraction of the m/z value. 
 #'  This value, multiplied by the m/z value, becomes the cutoff level. The recommended value is the machine's nominal accuracy 
 #'  level. Divide the ppm value by 1e6. For FTMS, 1e-5 is recommended.
-#' @param baseline.correct After grouping the observations, the highest intensity in each group is found. If the highest 
+#' @param baseline_correct After grouping the observations, the highest intensity in each group is found. If the highest 
 #'  is lower than this value, the entire group will be deleted. The default value is NA, in which case the program uses the 
 #'  75th percentile of the height of the noise groups.
-#' @param weighted Whether to weight the local density by signal intensities.
+#' @param intensity_weighted Whether to weight the local density by signal intensities.
 #' @return A list is returned.
 #' \itemize{
 #'   \item height.rec - The records of the height of each EIC.
 #'   \item masses - The vector of m/z values after binning.
 #'   \item rt - The vector of retention time after binning.
-#'   \item intensi - The vector of intensity values after binning.
+#'   \item intensities - The vector of intensity values after binning.
 #'   \item grps - The EIC rt, i.e. which EIC each observed data point belongs to.
 #'   \item times - All the unique retention time values, ordered.
-#'   \item tol - The m/z tolerance level.
+#'   \item mz_tol - The m/z tolerance level.
 #'   \item min.count.run - The minimum number of elution time points for a series of signals grouped by m/z to be considered a peak.
 #' }
 #' @export
-#' @examples
-#' adaptive.bin(raw.data, min.run = min.run, min.pres = min.pres, tol = tol, baseline.correct = baseline.correct, weighted = intensity.weighted)
 adaptive.bin <- function(features,
-                         min_elution_length,
-                         min_presence,
+                         min_run,
+                         min_pres,
                          mz_tol,
                          baseline_correct,
-                         intensity_weighted = FALSE) {
+                         intensity_weighted) {
   # order inputs after mz values
   features <- features |> dplyr::arrange_at("mz")
 
@@ -91,7 +89,7 @@ adaptive.bin <- function(features,
   time_range <- (max_time - min_time)
 
   # calculate function parameters
-  min.count.run <- min_elution_length * length(times) / time_range
+  min.count.run <- min_run * length(times) / time_range
   aver.time.range <- (time_range) / length(times)
 
   # init data
@@ -112,7 +110,7 @@ adaptive.bin <- function(features,
 
     this_table <- dplyr::slice(features, (start:end))
 
-    if (length(unique(this_table$rt)) >= min.count.run * min_presence) {
+    if (length(unique(this_table$rt)) >= min.count.run * min_pres) {
       # reorder in order of rt (scan number)
       this_table <- this_table |> dplyr::arrange_at("rt")
       mass.den <- compute_densities(this_table$mz, mz_tol, intensity_weighted, this_table$intensities, median)
@@ -139,8 +137,8 @@ adaptive.bin <- function(features,
           that <- combine.seq.3(that) |> dplyr::arrange_at("mz")
           that.range <- span(that$rt)
 
-          if (that.range > 0.5 * time_range & length(that$rt) > that.range * min_presence & length(that$rt) / (that.range / aver.time.range) > min_presence) {
-            that$intensities <- rm.ridge(that$rt, that$intensities, bw = max(10 *min_elution_length, that.range / 2))
+          if (that.range > 0.5 * time_range & length(that$rt) > that.range * min_pres & length(that$rt) / (that.range / aver.time.range) > min_pres) {
+            that$intensities <- rm.ridge(that$rt, that$intensities, bw = max(10 *min_run, that.range / 2))
 
             that <- that |> dplyr::filter(intensities != 0)
           }

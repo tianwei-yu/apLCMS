@@ -33,7 +33,3 @@ A list object with the exact same structure as the input object features, i.e. o
 \description{
 This function adjusts the retention time in each LC/MS profile to achieve better between-profile agreement.
 }
-\examples{
-data(extracted)
-adjust.time(extracted, 10e-06, 5, do.plot = FALSE)
-}

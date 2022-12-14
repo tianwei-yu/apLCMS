@@ -1,4 +1,5 @@
-#' @import snow doParallel foreach
+#' @import snow doParallel foreach 
+#' @importFrom dplyr bind_rows
 NULL
 #> NULL
 
@@ -58,6 +59,7 @@ NULL
 #' @param new.feature.min.count The number of profiles a new feature must be present for it to be added to the database.
 #' @param recover.min.count The minimum time point count for a series of point in the EIC for it to be considered a true feature.
 #' @param intensity.weighted Whether to use intensity to weight mass density estimation.
+#' @param sample_names Names of the samples used for identification.
 #' @return A list is returned.
 #' \itemize{
 #'   \item features - A list object, each component of which being the peak table from a single spectrum.
@@ -73,8 +75,6 @@ NULL
 #'   \item ftrs.known.table.pairing - The paring information between the feature table of the current dataset and the known feature table.
 #' }
 #' @export
-#' @examples
-#' semi.sup(files_batch, work_dir, sd.cut = sd.cut, sigma.ratio.lim = sigma.ratio.lim, moment.power = moment.power, min.exp = ceiling(min.within.batch.prop.detect * length(files_batch)))
 semi.sup <- function(
     files,
     folder,
@@ -144,7 +144,7 @@ semi.sup <- function(
                 that.name<-paste(strsplit(tolower(files[j]),"\\.")[[1]][1],suf.prof,".profile",sep="_")
                 
                 processable<-"goodgood"
-                processable<-try(this.prof<-proc.cdf(files[j], min.pres=min.pres, min.run=min.run, tol=mz.tol, baseline.correct=baseline.correct, baseline.correct.noise.percentile=baseline.correct.noise.percentile, do.plot=FALSE, intensity.weighted=intensity.weighted))
+                processable<-try(this.prof<-proc.cdf(files[j], min_pres=min.pres, min_run=min.run, mz_tol=mz.tol, baseline_correct=baseline.correct, baseline_correct_noise_percentile=baseline.correct.noise.percentile, do.plot=FALSE, intensity_weighted=intensity.weighted, cache=FALSE))
                 if(substr(processable,1,5)=="Error")
                 {
                     file.copy(from=files[j], to="error_files")
@@ -156,7 +156,7 @@ semi.sup <- function(
                 if(substr(processable,1,5)!="Error")
                 {
                     processable.2<-"goodgood"
-                    processable.2<-try(this.feature<-prof.to.features(this.prof, min.bw=min.bw, max.bw=max.bw, sd.cut=sd.cut, shape.model=shape.model, estim.method=peak.estim.method, do.plot=FALSE, component.eliminate=component.eliminate, power=moment.power, BIC.factor=BIC.factor))
+                    processable.2<-try(this.feature<-prof.to.features(profile, bandwidth = 0.5, min_bandwidth=min.bw, max_bandwidth=max.bw, sd_cut=sd.cut, sigma_ratio_lim = c(0.01, 100), shape_model=shape.model, peak_estim_method=peak.estim.method, do.plot=FALSE, component_eliminate=component.eliminate, moment_power=moment.power, BIC_factor=BIC.factor))
                     
                     if(substr(processable.2,1,5)=="Error")
                     {
@@ -237,16 +237,28 @@ semi.sup <- function(
         snow::clusterEvalQ(cl, library(recetox.aplcms))
         
         cpu_time <- system.time(
-          aligned <-
-            feature.align(
-              f2,
-              min_occurrence = min.exp,
-              mz_tol_relative = align.mz.tol,
-              rt_tol_relative = align.rt.tol,
-              mz_max_diff = 10 * mz.tol,
-              mz_tol_absolute = max.align.mz.diff,
-              sample_names = sample_names
-            )
+            aligned <- {
+                res <- compute_clusters(
+                    f2,
+                    align.mz.tol,
+                    align.rt.tol,
+                    10 * mz_tol,
+                    max.align.mz.diff,
+                    FALSE,
+                    sample_names
+                )
+                
+                aligned <- create_aligned_feature_table(
+                    bind_rows(res$feature_tables),
+                    min.exp,
+                    sample_names,
+                    res$rt_tol_relative,
+                    res$mz_tol_relative
+                )
+                
+                aligned$mz_tol_relative <- res$mz_tol_relative
+                aligned$rt_tol_relative <- res$rt_tol_relative
+            }
         )
         
         message(c("** aligned features, CPU time (seconds): ", as.vector(cpu_time)[1]))
@@ -451,16 +463,28 @@ semi.sup <- function(
         snow::clusterEvalQ(cl, library(recetox.aplcms))
         
         cpu_time <- system.time(
-          aligned.recov <-
-            feature.align(
-              f2,
-              min_occurrence = min.exp,
-              mz_tol_relative = align.mz.tol,
-              rt_tol_relative = align.rt.tol,
-              mz_max_diff = 10 * mz.tol,
-              mz_tol_absolute = max.align.mz.diff,
-              sample_names = sample_names
-            )
+            aligned.recov <- {
+                res <- compute_clusters(
+                    f2,
+                    align.mz.tol,
+                    align.rt.tol,
+                    10 * mz_tol,
+                    max.align.mz.diff,
+                    FALSE,
+                    sample_names
+                )
+                
+                aligned.recov <- create_aligned_feature_table(
+                    bind_rows(res$feature_tables),
+                    min.exp,
+                    sample_names,
+                    res$rt_tol_relative,
+                    res$mz_tol_relative
+                )
+                
+                aligned.recov$mz_tol_relative <- res$mz_tol_relative
+                aligned.recov$rt_tol_relative <- res$rt_tol_relative
+            }
         )
         
         message(c("** aligned features, CPU time (seconds): ", as.vector(cpu_time)[1]))

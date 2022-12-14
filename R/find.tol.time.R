@@ -134,9 +134,7 @@ compute_rt_tol_relative <- function(breaks,
 #'
 #' This function finds the time tolerance level. Also, it returns the grouping information given the time tolerance.
 #'
-#' @param mz mz values of all peaks in all profiles in the study.
-#' @param rt retention time of all peaks in all profiles in the study.
-#' @param sample_id label of all peaks in all profiles in the study.
+#' @param features A tibble containing features.
 #' @param number_of_samples The number of spectra in this analysis.
 #' @param mz_tol_relative m/z tolerance level for the grouping of signals into peaks. This value is expressed as the percentage of the m/z value.
 #'  This value, multiplied by the m/z value, becomes the cutoff level.
@@ -151,19 +149,16 @@ compute_rt_tol_relative <- function(breaks,
 #' @param do.plot Indicates whether plot should be drawn.
 #' @return A matrix with six columns. Every row corresponds to a peak in one of the spectrum. The columns are: m/z, elution time, spread, signal strength,
 #'  spectrum label, and peak group label. The rows are ordered by the median m/z of each peak group, and with each peak group the rows are ordered
-#'  by the elution time.
-#' @examples
-#' find.tol.time(mz, chr, lab, number_of_samples = number_of_samples, mz_tol_relative = mz_tol_relative, mz_tol_absolute = mz_tol_absolute, do.plot = FALSE)
 find.tol.time <- function(features,
                           number_of_samples,
-                          mz_tol_relative = 2e-5,
-                          rt_tol_relative = NA,
-                          aver.bin.size = 200,
-                          min.bins = 50,
-                          max.bins = 100,
-                          mz_tol_absolute = 0.01,
-                          max.num.segments = 10000,
-                          do.plot = TRUE) {
+                          mz_tol_relative,
+                          rt_tol_relative,
+                          aver.bin.size,
+                          min.bins,
+                          max.bins,
+                          mz_tol_absolute,
+                          max.num.segments,
+                          do.plot) {
     features <- dplyr::arrange_at(features, "mz")
 
     min_mz_tol <- compute_min_mz_tolerance(

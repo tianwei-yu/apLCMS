@@ -14,14 +14,12 @@ NULL
 #' @param do.plot Indicates whether plot should be drawn.
 #' @return The tolerance level is returned.
 #' @export
-#' @examples
-#' find.tol(mz, mz_max_diff = mz_max_diff, do.plot = FALSE)
 find.tol <- function(mz,
-                     mz_max_diff = 1e-4,
-                     aver.bin.size = 4000,
-                     min.bins = 50,
-                     max.bins = 200,
-                     do.plot = TRUE) {
+                     mz_max_diff,
+                     aver.bin.size,
+                     min.bins,
+                     max.bins,
+                     do.plot) {
     mz <- mz[order(mz)]
     l <- length(mz)
     # pairwise m/z difference divided by their average, filtered outside of tolerance limit

@@ -8,11 +8,7 @@
 #' @param all.w the "footprint" of each measured retention time, used as weight for the corresponding y.
 #' @return The area is returned.
 #' @export
-#' @examples
-#' interpol.area(x, y, all.x, all.w)
-interpol.area <-
-function(x, y, all.x, all.w) # x is retention time, all.w is weight of each all.x, y is observed intensities
-{
+interpol.area <- function(x, y, all.x, all.w) {
     r<-range(x)
     indices <- which(between(all.x, r[1], r[2]))
     

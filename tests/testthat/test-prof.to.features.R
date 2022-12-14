@@ -7,9 +7,16 @@ patrick::with_parameters_test_that(
 
     actual <- prof.to.features(
       profile = extracted_features,
-      sd.cut = sd_cut,
-      sigma.ratio.lim = sigma_ratio_lim,
-      shape.model = shape_model,
+      bandwidth = 0.5,
+      min_bandwidth = NA,
+      max_bandwidth = NA,
+      sd_cut = sd_cut,
+      sigma_ratio_lim = sigma_ratio_lim,
+      shape_model = shape_model,
+      peak_estim_method = "moment",
+      moment_power = 1,
+      component_eliminate = 0.01,
+      BIC_factor = 2,
       do.plot = do.plot
     )
 

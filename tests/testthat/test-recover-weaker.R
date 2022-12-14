@@ -34,17 +34,17 @@ patrick::with_parameters_test_that(
         metadata_table = aligned$metadata,
         rt_table = aligned$rt,
         intensity_table = aligned$intensity,
-        orig.tol = mz_tol,
-        align.mz.tol = aligned$mz_tol_relative,
-        align.rt.tol = aligned$rt_tol_relative,
+        mz_tol = mz_tol,
+        mz_tol_relative = aligned$mz_tol_relative,
+        rt_tol_relative = aligned$rt_tol_relative,
         recover_mz_range = recover_mz_range,
         recover_rt_range = recover_rt_range,
-        use.observed.range = use_observed_range,
+        use_observed_range = use_observed_range,
         bandwidth = bandwidth,
-        min.bw = min_bandwidth,
-        max.bw = max_bandwidth,
-        recover.min.count = recover_min_count,
-        intensity.weighted = intensity.weighted
+        min_bandwidth = min_bandwidth,
+        max_bandwidth = max_bandwidth,
+        recover_min_count = recover_min_count,
+        intensity_weighted = intensity_weighted
       )
     })
 
@@ -124,7 +124,7 @@ patrick::with_parameters_test_that(
       max_bandwidth = NA,
       recover_min_count = 3,
       bandwidth = 0.5,
-      intensity.weighted = FALSE
+      intensity_weighted = FALSE
     )
   )
 )

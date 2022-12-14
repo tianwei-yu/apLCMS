@@ -14,6 +14,7 @@ patrick::with_parameters_test_that(
       rt_tol_relative = NA,
       mz_max_diff = mz_max_diff,
       mz_tol_absolute = mz_tol_absolute,
+      do.plot = FALSE,
       sample_names = files
     )
 

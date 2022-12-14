@@ -19,12 +19,13 @@
 #'   \item rt_tol_relative - float - Newly determined relative rt tolerance.
 #'   \item mz_tol_relative - float - Newly determined relative mz tolerance.
 #'}
+#' @export
 compute_clusters <- function(feature_tables,
                              mz_tol_relative,
                              mz_tol_absolute,
                              mz_max_diff,
                              rt_tol_relative,
-                             do.plot = FALSE,
+                             do.plot,
                              sample_names = NA) {
   number_of_samples <- length(feature_tables)
   all <- concatenate_feature_tables(feature_tables, sample_names)
@@ -33,6 +34,9 @@ compute_clusters <- function(feature_tables,
     mz_tol_relative <- find.tol(
       all$mz,
       mz_max_diff = mz_max_diff,
+      aver.bin.size = 4000,
+      min.bins = 50,
+      max.bins = 200,
       do.plot = do.plot
     )
     if (length(mz_tol_relative) == 0) {
@@ -59,7 +63,11 @@ compute_clusters <- function(feature_tables,
     number_of_samples = number_of_samples,
     mz_tol_relative = mz_tol_relative,
     rt_tol_relative = rt_tol_relative,
+    aver.bin.size = 200,
+    min.bins = 50,
+    max.bins = 100,
     mz_tol_absolute = mz_tol_absolute,
+    max.num.segments = 10000,
     do.plot = do.plot
   )
 

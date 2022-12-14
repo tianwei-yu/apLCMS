@@ -2,6 +2,123 @@
 NULL
 #> NULL
 
+#' @importFrom dplyr select inner_join
+as_feature_crosstab <- function(sample_names, metadata, data) {
+  metadata_cols <- c('id', 'mz', 'rt', 'mzmin', 'mzmax')
+  data <- select(metadata, metadata_cols) |>
+    inner_join(data, on='id')
+  colnames(data) <- c(metadata_cols, sample_names)
+  
+  return(data)
+}
+
+recover_weaker_signals <- function(
+  cluster,
+  filenames,
+  extracted_features,
+  corrected_features,
+  aligned_rt_crosstab,
+  aligned_int_crosstab,
+  original_mz_tolerance,
+  aligned_mz_tolerance,
+  aligned_rt_tolerance,
+  recover_mz_range,
+  recover_rt_range,
+  use_observed_range,
+  min_bandwidth,
+  max_bandwidth,
+  recover_min_count
+) {
+  snow::clusterExport(cluster, c('recover.weaker'))
+  snow::clusterEvalQ(cluster, library("splines"))
+  
+  recovered <- lapply(seq_along(filenames), function(i) {
+    recover.weaker(
+      sample_name = get_sample_name(filenames[i]),
+      filename = filenames[[i]],
+      extracted_features = as_tibble(extracted_features[[i]]),
+      adjusted_features = as_tibble(corrected_features[[i]]),
+      pk.times = aligned_rt_crosstab,
+      aligned.ftrs = aligned_int_crosstab,
+      orig.tol = original_mz_tolerance,
+      align.mz.tol = aligned_mz_tolerance,
+      align.rt.tol = aligned_rt_tolerance,
+      recover_mz_range = recover_mz_range,
+      recover_rt_range = recover_rt_range,
+      use.observed.range = use_observed_range,
+      bandwidth = 0.5,
+      min.bw = min_bandwidth,
+      max.bw = max_bandwidth,
+      recover.min.count = recover_min_count
+    )
+  })
+  
+  feature_table <- aligned_rt_crosstab[, 1:4]
+  rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
+  int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
+  
+  feature_names <- rownames(feature_table)
+  sample_names <- colnames(aligned_rt_crosstab[, -(1:4)])
+  
+  list(
+    extracted_features = lapply(recovered, function(x) x$this.f1),
+    corrected_features = lapply(recovered, function(x) x$this.f2),
+    rt_crosstab = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
+    int_crosstab = as_feature_crosstab(feature_names, sample_names, int_crosstab)
+  )
+}
+
+pivot_feature_values <- function(feature_table, variable) {
+  extended_variable <- paste0("sample_", variable)
+  values <- dplyr::select(feature_table, mz, rt, sample, !!sym(extended_variable))
+  values <- tidyr::pivot_wider(values, names_from = sample, values_from = !!sym(extended_variable))
+  variable_colnames <- colnames(values)[3:ncol(values)]
+  variable_colnames <- paste0(variable_colnames, "_", variable)
+  colnames(values)[3:ncol(values)] <- variable_colnames
+  return(values)
+}
+
+long_to_wide_feature_table <- function(feature_table) {
+  sample_rts <- pivot_feature_values(feature_table, "rt")
+  sample_intensities <- pivot_feature_values(feature_table, "intensity")
+  feature_table <- dplyr::select(feature_table, mz, rt) %>%
+    dplyr::distinct(mz, rt) %>%
+    dplyr::inner_join(sample_rts, by = c("mz", "rt")) %>%
+    dplyr::inner_join(sample_intensities, by = c("mz", "rt"))
+}
+
+wide_to_long_feature_table <- function(wide_table, sample_names) {
+  wide_table <- tibble::rowid_to_column(wide_table, "feature")
+  
+  long_rt <- tidyr::gather(wide_table, sample, sample_rt, contains("_rt"), factor_key=FALSE) %>%
+    dplyr::select(-contains("_intensity")) %>%
+    mutate(sample = stringr::str_remove_all(sample, "_rt"))
+  long_int <- tidyr::gather(wide_table, sample, sample_intensity, contains("_intensity"), factor_key=FALSE) %>%
+    dplyr::select(-contains("_rt")) %>%
+    mutate(sample = stringr::str_remove_all(sample, "_intensity"))
+  
+  long_features <- dplyr::full_join(long_rt, long_int, by = c("feature", "mz", "rt", "mz_min", "mz_max", "sample"))
+  
+  return(long_features)
+}
+
+extract_pattern_colnames <- function(dataframe, pattern) {
+  dataframe <- dplyr::select(dataframe, contains(pattern))
+  return(colnames(dataframe))
+}
+
+as_wide_aligned_table <- function(aligned) {
+  mz_scale_table <- aligned$rt_crosstab[, c("mz", "rt", "mz_min", "mz_max")]
+  aligned <- as_feature_sample_table(
+    rt_crosstab = aligned$rt_crosstab,
+    int_crosstab = aligned$int_crosstab
+  )
+  aligned <- long_to_wide_feature_table(aligned)
+  aligned <- dplyr::inner_join(aligned, mz_scale_table, by = c("mz", "rt"))
+  return(aligned)
+}
+
+
 merge_known_tables <- function(batchwise, batches_idx) {
   colnames <- c("chemical_formula", "HMDB_ID", "KEGG_compound_ID", "mass", "ion.type", "m.z",
               "Number_profiles_processed", "Percent_found", "mz_min", "mz_max", 
@@ -256,6 +373,8 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #' Two step hybrid feature detection.
 #' 
 #' A two-stage hybrid feature detection and alignment procedure, for data generated in multiple batches.
+#' NOTE: This function is OBSOLETE and should no longer be used,
+#' since it is no longer maintained and will soon be removed.
 #' 
 #' @param filenames file names
 #' @param metadata the batch label of each file.
@@ -322,8 +441,6 @@ semisup_to_hybrid_adapter <- function(batchwise, batches_idx) {
 #'   \item final.ftrs - Feature table. This is the end product of the function.
 #' }
 #' @export
-#' @examples
-#' two.step.hybrid(test_names, metadata, tempdir, known.table = known_table, cluster = num_workers)
 two.step.hybrid <- function(filenames,
                             metadata,
                             work_dir,
@@ -441,15 +558,34 @@ two.step.hybrid <- function(filenames,
   )
 
   message("* aligning features")
-  aligned <- align_features(
-    sample_names = paste0("batch_", batches_idx),
-    features = corrected,
-    min_occurrence = ceiling(min.batch.prop * length(batches_idx)),
-    mz_tol_relative = batch.align.mz.tol,
-    rt_tol_relative = batch.align.rt.tol,
-    mz_max_diff = 10 * mz_tol,
-    mz_tol_absolute = max.align.mz.diff,
-    rt_colname = "rt"
+  sample_names = paste0("batch_", batches_idx)
+  
+  res <- compute_clusters(
+      corrected,
+      batch.align.mz.tol,
+      batch.align.rt.tol,
+      10 * mz_tol,
+      max.align.mz.diff,
+      FALSE,
+      sample_names
+  )
+  
+  aligned_features <- create_aligned_feature_table(
+      dplyr::bind_rows(res$feature_tables),
+      ceiling(min.batch.prop * length(batches_idx)),
+      sample_names,
+      res$rt_tol_relative,
+      res$mz_tol_relative
+  )
+  
+  aligned_features$mz_tol_relative <- res$mz_tol_relative
+  aligned_features$rt_tol_relative <- res$rt_tol_relative
+  
+  aligned <- list(
+      mz_tolerance = as.numeric(aligned_features$mz_tol_relative),
+      rt_tolerance = as.numeric(aligned_features$rt_tol_relative),
+      rt_crosstab = as_feature_crosstab(sample_names, aligned_features$metadata, aligned_features$rt),
+      int_crosstab = as_feature_crosstab(sample_names, aligned_features$metadata, aligned_features$intensity)
   )
 
   aligned_wide <- as_wide_aligned_table(aligned)

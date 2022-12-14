@@ -2,16 +2,6 @@
 NULL
 #> NULL
 
-#' @importFrom dplyr select inner_join
-as_feature_crosstab <- function(sample_names, metadata, data) {
-  metadata_cols <- c('id', 'mz', 'rt', 'mzmin', 'mzmax')
-  data <- select(metadata, metadata_cols) |>
-    inner_join(data, on='id')
-  colnames(data) <- c(metadata_cols, sample_names)
-
-  return(data)
-}
-
 as_feature_sample_table <- function(metadata, rt_crosstab, int_crosstab) {
   feature_names <- as.character(rt_crosstab$id)
   sample_names <- colnames(metadata)[-c(1:8)]
@@ -50,87 +40,12 @@ get_sample_name <- function(filename) {
   tools::file_path_sans_ext(basename(filename))
 }
 
-#' @export
-sort_samples_by_acquisition_number <- function (filenames) {
-  # assumes that the filenames contain an acquisition number
-  # ideal solution would be to read the acquisition number directly from mzml
-  sort(unlist(filenames))
-}
-
-align_features <- function(sample_names, ...) {
-  # if this will be used in Galaxy wrapper, needs to be fixed (pass also sample_names)
-  aligned <- feature.align(...)
-
-  list(
-    mz_tolerance = as.numeric(aligned$mz_tol_relative),
-    rt_tolerance = as.numeric(aligned$rt_tol_relative),
-    rt_crosstab = as_feature_crosstab(sample_names, aligned$metadata, aligned$rt),
-    int_crosstab = as_feature_crosstab(sample_names, aligned$metadata, aligned$intensity)
-  )
-}
-
-recover_weaker_signals <- function(
-  cluster,
-  filenames,
-  extracted_features,
-  corrected_features,
-  aligned_rt_crosstab,
-  aligned_int_crosstab,
-  original_mz_tolerance,
-  aligned_mz_tolerance,
-  aligned_rt_tolerance,
-  recover_mz_range,
-  recover_rt_range,
-  use_observed_range,
-  min_bandwidth,
-  max_bandwidth,
-  recover_min_count
-) {
-  snow::clusterExport(cluster, c('recover.weaker'))
-  snow::clusterEvalQ(cluster, library("splines"))
-
-  recovered <- lapply(seq_along(filenames), function(i) {
-    recover.weaker(
-      sample_name = get_sample_name(filenames[i]),
-      filename = filenames[[i]],
-      extracted_features = as_tibble(extracted_features[[i]]),
-      adjusted_features = as_tibble(corrected_features[[i]]),
-      pk.times = aligned_rt_crosstab,
-      aligned.ftrs = aligned_int_crosstab,
-      orig.tol = original_mz_tolerance,
-      align.mz.tol = aligned_mz_tolerance,
-      align.rt.tol = aligned_rt_tolerance,
-      recover_mz_range = recover_mz_range,
-      recover_rt_range = recover_rt_range,
-      use.observed.range = use_observed_range,
-      bandwidth = 0.5,
-      min.bw = min_bandwidth,
-      max.bw = max_bandwidth,
-      recover.min.count = recover_min_count
-    )
-  })
-
-  feature_table <- aligned_rt_crosstab[, 1:4]
-  rt_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.times))
-  int_crosstab <- cbind(feature_table, sapply(recovered, function(x) x$this.ftrs))
-
-  feature_names <- rownames(feature_table)
-  sample_names <- colnames(aligned_rt_crosstab[, -(1:4)])
-
-  list(
-    extracted_features = lapply(recovered, function(x) x$this.f1),
-    corrected_features = lapply(recovered, function(x) x$this.f2),
-    rt_crosstab = as_feature_crosstab(feature_names, sample_names, rt_crosstab),
-    int_crosstab = as_feature_crosstab(feature_names, sample_names, int_crosstab)
-  )
-}
-
 #' Runs features extraction in unsupervised mode.
 #' 
 #' features extraction in unsupervised mode.
 #' 
 #' @param filenames The CDF file names.
-#' @param min_exp A feature has to show up in at least this number of profiles to be included in the final result.
+#' @param min_occurrence A feature has to show up in at least this number of profiles to be included in the final result.
 #' @param min_pres This is a parameter of the run filter, to be passed to the function proc.cdf().
 #' @param min_run Run filter parameter. The minimum length of elution time for a series of signals grouped by m/z 
 #'  to be considered a peak.
@@ -140,7 +55,7 @@ recover_weaker_signals <- function(
 #' @param baseline_correct After grouping the observations, the highest intensity in each group is found. 
 #'  If the highest is lower than this value, the entire group will be deleted. The default value is NA, in 
 #'  which case the program uses the 75th percentile of the height of the noise groups.
-#' @param baseline_correct_noise_percentile The perenctile of signal strength of those EIC that don't pass the 
+#' @param baseline_correct_noise_percentile The percentile of signal strength of those EIC that don't pass the 
 #'  run filter, to be used as the baseline threshold of signal strength.
 #' @param shape_model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and 
 #'  "Gaussian". When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
@@ -157,12 +72,12 @@ recover_weaker_signals <- function(
 #'  for a proportion of intensities less than this value, the component will be ignored.
 #' @param moment_power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture 
 #'  model in an EIC.
-#' @param align_mz_tol The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
+#' @param mz_tol_relative The m/z tolerance level for peak alignment. The default is NA, which allows the program to search 
 #'  for the tolerance level based on the data. This value is expressed as the percentage of the m/z value. This value, 
 #'  multiplied by the m/z value, becomes the cutoff level.
-#' @param align_rt_tol The retention time tolerance level for peak alignment. The default is NA, which allows the program 
+#' @param rt_tol_relative The retention time tolerance level for peak alignment. The default is NA, which allows the program 
 #'  to search for the tolerance level based on the data.
-#' @param max_align_mz_diff As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
+#' @param mz_tol_absolute As the m/z tolerance is expressed in relative terms (ppm), it may not be suitable when the 
 #'  m/z range is wide. This parameter limits the tolerance in absolute terms. It mostly influences feature matching 
 #'  in higher m/z range.
 #' @param recover_mz_range The m/z around the feature m/z to search for observations. The default value is NA, in which 
@@ -173,13 +88,12 @@ recover_weaker_signals <- function(
 #'  the spectra will be used.
 #' @param recover_min_count Minimum number of raw data points to support a recovery.
 #' @param intensity_weighted Whether to use intensity to weight mass density estimation.
+#' @param do.plot Indicates whether plot should be drawn.
 #' @param cluster The number of CPU cores to be used
 #' @export
-#' @examples
-#' unsupervised(test_files, cluster = num_workers)
 unsupervised <- function(
   filenames,
-  min_exp = 2,
+  min_occurrence = 2,
   min_pres = 0.5,
   min_run = 12,
   mz_tol = 1e-05,
@@ -188,20 +102,22 @@ unsupervised <- function(
   shape_model = "bi-Gaussian",
   BIC_factor = 2,
   peak_estim_method = "moment",
+  bandwidth = 0.5,
   min_bandwidth = NA,
   max_bandwidth = NA,
   sd_cut = c(0.01, 500),
   sigma_ratio_lim = c(0.01, 100),
   component_eliminate = 0.01,
   moment_power = 1,
-  align_mz_tol = NA,
-  align_rt_tol = NA,
-  max_align_mz_diff = 0.01,
+  mz_tol_relative = NA,
+  rt_tol_relative = NA,
+  mz_tol_absolute = 0.01,
   recover_mz_range = NA,
   recover_rt_range = NA,
   use_observed_range = TRUE,
   recover_min_count = 3,
   intensity_weighted = FALSE,
+  do_plot = FALSE,
   cluster = 4
 ) {
   if (!is(cluster, 'cluster')) {
@@ -211,39 +127,52 @@ unsupervised <- function(
 
   # NOTE: side effect (doParallel has no functionality to clean up)
   doParallel::registerDoParallel(cluster)
+  register_functions_to_cluster(cluster)
 
   check_files(filenames)
   sample_names <- get_sample_name(filenames)
   number_of_samples <- length(sample_names)
 
   message("**** feature extraction ****")
-  extracted <- extract_features(
-    cluster = cluster,
-    filenames = filenames,
-    min_presence = min_pres,
-    min_elution_length = min_run,
-    mz_tol = mz_tol,
-    baseline_correct = baseline_correct,
-    baseline_correct_noise_percentile = baseline_correct_noise_percentile,
-    intensity_weighted = intensity_weighted,
-    min_bandwidth = min_bandwidth,
-    max_bandwidth = max_bandwidth,
-    sd_cut = sd_cut,
-    sigma_ratio_lim = sigma_ratio_lim,
-    shape_model = shape_model,
-    peak_estim_method = peak_estim_method,
-    component_eliminate = component_eliminate,
-    moment_power = moment_power,
-    BIC_factor = BIC_factor
-  )
+  profiles <- snow::parLapply(cluster, filenames, function(filename) {
+      proc.cdf(
+          filename = filename,
+          min_pres = min_pres,
+          min_run = min_run,
+          mz_tol = mz_tol,
+          baseline_correct = baseline_correct,
+          baseline_correct_noise_percentile = baseline_correct_noise_percentile,
+          intensity_weighted = intensity_weighted,
+          do.plot = do_plot,
+          cache = FALSE
+      )
+  })
+  
+  feature_tables <- snow::parLapply(cluster, profiles, function(profile) {
+      prof.to.features(
+          profile = profile,
+          bandwidth = bandwidth,
+          min_bandwidth = min_bandwidth,
+          max_bandwidth = max_bandwidth,
+          sd_cut = sd_cut,
+          sigma_ratio_lim = sigma_ratio_lim,
+          shape_model = shape_model,
+          peak_estim_method = peak_estim_method,
+          component_eliminate = component_eliminate,
+          moment_power = moment_power,
+          BIC_factor = BIC_factor,
+          do.plot = do_plot
+      )
+  })
 
   message("**** computing clusters ****")
   extracted_clusters <- compute_clusters(
-    feature_tables = extracted,
-    mz_tol_relative = align_mz_tol,
-    mz_tol_absolute = max_align_mz_diff,
+    feature_tables = feature_tables,
+    mz_tol_relative = mz_tol_relative,
+    mz_tol_absolute = mz_tol_absolute,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol,
+    rt_tol_relative = rt_tol_relative,
+    do.plot = do_plot,
     sample_names = sample_names
   )
 
@@ -265,13 +194,14 @@ unsupervised <- function(
     mz_tol_relative = extracted_clusters$mz_tol_relative,
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative,
+    do.plot = do_plot
   )
 
   message("**** feature alignment ****")
   aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),
-      min_exp,
+      min_occurrence,
       sample_names,
       adjusted_clusters$rt_tol_relative,
       adjusted_clusters$mz_tol_relative
@@ -282,22 +212,22 @@ unsupervised <- function(
     recover.weaker(
       filename = filenames[[i]],
       sample_name = as.character(i),
-      extracted_features = extracted[[i]],
+      extracted_features = feature_tables[[i]],
       adjusted_features = corrected[[i]],
       metadata_table = aligned$metadata,
       rt_table = aligned$rt,
       intensity_table = aligned$intensity,
-      orig.tol = mz_tol,
-      align.mz.tol = aligned$mz_tol_relative,
-      align.rt.tol = aligned$rt_tol_relative,
+      mz_tol = mz_tol,
+      mz_tol_relative = aligned$mz_tol_relative,
+      rt_tol_relative = aligned$rt_tol_relative,
       recover_mz_range = recover_mz_range,
       recover_rt_range = recover_rt_range,
-      use.observed.range = use_observed_range,
-      bandwidth = 0.5,
-      min.bw = min_bandwidth,
-      max.bw = max_bandwidth,
-      recover.min.count = recover_min_count,
-      intensity.weighted = intensity_weighted
+      use_observed_range = use_observed_range,
+      bandwidth = bandwidth,
+      min_bandwidth = min_bandwidth,
+      max_bandwidth = max_bandwidth,
+      recover_min_count = recover_min_count,
+      intensity_weighted = intensity_weighted
     )
   })
 
@@ -309,13 +239,14 @@ unsupervised <- function(
     mz_tol_relative = adjusted_clusters$mz_tol_relative,
     mz_tol_absolute = adjusted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
-    rt_tol_relative = align_rt_tol
+    rt_tol_relative = rt_tol_relative,
+    do.plot = do_plot
   )
 
   message("**** feature alignment ****")
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(recovered_clusters$feature_tables),
-      min_exp,
+      min_occurrence,
       sample_names,
       recovered_clusters$rt_tol_relative,
       recovered_clusters$mz_tol_relative

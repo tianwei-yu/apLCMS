@@ -1,23 +1,23 @@
 #' @description
-#' Validate input model and method parameters, exit execution otherwise.
-#' @param shape.model The mathematical model of the peak shape. There are two choices - "bi-Gaussian" and "Gaussian".
-#'  bi-Gaussian is better for asymmetric peaks. The default is "bi-Gaussian".
-#' @param estim.method The estimation method for the bi-Gaussian model. Two possible values: moment and EM.
+#' Validate that provided model and method inputs match expected, exit execution otherwise.
+#' @param shape_model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
+#'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
+#' @param peak_estim_method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
 #' @export
-validate_model_method_input <- function(shape.model, estim.method) {
-  if (!shape.model %in% c("Gaussian", "bi-Gaussian")) {
-    stop("shape.model argument must be 'Gaussian' or 'bi-Gaussian'")
+validate_model_method_input <- function(shape_model, peak_estim_method) {
+  if (!shape_model %in% c("Gaussian", "bi-Gaussian")) {
+    stop("shape_model argument must be 'Gaussian' or 'bi-Gaussian'")
   }
-  if (!estim.method %in% c("moment", "EM")) {
-    stop("estim.method argument must be 'moment' or 'EM'")
+  if (!peak_estim_method %in% c("moment", "EM")) {
+    stop("peak_estim_method argument must be 'moment' or 'EM'")
   }
 }
 
+
 #' @description 
-#' Initialize minimum and maximum bandwidth values if none given. Ensure that minimum bandwidth is lower that maximum,
-#' else set minimum to 1/4 of maximum value.
-#' @param min.bw The minimum bandwidth to use in the kernel smoother.
-#' @param max.bw The maximum bandwidth to use in the kernel smoother.
+#' Initialize minimum and maximum bandwidth values if none given. Ensure that minimum bandwidth is lower that maximum, else set minimum to 1/4 of maximum value.
+#' @param min_bandwidth The minimum bandwidth to use in the kernel smoother.
+#' @param max_bandwidth The maximum bandwidth to use in the kernel smoother.
 #' @param profile Profile table with shape number-of-features*4. The table contains following columns:
 #' \itemize{
 #'   \item mz - float - mass-to-charge ratio of feature
@@ -27,22 +27,21 @@ validate_model_method_input <- function(shape.model, estim.method) {
 #' }
 #' @return Returns a list object with the following objects in it:
 #' \itemize{
-#'   \item min.bw - float - Minimum bandwidth.
-#'   \item max.bw - float - Maximum bandwidth
+#'   \item min_bandwidth - float - Minimum bandwidth.
+#'   \item max_bandwidth - float - Maximum bandwidth
 #' @export
-preprocess_bandwidth <- function(min.bw, max.bw, profile) {
-  max_min_rt_diff <- diff(range(profile[, 2], na.rm = TRUE))
-  if (is.na(min.bw)) {
-    min.bw <- max_min_rt_diff / 60
+preprocess_bandwidth <- function(min_bandwidth, max_bandwidth, profile) {
+  if (is.na(min_bandwidth)) {
+    min_bandwidth <- diff(range(profile[, 2], na.rm = TRUE)) / 60
   }
-  if (is.na(max.bw)) {
-    max.bw <- max_min_rt_diff / 15
+  if (is.na(max_bandwidth)) {
+    max_bandwidth <- diff(range(profile[, 2], na.rm = TRUE)) / 15
   }
-  if (min.bw >= max.bw) {
-    min.bw <- max.bw / 4
+  if (min_bandwidth >= max_bandwidth) {
+    min_bandwidth <- max_bandwidth / 4
   }
 
-  return(list("min.bw" = min.bw, "max.bw" = max.bw))
+  return(list("min_bandwidth" = min_bandwidth, "max_bandwidth" = max_bandwidth))
 }
 
 #' @description
@@ -71,10 +70,9 @@ preprocess_profile <- function(profile) {
 #' @description
 #' Compute parameters of chromatographic peak shape if peaks are considered to be gaussian
 #' @param rt_profile A matrix with two columns: "base.curve" (rt) and "intensity".
-#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
 #' @param bw Bandwidth vector to use in the kernel smoother.
-#' @param component.eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
-#' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param component_eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
+#' @param BIC_factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #'  models with more peaks are penalized more.
 #' @param aver_diff Average retention time difference across RTs of all features.
 #' @return Returns a single-row vector or a table object with the following items/columns:
@@ -85,8 +83,8 @@ preprocess_profile <- function(profile) {
 #'   \item scale - float - estimated total signal strength (total area of the estimated normal curve)
 #'}
 #' @export
-compute_gaussian_peak_shape <- function(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) {
-  rt_peak_shape <- normix.bic(rt_profile[, "base.curve"], rt_profile[, 2], bw = bw, eliminate = component.eliminate, BIC.factor = BIC.factor, aver_diff = aver_diff)$param
+compute_gaussian_peak_shape <- function(rt_profile, bw, component_eliminate, BIC_factor, aver_diff) {
+  rt_peak_shape <- normix.bic(rt_profile[, "base.curve"], rt_profile[, 2], bw = bw, eliminate = component_eliminate, BIC_factor = BIC_factor, aver_diff = aver_diff)$param
   if (nrow(rt_peak_shape) == 1) {
     rt_peak_shape <- c(rt_peak_shape[1, 1:2], rt_peak_shape[1, 2], rt_peak_shape[1, 3])
   } else {
@@ -157,7 +155,7 @@ solve.sigma <- function(x, t, a) {
 #' @param x A vector of numerical values (intensities).
 #' @param max.iter Maximum number of iterations.
 #' @param epsilon Threshold for continuing the iteration
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
+#' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
 #' and the right-standard deviation of the bi-Gaussian function.
 #' @return A vector with length 4. The items are as follows going from first to last:
 #' \itemize{
@@ -167,7 +165,7 @@ solve.sigma <- function(x, t, a) {
 #'   \item estimated total signal strength (total area of the estimated normal curve)
 #' }
 #' @export
-bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, do.plot = FALSE, sigma.ratio.lim = c(0.3, 1)) {
+bigauss.esti.EM <- function(t, x, max.iter = 50, epsilon = 0.005, do.plot = FALSE, sigma_ratio_lim = c(0.3, 1)) {
   # This function is not covered by any test case
   sel <- which(x > 1e-10)
   if (length(sel) == 0) {
@@ -258,17 +256,17 @@ compute_end_bound <- function(x, right_sigma_ratio_lim) {
 #' @description
 #' Computes initial and final bounds of set of values.
 #' @param x Cumulative intensity values.
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation 
-#' and the right-standard deviation of the bi-Gaussian function.
+#' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation.
+#' and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @return Returns a list with bounds with following items:
 #' \itemize{
 #'   \item start - start bound
 #'   \item end - end bound
 #'}
 #' @export
-compute_bounds <- function(x, sigma.ratio.lim) {
-  start <- compute_start_bound(x, sigma.ratio.lim[1])
-  end <- compute_end_bound(x, sigma.ratio.lim[2])
+compute_bounds <- function(x, sigma_ratio_lim) {
+  start <- compute_start_bound(x, sigma_ratio_lim[1])
+  end <- compute_end_bound(x, sigma_ratio_lim[2])
   return(list(start = start, end = end))
 }
 
@@ -337,8 +335,8 @@ compute_scale <- function(y, d) {
 #' Estimate the parameters of Bi-Gaussian curve.
 #' @param x Vector of RTs that lay in the same RT cluster.
 #' @param y Intensities that belong to x.
-#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#' @param moment_power The parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @return A vector with length 4. The items are as follows going from first to last:
 #' \itemize{
@@ -348,7 +346,7 @@ compute_scale <- function(y, d) {
 #'   \item estimated total signal strength (total area of the estimated normal curve)
 #'}
 #' @export
-bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.3, 3)) {
+bigauss.esti <- function(x, y, moment_power = 1, do.plot = FALSE, sigma_ratio_lim = c(0.3, 3)) {
   # even producing a dataframe with x and y as columns without actually using it causes the test to run forever
   sel <- which(y > 1e-10)
   if (length(sel) < 2) {
@@ -362,7 +360,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
         plot(x, y)
     }
     max.y.0 <- max(y.0, na.rm = TRUE)
-    y <- (y / max.y.0)^power
+    y <- (y / max.y.0)^moment_power
 
     dx <- compute_dx(x)
 
@@ -374,7 +372,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
     x.y.cum.rev <- rev_cum_sum(x * y * dx)
     xsqr.y.cum.rev <- rev_cum_sum(y * x^2 * dx)
 
-    bounds <- compute_bounds(y.cum, sigma.ratio.lim)
+    bounds <- compute_bounds(y.cum, sigma_ratio_lim)
     end <- bounds$end
     start <- bounds$start
 
@@ -409,8 +407,8 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
     s1 <- sqrt(sum((x[sel1] - m)^2 * y[sel1] * dx[sel1]) / sum(y[sel1] * dx[sel1]))
     s2 <- sqrt(sum((x[sel2] - m)^2 * y[sel2] * dx[sel2]) / sum(y[sel2] * dx[sel2]))
 
-    s1 <- s1 * sqrt(power)
-    s2 <- s2 * sqrt(power)
+    s1 <- s1 * sqrt(moment_power)
+    s2 <- s2 * sqrt(moment_power)
 
     d1 <- dnorm(x[sel1], sd = s1, mean = m)
     d2 <- dnorm(x[sel2], sd = s2, mean = m)
@@ -495,18 +493,18 @@ compute_e_step <- function(m, rt_profile, delta, s1, s2) {
 #' Estimates the optimal bi-gaussian parameters using the EM method. It accepts two internal computation of parameters for "moment"
 #' and "EM" model input options.
 #' @param rt_profile Dataframe that stores RTs and intensities of features.
-#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#' @param moment_power The parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
 #' @param bw Bandwidth vector to use in the kernel smoother.
 #' @param eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
 #' @param max.iter Maximum number of iterations when executing the E step.
-#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
-#' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param peak_estim_method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
+#' @param BIC_factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #'  models with more peaks are penalized more.
 #' @importFrom dplyr filter arrange
 #' @export
-bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, estim.method, BIC.factor = 2) {
+bigauss.mix <- function(rt_profile, moment_power = 1, do.plot = FALSE, sigma_ratio_lim = c(0.1, 10), bw = c(15, 30, 60), eliminate = .05, max.iter = 25, peak_estim_method, BIC_factor = 2) {
   all.bw <- sort(bw)
   results <- new("list")
   smoother.pk.rec <- smoother.vly.rec <- new("list")
@@ -587,10 +585,10 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
         for (i in 1:length(m))
         {
           this.y <- rt_profile[, "intensity"] * fit[, i]
-          if (estim.method == "moment") {
-            this.fit <- bigauss.esti(rt_profile[, "base.curve"], this.y, power = power, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+          if (peak_estim_method == "moment") {
+            this.fit <- bigauss.esti(rt_profile[, "base.curve"], this.y, moment_power = moment_power, do.plot = FALSE, sigma_ratio_lim = sigma_ratio_lim)
           } else {
-            this.fit <- bigauss.esti.EM(rt_profile[, "base.curve"], this.y, do.plot = FALSE, sigma.ratio.lim = sigma.ratio.lim)
+            this.fit <- bigauss.esti.EM(rt_profile[, "base.curve"], this.y, do.plot = FALSE, sigma_ratio_lim = sigma_ratio_lim)
           }
           m[i] <- this.fit[1]
           s1[i] <- this.fit[2]
@@ -624,7 +622,7 @@ bigauss.mix <- function(rt_profile, power = 1, do.plot = FALSE, sigma.ratio.lim 
       area <- delta * (s1 + s2) / 2
       rss <- sum((rt_profile[, "intensity"] - apply(fit, 1, sum))^2)
       l <- length(rt_profile[, "base.curve"])
-      bic <- l * log(rss / l) + 4 * length(m) * log(l) * BIC.factor
+      bic <- l * log(rss / l) + 4 * length(m) * log(l) * BIC_factor
       results[[bw.n]] <- cbind(m, s1, s2, delta, area)
       bic.rec[bw.n] <- bic
     } else {
@@ -800,10 +798,10 @@ normix <- function(that.curve, pks, vlys, ignore = 0.1, max.iter = 50, aver_diff
 #' @param bw Bandwidth vector to use in the kernel smoother.
 #' @param eliminate When a component accounts for a proportion of intensities less than this value, the component will be ignored.
 #' @param max.iter Maximum number of iterations when executing the E step.
-#' @param BIC.factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param BIC_factor The factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #' @param aver_diff Average retention time difference across RTs of all features.
 #' @export
-normix.bic <- function(x, y, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC.factor = 2, aver_diff) {
+normix.bic <- function(x, y, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .05, max.iter = 50, BIC_factor = 2, aver_diff) {
   all.bw <- bw[order(bw)]
   sel <- y > 1e-5
   x <- x[sel]
@@ -848,7 +846,7 @@ normix.bic <- function(x, y, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .0
 
       rss <- sum((y - total.fit)^2)
       l <- length(x)
-      bic <- l * log(rss / l) + 3 * nrow(aaa) * log(l) * BIC.factor
+      bic <- l * log(rss / l) + 3 * nrow(aaa) * log(l) * BIC_factor
       results[[bw.n]] <- aaa
       bic.rec[bw.n] <- bic
     } else {
@@ -877,47 +875,43 @@ normix.bic <- function(x, y, do.plot = FALSE, bw = c(15, 30, 60), eliminate = .0
 #' @param profile The matrix output from proc.cdf(). It contains columns of m/z value, retention time, intensity and group number.
 #' @param bandwidth A value between zero and one. Multiplying this value to the length of the signal along the time axis helps
 #'  determine the bandwidth in the kernel smoother used for peak identification.
-#' @param min.bw The minimum bandwidth to use in the kernel smoother.
-#' @param max.bw The maximum bandwidth to use in the kernel smoother.
-#' @param sd.cut A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.
-#' @param sigma.ratio.lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
+#' @param min_bandwidth The minimum bandwidth to use in the kernel smoother.
+#' @param max_bandwidth The maximum bandwidth to use in the kernel smoother.
+#' @param sd_cut A vector of two. Features with standard deviation outside the range defined by the two numbers are eliminated.
+#' @param sigma_ratio_lim A vector of two. It enforces the belief of the range of the ratio between the left-standard deviation
 #'  and the right-standard deviation of the bi-Gaussian function used to fit the data.
-#' @param shape.model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
+#' @param shape_model The mathematical model for the shape of a peak. There are two choices - "bi-Gaussian" and "Gaussian".
 #'  When the peaks are asymmetric, the bi-Gaussian is better. The default is "bi-Gaussian".
-#' @param estim.method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
+#' @param peak_estim_method The estimation method for the bi-Gaussian peak model. Two possible values: moment and EM.
 #' @param do.plot Whether to generate diagnostic plots.
-#' @param power The power parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
-#' @param component.eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
+#' @param moment_power The parameter for data transformation when fitting the bi-Gaussian or Gaussian mixture model in an EIC.
+#' @param component_eliminate In fitting mixture of bi-Gaussian (or Gaussian) model of an EIC, when a component accounts for a
 #'  proportion of intensities less than this value, the component will be ignored.
-#' @param BIC.factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
+#' @param BIC_factor the factor that is multiplied on the number of parameters to modify the BIC criterion. If larger than 1,
 #'  models with more peaks are penalized more.
 #' @return A matrix is returned. The columns are: m/z value, retention time, spread (standard deviation of the estimated normal
 #'  curve), and estimated total signal strength (total area of the estimated normal curve).
 #' @export
-#' @examples
-#' prof.to.features(extracted_features, sd.cut = sd_cut, sigma.ratio.lim = sigma_ratio_lim, do.plot = FALSE)
 prof.to.features <- function(profile,
-                             bandwidth = 0.5,
-                             min.bw = NA,
-                             max.bw = NA,
-                             sd.cut = c(0.01, 500),
-                             sigma.ratio.lim = c(0.01, 100),
-                             shape.model = "bi-Gaussian",
-                             estim.method = "moment",
-                             do.plot = TRUE,
-                             power = 1,
-                             component.eliminate = 0.01,
-                             BIC.factor = 2) {
-  
-  ### Checking and defining variables to be used in the calculation
-  validate_model_method_input(shape.model, estim.method) # check if correct model and available method are provided
+                             bandwidth,
+                             min_bandwidth,
+                             max_bandwidth,
+                             sd_cut,
+                             sigma_ratio_lim,
+                             shape_model,
+                             peak_estim_method,
+                             moment_power,
+                             component_eliminate,
+                             BIC_factor,
+                             do.plot) {
+  validate_model_method_input(shape_model, peak_estim_method)
 
-  profile <- preprocess_profile(profile) # convert matrix to dataframe and rename columns
-  
-  bws <- preprocess_bandwidth(min.bw, max.bw, profile) # make sure that min and max are defined, also check that min < max
-  min.bw <- bws[["min.bw"]]
-  max.bw <- bws[["max.bw"]]
-  
+  profile <- preprocess_profile(profile)
+
+  bws <- preprocess_bandwidth(min_bandwidth, max_bandwidth, profile)
+  min_bandwidth <- bws[["min_bandwidth"]]
+  max_bandwidth <- bws[["max_bandwidth"]]
+
   # base.curve <- compute_base_curve(profile[, "rt"])
   base.curve <- sort(unique(profile$rt))
   base.curve <- cbind(base.curve, base.curve * 0)
@@ -954,19 +948,17 @@ prof.to.features <- function(profile,
     if (num_features > 10) {
       # find bandwidth for these particular range
       rt_range <- range(feature_group[, "rt"])
-      bw <- min(max(bandwidth * (max(rt_range) - min(rt_range)), min.bw), max.bw)
+      bw <- min(max(bandwidth * (max(rt_range) - min(rt_range)), min_bandwidth), max_bandwidth)
       bw <- seq(bw, 2 * bw, length.out = 3)
-      if (bw[1] > 1.5 * min.bw) {
-        bw <- c(max(min.bw, bw[1] / 2), bw)
-      
+      if (bw[1] > 1.5 * min_bandwidth) {
+        bw <- c(max(min_bandwidth, bw[1] / 2), bw)
       }
 
       rt_profile <- compute_chromatographic_profile(feature_group, base.curve)
-      if (shape.model == "Gaussian") {
-        rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) ## compute gaussian parameters, use normix.bic() which use ksmoother
+      if (shape_model == "Gaussian") {
+        rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, bw, component_eliminate, BIC_factor, aver_diff)
       } else {
-        # apply EM algorithm to calculate parameters
-        rt_peak_shape <- bigauss.mix(rt_profile, sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
+        rt_peak_shape <- bigauss.mix(rt_profile, sigma_ratio_lim = sigma_ratio_lim, bw = bw, moment_power = moment_power, peak_estim_method = peak_estim_method, eliminate = component_eliminate, BIC_factor = BIC_factor)$param[, c(1, 2, 3, 5)]
       }
 
       if (is.null(nrow(rt_peak_shape))) {
@@ -981,7 +973,7 @@ prof.to.features <- function(profile,
     }
   }
   peak_parameters <- peak_parameters[order(peak_parameters[, "mz"], peak_parameters[, "rt"]), ]
-  peak_parameters <- peak_parameters[which(apply(peak_parameters[, c("sd1", "sd2")], 1, min) > sd.cut[1] & apply(peak_parameters[, c("sd1", "sd2")], 1, max) < sd.cut[2]), ]
+  peak_parameters <- peak_parameters[which(apply(peak_parameters[, c("sd1", "sd2")], 1, min) > sd_cut[1] & apply(peak_parameters[, c("sd1", "sd2")], 1, max) < sd_cut[2]), ]
   rownames(peak_parameters) <- NULL
 
   if (do.plot) {

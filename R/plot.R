@@ -23,13 +23,13 @@ draw_rt_normal_peaks <- function(x, truth) {
 
 #' @export
 plot_raw_profile_histogram <- function(raw.prof,
-                                       min.pres,
+                                       min_pres,
                                        baseline.correct,
                                        baseline.correct.noise.percentile,
-                                       tol,
+                                       mz_tol,
                                        new.prof) {
-  h.1 <- log10(raw.prof$height.rec[raw.prof$height.rec[, 2] <= max(2, raw.prof$min.count.run * min.pres / 2), 3])
-  h.2 <- log10(raw.prof$height.rec[raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min.pres, 3])
+  h.1 <- log10(raw.prof$height.rec[raw.prof$height.rec[, 2] <= max(2, raw.prof$min.count.run * min_pres / 2), 3])
+  h.2 <- log10(raw.prof$height.rec[raw.prof$height.rec[, 2] >= raw.prof$min.count.run * min_pres, 3])
   
   if (is.na(baseline.correct)) {
     baseline.correct <- 10 ^ quantile(h.1, baseline.correct.noise.percentile)
@@ -44,7 +44,7 @@ plot_raw_profile_histogram <- function(raw.prof,
   }
   par(mfrow = c(2, 2))
   
-  draw_plot(main = "tolerance level loaded", label = tol)
+  draw_plot(main = "tolerance level loaded", label = mz_tol)
   
   if (length(h.1) > 50) {
     plot(density(h.1),
@@ -144,17 +144,4 @@ draw_rt_correction_plot <- function(colors,
       col = colors[i], cex = .2
     )
   }
-}
-
-#' @export
-plot_rt_histograms <- function(pk.times,
-                               mz_sd) {
-    hist(mz_sd,
-        xlab = "m/z SD", ylab = "Frequency",
-        main = "m/z SD distribution"
-    )
-    hist(apply(pk.times[, -1:-4], 1, sd, na.rm = TRUE),
-        xlab = "Retention time SD", ylab = "Frequency",
-        main = "Retention time SD distribution"
-    )
 }
