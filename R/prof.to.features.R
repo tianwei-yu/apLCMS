@@ -435,7 +435,7 @@ bigauss.esti <- function(x, y, power = 1, do.plot = FALSE, sigma.ratio.lim = c(0
 }
 
 #' @description
-#' Calculation three initial bi-gaussian parameters (sd1, sd2, and scaling factor)
+#' Calculates the three initial bi-gaussian parameters (sd1, sd2, and scaling factor)
 #' @param rt_profile A matrix with two columns: "base.curve" (rt) and "intensity".
 #' @param vlys A vector of sorted RT-valley values at which the kernel estimate was computed.
 #' @param dx Difference between neighbouring RT values with step 2.
@@ -919,7 +919,6 @@ prof.to.features <- function(profile,
   max.bw <- bws[["max.bw"]]
   
   # base.curve <- compute_base_curve(profile[, "rt"])
-  # base.curve <- sort(unique(profile$rt))
   base.curve <- sort(unique(profile$rt))
   base.curve <- cbind(base.curve, base.curve * 0)
   
@@ -935,10 +934,10 @@ prof.to.features <- function(profile,
   for (i in seq_along(feature_groups))
   {
     # init variables
-    feature_group <- feature_groups[[i]] |> dplyr::arrange_at("rt") #feature_group <- feature_group[order(feature_group[, "rt"]), ]
+    feature_group <- feature_groups[[i]] |> dplyr::arrange_at("rt") 
 
     num_features <- nrow(feature_group)
-    ## The estimation procedure for a single peak
+    # The estimation procedure for a single peak
     # Defines the dataframe containing median_mz, median_rt, sd1, sd2, and area
     if (dplyr::between(num_features, 2, 10)) {
       # linear interpolation of  missing intensities and calculate the area for a single EIC
@@ -951,7 +950,7 @@ prof.to.features <- function(profile,
       rt_peak_shape <- c(feature_group[1], feature_group[2], NA, NA, feature_group[3] * time_weights)
       peak_parameters <- rbind(peak_parameters, rt_peak_shape)
     }
-    ## application of model and method selected 
+    # application of selected model and method  
     if (num_features > 10) {
       # find bandwidth for these particular range
       rt_range <- range(feature_group[, "rt"])
@@ -966,7 +965,7 @@ prof.to.features <- function(profile,
       if (shape.model == "Gaussian") {
         rt_peak_shape <- compute_gaussian_peak_shape(rt_profile, power, bw, component.eliminate, BIC.factor, aver_diff) ## compute gaussian parameters, use normix.bic() which use ksmoother
       } else {
-        ## apply EM algorithm to calculate parameters
+        # apply EM algorithm to calculate parameters
         rt_peak_shape <- bigauss.mix(rt_profile, sigma.ratio.lim = sigma.ratio.lim, bw = bw, power = power, estim.method = estim.method, eliminate = component.eliminate, BIC.factor = BIC.factor)$param[, c(1, 2, 3, 5)]
       }
 
