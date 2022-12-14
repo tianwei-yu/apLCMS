@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - refactored `proc.cdf.R` and `adaptive.bin.R` [#137](https://github.com/RECETOX/recetox-aplcms/pull/137)
 - refactored `cont.index.R` and renamed as `run_filter.R` [#156](https://github.com/RECETOX/recetox-aplcms/pull/156)
 - use proper sample IDs inside feature tables [#153](https://github.com/RECETOX/recetox-aplcms/pull/153)
+- refactored and documented `prof.to.features.R` [#xxx](https://github.com/RECETOX/recetox-aplcms/pull/xxx)
 ### Removed
 
 ## [0.9.4] - 2022-05-10
