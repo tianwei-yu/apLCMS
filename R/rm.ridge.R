@@ -9,6 +9,7 @@
 #'   \item under_rt - lower retention time interval
 #'   \item within_rt - intermediate retention time interval
 #' }
+#' @export
 compute_rt_intervals <- function(rt, intensity, rt_range){
     rt_max <- max(rt[rt_range])
     rt_min <- min(rt[rt_range])
@@ -34,7 +35,7 @@ compute_rt_intervals <- function(rt, intensity, rt_range){
 #' @param bw Bandwidth for the kernel smoother. A very wide one is used here.
 #' @return A vector of intensity values at each rt intervals is returned.
 #' @importFrom dplyr between
-#' @ertport
+#' @export
 rm.ridge <- function(rt, intensity, bw) {
     this_rt <- which(intensity < quantile(intensity, 0.75))
 
