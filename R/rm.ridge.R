@@ -1,34 +1,56 @@
+#' @description
+#' Computes retention time intervals of a selected retention time range.
+#' @param rt full retention time vector.
+#' @param intensity Intensity vector.
+#' @param rt_range Selected retention time range vector.
+#' @return A list object:
+#' \itemize{
+#'   \item over_rt - upper retention time interval
+#'   \item under_rt - lower retention time interval
+#'   \item within_rt - intermediate retention time interval
+#' }
+compute_rt_intervals <- function(rt, intensity, rt_range){
+    rt_max <- max(rt[rt_range])
+    rt_min <- min(rt[rt_range])
+
+    over_rt <- which(rt > rt_max)
+    under_rt <-  which(rt < rt_min)
+    within_rt <- which(between(rt, rt_min, rt_max))
+
+    rt_range <- new("list")
+    rt_range$over_rt <- over_rt
+    rt_range$under_rt <- under_rt
+    rt_range$within_rt <- within_rt
+    return(rt_range)
+}
+
 #' Removing long ridges at the same m/z.
 #' 
 #' @description
-#' This is an internal function. It substracts a background estimated through kernel smoothing when an EIC continuously 
-#' span more than half the retention time range.
-#' @param x Retention time vector.
-#' @param y2 Intensity vector.
+#' This is an internal function. It substracts a background when an EIC continuously 
+#' span more than half the retention time range. The background is estimated through kernel smoothing.
+#' @param rt Retention time vector.
+#' @param intensity Intensity vector.
 #' @param bw Bandwidth for the kernel smoother. A very wide one is used here.
-#' @return A vector of intensity value is returned.
+#' @return A vector of intensity values at each rt intervals is returned.
 #' @importFrom dplyr between
-#' @export
-rm.ridge <- function(x,y2, bw) {
+#' @ertport
+rm.ridge <- function(rt, intensity, bw) {
+    this_rt <- which(intensity < quantile(intensity, 0.75))
+
+    rt_intervals <- compute_rt_intervals(rt, intensity, this_rt)
+
+    rt_over <- rt_intervals$over_rt 
+    rt_under <- rt_intervals$under_rt
+    rt_within <- rt_intervals$within_rt
+
+    this.s <- ksmooth(rt[this_rt], intensity[this_rt], x.points = rt[rt_within], kernel = "normal", bandwidth = bw)
+    if(sum(is.na(this.s$y)) > 0) return(intensity)
     
-    sel <- which(y2<quantile(y2, 0.75))
-    sel_max_min <- tibble::tibble(max_sel = max(x[sel]), min_sel = min(x[sel]))
-    max.x.sel <- sel_max_min$max_sel
-    min.x.sel <- sel_max_min$min_sel
-     
-    in.sel <- which(between(x, min.x.sel, max.x.sel))
-    sel_over_under <- tibble::tibble(over_sel = which(x > max.x.sel), under_sel = which(x < min.x.sel))
-    over.sel <- sel_over_under$over_sel 
-    under.sel <- sel_over_under$under_sel 
+    intensity[rt_within] <- intensity[rt_within] - this.s$y
+    intensity[rt_over] <- intensity[rt_over] - this.s$y[which(this.s$x == max(this.s$x))[1]]
+    intensity[rt_under] <- intensity[rt_under] - this.s$y[which(this.s$x == min(this.s$x))[1]]
     
-    
-    this.s <- ksmooth(x[sel], y2[sel], x.points = x[in.sel], kernel = "normal", bandwidth = bw)
-    if(sum(is.na(this.s$y)) > 0) return(y2)
-    
-    y2[in.sel] <- y2[in.sel] - this.s$y
-    y2[over.sel] <- y2[over.sel]-this.s$y[which(this.s$x==max(this.s$x))[1]]
-    y2[under.sel] <- y2[under.sel]-this.s$y[which(this.s$x==min(this.s$x))[1]]
-    
-    y2[y2<0] <- 0
-    return(y2)
+    intensity[intensity < 0] <- 0
+    return(intensity)
 }
