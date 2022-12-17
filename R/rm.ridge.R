@@ -2,7 +2,7 @@
 #' Computes retention time intervals of a selected retention time range.
 #' @param rt full retention time vector.
 #' @param intensity Intensity vector.
-#' @param rt_range Selected retention time range vector.
+#' @param rt_sel Selected retention time range vector.
 #' @return A list object:
 #' \itemize{
 #'   \item over_rt - upper retention time interval
@@ -10,19 +10,15 @@
 #'   \item within_rt - intermediate retention time interval
 #' }
 #' @export
-compute_rt_intervals <- function(rt, intensity, rt_range){
-    rt_max <- max(rt[rt_range])
-    rt_min <- min(rt[rt_range])
+compute_rt_intervals <- function(rt, rt_sel){
+    rt_max <- max(rt[rt_sel])
+    rt_min <- min(rt[rt_sel])
 
     over_rt <- which(rt > rt_max)
     under_rt <-  which(rt < rt_min)
     within_rt <- which(between(rt, rt_min, rt_max))
 
-    rt_range <- new("list")
-    rt_range$over_rt <- over_rt
-    rt_range$under_rt <- under_rt
-    rt_range$within_rt <- within_rt
-    return(rt_range)
+    list(over_rt = over_rt, under_rt = under_rt, within_rt = within_rt)
 }
 
 #' Removing long ridges at the same m/z.
@@ -39,7 +35,7 @@ compute_rt_intervals <- function(rt, intensity, rt_range){
 rm.ridge <- function(rt, intensity, bw) {
     this_rt <- which(intensity < quantile(intensity, 0.75))
 
-    rt_intervals <- compute_rt_intervals(rt, intensity, this_rt)
+    rt_intervals <- compute_rt_intervals(rt, this_rt)
 
     rt_over <- rt_intervals$over_rt 
     rt_under <- rt_intervals$under_rt
