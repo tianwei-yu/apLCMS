@@ -1,7 +1,6 @@
 #' @description
 #' Computes retention time intervals of a selected retention time range.
 #' @param rt full retention time vector.
-#' @param intensity Intensity vector.
 #' @param rt_sel Selected retention time range vector.
 #' @return A list object:
 #' \itemize{
