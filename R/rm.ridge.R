@@ -1,5 +1,5 @@
 #' @description
-#' Computes retention time intervals of a selected retention time range.
+#' Computes indices of retention time intervals of a selected retention time range.
 #' @param rt full retention time vector.
 #' @param rt_sel Selected retention time range vector.
 #' @return A list object:
