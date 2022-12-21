@@ -4,9 +4,9 @@
 #' @param rt_sel Selected retention time range vector.
 #' @return A list object:
 #' \itemize{
-#'   \item over_rt - upper retention time interval
-#'   \item under_rt - lower retention time interval
-#'   \item within_rt - intermediate retention time interval
+#'   \item over_rt - indices of upper retention time interval
+#'   \item under_rt - indices of lower retention time interval
+#'   \item within_rt - indices of intermediate retention time interval
 #' }
 #' @export
 compute_rt_intervals <- function(rt, rt_sel){
@@ -41,7 +41,9 @@ rm.ridge <- function(rt, intensity, bw) {
     rt_within <- rt_intervals$within_rt
 
     this.s <- ksmooth(rt[this_rt], intensity[this_rt], x.points = rt[rt_within], kernel = "normal", bandwidth = bw)
-    if(sum(is.na(this.s$y)) > 0) return(intensity)
+    if(sum(is.na(this.s$y)) > 0) {
+        return(intensity)
+    }
     
     intensity[rt_within] <- intensity[rt_within] - this.s$y
     intensity[rt_over] <- intensity[rt_over] - this.s$y[which(this.s$x == max(this.s$x))[1]]
