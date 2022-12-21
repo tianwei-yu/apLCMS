@@ -9,7 +9,7 @@
 #'   \item within_rt - indices of intermediate retention time interval
 #' }
 #' @export
-compute_rt_intervals <- function(rt, rt_sel){
+compute_rt_intervals_indices <- function(rt, rt_sel){
     rt_max <- max(rt[rt_sel])
     rt_min <- min(rt[rt_sel])
 
@@ -34,7 +34,7 @@ compute_rt_intervals <- function(rt, rt_sel){
 rm.ridge <- function(rt, intensity, bw) {
     this_rt <- which(intensity < quantile(intensity, 0.75))
 
-    rt_intervals <- compute_rt_intervals(rt, this_rt)
+    rt_intervals <- compute_rt_intervals_indices(rt, this_rt)
 
     rt_over <- rt_intervals$over_rt 
     rt_under <- rt_intervals$under_rt
