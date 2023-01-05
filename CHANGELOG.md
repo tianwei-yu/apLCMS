@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [dev] - unreleased
 
 ### Added
+- refactored `rm.ridge.R` [#171](https://github.com/RECETOX/recetox-aplcms/pull/171)
+- refactored and documented `prof.to.features.R` [#170](https://github.com/RECETOX/recetox-aplcms/pull/170)
+
 ### Changed
 ### Removed
 
@@ -33,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - docstrings and documentation files for refactored functions [#160](https://github.com/RECETOX/recetox-aplcms/pull/160)
 - refactored parameter names to keep them more harmonized [#167](https://github.com/RECETOX/recetox-aplcms/pull/167)
 - moved some utility functions to a more suitable locations [#164](https://github.com/RECETOX/recetox-aplcms/pull/164)
-- refactored `rm.ridge.R` [#171](https://github.com/RECETOX/recetox-aplcms/pull/171)
 
 ### Removed
 - `extract_features` and `feature.align` [#154](https://github.com/RECETOX/recetox-aplcms/pull/154)
