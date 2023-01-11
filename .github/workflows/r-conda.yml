@@ -68,17 +68,10 @@ jobs:
         run: wget -P tests/testdata/template -i tests/remote-files/template.txt
       - name: Fetch unsupervised test data
         run: wget -P tests/testdata/unsupervised -i tests/remote-files/unsupervised.txt
-      - name: Activate conda environment
-        run: conda activate recetox-aplcms
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          use-public-rspm: true
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::covr
-          needs: coverage
 
       - name: Test coverage
-        run: covr::codecov(quiet = FALSE)
+        run: |
+          conda activate recetox-aplcms
+          devtools::install_github("r-lib/covr")
+          covr::codecov(quiet = FALSE)
         shell: Rscript {0}
