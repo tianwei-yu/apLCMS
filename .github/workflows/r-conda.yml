@@ -72,6 +72,5 @@ jobs:
       - name: Test coverage
         run: |
           conda activate recetox-aplcms
-          devtools::install_github("r-lib/covr")
-          covr::codecov(quiet = FALSE)
-        shell: Rscript {0}
+          Rscript -e "devtools::install_github('r-lib/covr')"
+          Rscript -e "covr::codecov(quiet = FALSE)"
