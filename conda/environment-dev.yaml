@@ -36,4 +36,4 @@ dependencies:
   - radian
   - r-httpgd
   - r-microbenchmark
-
+  - r-covr

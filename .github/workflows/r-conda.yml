@@ -19,6 +19,8 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     defaults:
       run:
         shell: bash -l {0}
@@ -66,7 +68,8 @@ jobs:
         run: wget -P tests/testdata/template -i tests/remote-files/template.txt
       - name: Fetch unsupervised test data
         run: wget -P tests/testdata/unsupervised -i tests/remote-files/unsupervised.txt
-      - name: Run devtools::check()
+
+      - name: Test coverage
         run: |
           conda activate recetox-aplcms
-          Rscript -e "devtools::check('.', error_on = 'error')"
+          Rscript -e "covr::codecov(quiet = FALSE)"
