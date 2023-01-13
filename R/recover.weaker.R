@@ -148,6 +148,7 @@ compute_target_times <- function(aligned_rts,
 
     aligned_rts[sel_non_na] <- predict(sp, aligned_rts[sel_non_na])$y
   }
+  return(aligned_rts)
 }
 
 #' Get boolean mask for values that occur only once.
