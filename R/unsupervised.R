@@ -211,7 +211,7 @@ unsupervised <- function(
   recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
       filename = filenames[[i]],
-      sample_name = as.character(i),
+      sample_name = sample_names[i],
       extracted_features = feature_tables[[i]],
       adjusted_features = corrected[[i]],
       metadata_table = aligned$metadata,
