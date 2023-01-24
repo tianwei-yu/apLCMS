@@ -4,17 +4,14 @@
 #' @export
 sort_data <- function(sample_names, feature_tables){
   index <- c()
-  for(i in seq_along(sample_names))
+  for (i in seq_along(sample_names))
   {
-    for(x in seq_along(sample_names))
-    {
-      if(sample_names[i] == feature_tables[[x]]$sample_id[1])
-      {
-        index <-  append(index, x)
-      }
-    }
+    index <-  append(index, feature_tables[[i]]$sample_id[1])
   }
+  
+  index <- match(sample_names, index)
   feature_tables <- feature_tables[index]
+
   return(feature_tables)
 }
 
