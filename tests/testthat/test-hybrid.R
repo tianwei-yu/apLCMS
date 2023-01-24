@@ -1,7 +1,7 @@
 patrick::with_parameters_test_that("basic hybrid test", {
   if(ci_skip == TRUE) skip_on_ci()
 
-  if (skip) {
+  if (full_testdata) {
     skip("skipping whole data test case")
   }
 
@@ -55,16 +55,16 @@ patrick::cases(
   mbr = list(
     files = c("mbr_test0.mzml", "mbr_test1.mzml", "mbr_test2.mzml"),
     ci_skip = TRUE,
-    skip = FALSE
+    full_testdata = FALSE
   ),
   RCX_shortened = list(
     files = c("RCX_06_shortened.mzML", "RCX_07_shortened.mzML", "RCX_08_shortened.mzML"),
     ci_skip = FALSE,
-    skip = FALSE
+    full_testdata = FALSE
   ),
   qc_no_dil_milliq = list(
     files = c("8_qc_no_dil_milliq.mzml", "21_qc_no_dil_milliq.mzml", "29_qc_no_dil_milliq.mzml"),
     ci_skip = TRUE,
-    skip = TRUE
+    full_testdata = TRUE
   )
 ))

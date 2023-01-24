@@ -3,7 +3,7 @@ patrick::with_parameters_test_that(
   {
     store_reports <- FALSE
 
-    if (skip) {
+    if (full_testdata) {
       skip("skipping whole data test case")
     }
 
@@ -37,15 +37,15 @@ patrick::with_parameters_test_that(
   patrick::cases(
     mbr_test = list(
       files = c("mbr_test0.mzml", "mbr_test1.mzml", "mbr_test2.mzml"),
-      skip = FALSE
+      full_testdata = FALSE
     ),
     RCX_shortened = list(
       files = c("RCX_06_shortened.mzML", "RCX_07_shortened.mzML", "RCX_08_shortened.mzML"),
-      skip = FALSE
+      full_testdata = FALSE
     ),
     qc_no_dil_milliq = list(
       files = c("8_qc_no_dil_milliq.mzml", "21_qc_no_dil_milliq.mzml", "29_qc_no_dil_milliq.mzml"),
-      skip = TRUE
+      full_testdata = TRUE
     )
   )
 )
