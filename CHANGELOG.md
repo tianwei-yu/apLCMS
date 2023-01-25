@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [dev] - unreleased
 
 ### Added
+- refactored `rm.ridge.R` [#171](https://github.com/RECETOX/recetox-aplcms/pull/171)
+- refactored and documented `prof.to.features.R` [#170](https://github.com/RECETOX/recetox-aplcms/pull/170)
 - added full testdata case for `unsupervised.R` and `hybrid.R` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
 - added function to sort data in `compute_clusters.R` to return sorted data [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
 
