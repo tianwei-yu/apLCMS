@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [dev] - unreleased
 
 ### Added
+- added full testdata case for `unsupervised.R` and `hybrid.R` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
+- added function to sort data in `compute_clusters.R` to return sorted data [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
+
 ### Changed
+- updated remote files with the full data get links [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
+- fixed parameter value of recover.weaker in `unsupervised.R` and `hybrid.R` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
+
 ### Removed
 
 ## [0.10.0] - 2022-12-07
