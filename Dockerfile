@@ -25,4 +25,4 @@ RUN conda config --add channels conda-forge && \
     conda config --set channel_priority strict && \
     conda env create -f conda/environment-dev.yaml
 
-ENTRYPOINT ["/bin/local/miniconda/envs/recetox-aplcms/bin/R", "-e", "devtools::test()"]
+ENTRYPOINT ["/bin/local/miniconda/envs/recetox-aplcms-dev/bin/R", "-e", "devtools::test()"]

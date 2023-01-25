@@ -29,7 +29,7 @@ register_functions_to_cluster <- function(cluster) {
         'bigauss.esti',
         'rev_cum_sum',
         'compute_bounds',
-        'validate_inputs',
+        'validate_model_method_input',
         'preprocess_bandwidth',
         'preprocess_profile',
         'compute_gaussian_peak_shape',
