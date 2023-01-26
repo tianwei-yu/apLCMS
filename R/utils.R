@@ -53,11 +53,9 @@ register_functions_to_cluster <- function(cluster) {
 #' 
 #' @param features list List of tibbles containing extracted feature tables.
 concatenate_feature_tables <- function(features, sample_names) {
-    if(!all(is.na(sample_names))) {
-        for (i in seq_along(features)) {
-            if(!("sample_id" %in% colnames(features[[i]]))) {
-                features[[i]] <- tibble::add_column(features[[i]], sample_id = sample_names[i])
-            }
+    for (i in seq_along(features)) {
+        if(!("sample_id" %in% colnames(features[[i]]))) {
+            features[[i]] <- tibble::add_column(features[[i]], sample_id = sample_names[i])
         }
     }
     
