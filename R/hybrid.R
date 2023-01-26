@@ -405,7 +405,8 @@ hybrid <- function(
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = rt_tol_relative,
-    do.plot = do_plot
+    do.plot = do_plot,
+    sample_names = sample_names
   )
 
   message("**** feature alignment ****")
@@ -426,12 +427,12 @@ hybrid <- function(
       rt_tol_relative = adjusted_clusters$rt_tol_relative,
       from_features_to_known_table = FALSE
   )
-
+  
   message("**** weaker signal recovery ****")
   recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
       filename = filenames[[i]],
-      sample_name = as.character(i),
+      sample_name = sample_names[i],
       extracted_features = extracted[[i]],
       adjusted_features = corrected[[i]],
       metadata_table = merged$metadata,
@@ -460,9 +461,10 @@ hybrid <- function(
     mz_tol_absolute = mz_tol_absolute,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = rt_tol_relative,
-    do.plot = do_plot
+    do.plot = do_plot,
+    sample_names = sample_names
   )
-
+  
   message("**** computing template ****")
   template_features <- compute_template(recovered_clusters$feature_tables)
 
@@ -482,9 +484,10 @@ hybrid <- function(
     mz_tol_absolute = recovered_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = rt_tol_relative,
-    do.plot = do_plot
+    do.plot = do_plot,
+    sample_names = sample_names
   )
-
+  
   message("**** second feature alignment ****")
   recovered_aligned <- create_aligned_feature_table(
       dplyr::bind_rows(adjusted_clusters$feature_tables),

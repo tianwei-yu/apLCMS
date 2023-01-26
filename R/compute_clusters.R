@@ -1,4 +1,20 @@
 
+#' @description
+#' Sort tibble based on sample_names
+#' @export
+sort_data <- function(sample_names, feature_tables){
+  index <- c()
+  for (i in seq_along(sample_names))
+  {
+    index <-  append(index, feature_tables[[i]]$sample_id[1])
+  }
+  
+  index <- match(sample_names, index)
+  feature_tables <- feature_tables[index]
+
+  return(feature_tables)
+}
+
 #' Compute clusters of mz and rt and assign cluster id to individual features.
 #' 
 #' @description
@@ -83,6 +99,8 @@ compute_clusters <- function(feature_tables,
     dplyr::group_by(sample_id) |>
     dplyr::arrange_at(c("mz", "rt")) |>
     dplyr::group_split()
-
+  
+  feature_tables <- sort_data(sample_names, feature_tables)
+  
   return(list(feature_tables = feature_tables, rt_tol_relative = rt_tol_relative, mz_tol_relative = mz_tol_relative))
 }

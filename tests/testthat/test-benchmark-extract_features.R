@@ -1,7 +1,7 @@
 patrick::with_parameters_test_that(
   "test benchmark",
   {
-    if (skip) {
+    if (skip_benchmark) {
       skip("Disabled")
     }
 
@@ -97,7 +97,7 @@ patrick::with_parameters_test_that(
       intensity_weighted = FALSE,
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      skip = FALSE
+      skip_benchmark = FALSE
     )
   )
 )

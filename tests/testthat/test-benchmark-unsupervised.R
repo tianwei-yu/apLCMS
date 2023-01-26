@@ -1,7 +1,7 @@
 patrick::with_parameters_test_that(
   "test benchmark",
   {
-    if (skip) {
+    if (skip_benchmark) {
       skip("Disabled")
     }
 
@@ -37,7 +37,7 @@ patrick::with_parameters_test_that(
   patrick::cases(
     mbr_test = list(
       filename = c("mbr_test0", "mbr_test1", "mbr_test2"),
-      skip = TRUE
+      skip_benchmark = TRUE
     )
   )
 )

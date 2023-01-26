@@ -2,6 +2,11 @@ patrick::with_parameters_test_that(
   "basic unsupervised test",
   {
     store_reports <- FALSE
+
+    if (full_testdata) {
+      skip("skipping whole data test case")
+    }
+
     test_files <- sapply(files, function(x) file.path("../testdata/input", x))
 
     expected <- arrow::read_parquet(file.path("../testdata/unsupervised", paste0(.test_name, "_unsupervised.parquet")))
@@ -30,7 +35,17 @@ patrick::with_parameters_test_that(
     expect_equal(actual, expected, tolerance = 0.01)
   },
   patrick::cases(
-    mbr_test = list(files = c("mbr_test0.mzml", "mbr_test1.mzml", "mbr_test2.mzml")),
-    RCX_shortened = list(files = c("RCX_06_shortened.mzML", "RCX_07_shortened.mzML", "RCX_08_shortened.mzML"))
+    mbr_test = list(
+      files = c("mbr_test0.mzml", "mbr_test1.mzml", "mbr_test2.mzml"),
+      full_testdata = FALSE
+    ),
+    RCX_shortened = list(
+      files = c("RCX_06_shortened.mzML", "RCX_07_shortened.mzML", "RCX_08_shortened.mzML"),
+      full_testdata = FALSE
+    ),
+    qc_no_dil_milliq = list(
+      files = c("8_qc_no_dil_milliq.mzml", "21_qc_no_dil_milliq.mzml", "29_qc_no_dil_milliq.mzml"),
+      full_testdata = TRUE
+    )
   )
 )

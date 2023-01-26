@@ -195,7 +195,8 @@ unsupervised <- function(
     mz_tol_absolute = extracted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = rt_tol_relative,
-    do.plot = do_plot
+    do.plot = do_plot,
+    sample_names = sample_names
   )
 
   message("**** feature alignment ****")
@@ -211,7 +212,7 @@ unsupervised <- function(
   recovered <- lapply(seq_along(filenames), function(i) {
     recover.weaker(
       filename = filenames[[i]],
-      sample_name = as.character(i),
+      sample_name = sample_names[i],
       extracted_features = feature_tables[[i]],
       adjusted_features = corrected[[i]],
       metadata_table = aligned$metadata,
@@ -240,7 +241,8 @@ unsupervised <- function(
     mz_tol_absolute = adjusted_clusters$rt_tol_relative,
     mz_max_diff = 10 * mz_tol,
     rt_tol_relative = rt_tol_relative,
-    do.plot = do_plot
+    do.plot = do_plot,
+    sample_names = sample_names
   )
 
   message("**** feature alignment ****")

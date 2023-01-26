@@ -2,7 +2,7 @@ patrick::with_parameters_test_that(
   "extract single feature works",
   {
     skip_on_ci()
-    if (skip) {
+    if (full_testdata) {
       skip("skipping whole data test case")
     }
 
@@ -86,7 +86,7 @@ patrick::with_parameters_test_that(
       intensity_weighted = FALSE,
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      skip = FALSE
+      full_testdata = FALSE
     ),
     qc_no_dil_milliq = list(
       files = c("8_qc_no_dil_milliq.mzml", "21_qc_no_dil_milliq.mzml", "29_qc_no_dil_milliq.mzml"),
@@ -97,7 +97,7 @@ patrick::with_parameters_test_that(
       intensity_weighted = FALSE,
       sd_cut = c(0.01, 500),
       sigma_ratio_lim = c(0.01, 100),
-      skip = TRUE
+      full_testdata = TRUE
     )
   )
 )
