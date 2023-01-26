@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fixed parameter value of recover.weaker in `unsupervised.R` and `hybrid.R` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
 
 ### Removed
+removed NA check in `concatenate_feature_tables` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
 
 ## [0.10.0] - 2022-12-07
 
