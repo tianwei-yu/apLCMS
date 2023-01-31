@@ -4,19 +4,19 @@
 \alias{rm.ridge}
 \title{Removing long ridges at the same m/z.}
 \usage{
-rm.ridge(x, y2, bw)
+rm.ridge(rt, intensity, bw)
 }
 \arguments{
-\item{x}{Retention time vector.}
+\item{rt}{Retention time vector.}
 
-\item{y2}{Intensity vector.}
+\item{intensity}{Intensity vector.}
 
 \item{bw}{Bandwidth for the kernel smoother. A very wide one is used here.}
 }
 \value{
-A vector of intensity value is returned.
+A vector of intensity values at each rt intervals is returned.
 }
 \description{
-This is an internal function. It substracts a background estimated through kernel smoothing when an EIC continuously 
-span more than half the retention time range.
+This is an internal function. It substracts a background when an EIC continuously 
+span more than half the retention time range. The background is estimated through kernel smoothing.
 }
