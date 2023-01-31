@@ -1,5 +1,5 @@
 {% set name = "recetox-aplcms" %}
-{% set version = "0.10.0" %}
+{% set version = "0.10.1" %}
 {% set github = "https://github.com/RECETOX" %}
 
 package:
