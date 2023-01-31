@@ -439,8 +439,8 @@ hybrid <- function(
       rt_table = merged$rt,
       intensity_table = merged$intensity,
       mz_tol = mz_tol,
-      mz_tol_relative = extracted_clusters$mz_tol_relative,
-      rt_tol_relative = extracted_clusters$rt_tol_relative,
+      mz_tol_relative = adjusted_clusters$mz_tol_relative,
+      rt_tol_relative = adjusted_clusters$rt_tol_relative,
       recover_mz_range = recover_mz_range,
       recover_rt_range = recover_rt_range,
       use_observed_range = use_observed_range,
@@ -524,8 +524,8 @@ hybrid <- function(
     corrected_features = corrected,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
-    aligned_mz_tolerance = as.numeric(recovered_aligned$mz_tolerance),
-    aligned_rt_tolerance = as.numeric(recovered_aligned$rt_tolerance),
+    aligned_mz_tolerance = as.numeric(adjusted_clusters$mz_tolerance),
+    aligned_rt_tolerance = as.numeric(adjusted_clusters$rt_tolerance),
     updated_known_table = as.data.frame(augmented$known_table),
     features_known_table_pairing = as.data.frame(augmented$pairing)
   )
