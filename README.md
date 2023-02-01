@@ -86,7 +86,7 @@ To use a docker development environment you need **Docker** installed on your ma
     ```shell
     $ apt install git && git config --global --add safe.directory /usr/src/recetox-aplcms
     ```
-- Enter a Conda environment by running `conda activate recetox-aplcms`
+- Enter a Conda environment by running `conda activate recetox-aplcms-dev`
 - Run `R` or `radian` to enter R terminal (we recommend `radian` due to its ease of use);
 - A good starting point would be fetching the test data as described above, running `devtools::test()` and waiting until all tests pass to ensure the environment is set correctly.
 
