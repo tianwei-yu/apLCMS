@@ -20,9 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - updated remote files with the full data get links [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
 - fixed parameter value of recover.weaker in `unsupervised.R` and `hybrid.R` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
+- reinstated returning tolerances from clusters and passed them in `unsupervised.R` and `hybrid.R` [#178](https://github.com/RECETOX/recetox-aplcms/pull/178)
 
 ### Removed
-removed NA check in `concatenate_feature_tables` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
+- removed NA check in `concatenate_feature_tables` [#177](https://github.com/RECETOX/recetox-aplcms/pull/177)
 
 ## [0.10.0] - 2022-12-07
 
