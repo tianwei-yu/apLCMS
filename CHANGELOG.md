@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
-## [0.10.1] - 2023-01-31
+## [0.10.1] - 2023-02-02
 
 ### Added
 - refactored `rm.ridge.R` [#171](https://github.com/RECETOX/recetox-aplcms/pull/171)
