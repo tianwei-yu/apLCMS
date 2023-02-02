@@ -219,8 +219,8 @@ unsupervised <- function(
       rt_table = aligned$rt,
       intensity_table = aligned$intensity,
       mz_tol = mz_tol,
-      mz_tol_relative = aligned$mz_tol_relative,
-      rt_tol_relative = aligned$rt_tol_relative,
+      mz_tol_relative = adjusted_clusters$mz_tol_relative,
+      rt_tol_relative = adjusted_clusters$rt_tol_relative,
       recover_mz_range = recover_mz_range,
       recover_rt_range = recover_rt_range,
       use_observed_range = use_observed_range,
@@ -271,7 +271,7 @@ unsupervised <- function(
     corrected_features = recovered$adjusted_features,
     aligned_feature_sample_table = aligned_feature_sample_table,
     recovered_feature_sample_table = recovered_feature_sample_table,
-    aligned_mz_tolerance = as.numeric(aligned$mz_tol_relative),
-    aligned_rt_tolerance = as.numeric(aligned$rt_tol_relative)
+    aligned_mz_tolerance = as.numeric(recovered_clusters$mz_tol_relative),
+    aligned_rt_tolerance = as.numeric(recovered_clusters$rt_tol_relative)
   )
 }

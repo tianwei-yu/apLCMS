@@ -22,6 +22,7 @@ register_functions_to_cluster <- function(cluster) {
         'compute_breaks',
         'compute_breaks_3',
         'compute_boundaries',
+        'compute_rt_intervals_indices',
         'increment_counter',
         'rm.ridge',
         'compute_delta_rt',
