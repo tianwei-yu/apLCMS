@@ -28,7 +28,7 @@ duplicate.row.remove <- function(features, tolerance = 1e-10) {
     }
   }
 
-  if(length(to.remove) > 0) {
+  if (length(to.remove) > 0) {
     new.table <- new.table[-to.remove, ]
   }
   new.table
@@ -104,9 +104,9 @@ compute_mass_density <- function(features,
 #' @return vector Custom chromatographic tolerances to use for each feature.
 #' @export
 get_custom_rt_tol <- function(use_observed_range,
-                               peak_rts,
-                               rt_range,
-                               aligned_features) {
+                              peak_rts,
+                              rt_range,
+                              aligned_features) {
   custom_rt_tol <- rep(rt_range, nrow(aligned_features))
 
   if (use_observed_range) {
@@ -331,7 +331,7 @@ compute_pks_vlys_rt <- function(features, times, bandwidth, target_rt, recover_m
 
   num_peaks <- count_peaks(roi, features$rt)
 
-  if (!is.null (target_rt) && !is.na(target_rt)) {
+  if (!is.null(target_rt) && !is.na(target_rt)) {
     pks.d <- abs(pks - target_rt) # distance from the target peak location
     pks.d[num_peaks == 0] <- Inf
     pks <- pks[which.min(pks.d)]
@@ -682,8 +682,11 @@ recover.weaker <- function(filename,
 
   aver.diff <- mean(diff(times))
   vec_delta_rt <- compute_delta_rt(times)
-  
-  sample_intensities <- unlist(dplyr::select(intensity_table, dplyr::contains(sample_name)), use.names = FALSE)
+
+  sample_intensities <- unlist(dplyr::select(
+    intensity_table %>% dplyr::rename_with(~ str_remove(., "_intensity")),
+    sample_name
+  ), use.names = FALSE)
 
   custom.mz.tol <- recover_mz_range * metadata_table$mz
   custom.rt.tol <- get_custom_rt_tol(
@@ -770,7 +773,7 @@ recover.weaker <- function(filename,
           rt = this.rec$rt[this.sel],
           area = this.rec$intensities[this.sel]
         )
-        
+
         this.time.adjust <- (-extracted_features$rt[this.pos.diff] + adjusted_features$rt[this.pos.diff])
 
         adjusted_features <- adjusted_features |> tibble::add_row(
