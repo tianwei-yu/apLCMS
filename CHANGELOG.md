@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.10.2] - 2023-03-08
+### Added
+### Changed
+- fixed bug in recover.weaker related to sample name matching [#180](https://github.com/RECETOX/recetox-aplcms/pull/180)
+### Removed
+
 ## [0.10.1] - 2023-02-02
 
 ### Added
