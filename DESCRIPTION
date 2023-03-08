@@ -1,6 +1,6 @@
 Package: recetox.aplcms
 Title: Adaptive processing of LC-MS data
-Version: 0.10.1
+Version: 0.10.2
 Date: 2020-06-16
 Authors@R: c(
     person("Tianwei", "Yu", email = "tianwei.Yu@emory.edu", role = "aut"),
